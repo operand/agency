@@ -1,0 +1,10 @@
+*.egg-info/
+*.py[cod]
+.DS_Store
+.env
+.venv
+__pycache__/
+build/
+dist/
+nohup.out
+tmp/

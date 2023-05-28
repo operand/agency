@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Chat App</title>
+  <style>
+    body,
+    #root {
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #chatbox {
+      flex-grow: 1;
+      overflow: auto;
+      padding: 10px;
+      border: 1px solid black;
+    }
+
+    #input-area {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      border: 1px solid black;
+      border-top: none;
+    }
+
+    #user-input {
+      flex-grow: 1;
+      margin-right: 10px;
+      resize: none;
+      /* Disables manual resizing */
+      /* overflow: hidden;  Hides the scrollbar */
+    }
+  </style>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script>
+    this.window.__everything_channel_id = "{{ channel_id }}";
+  </script>
+
+  {% raw %}
+  <script type="text/babel">
+    class ChatApp extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = {
+          messages: [
+            // TODO: hydrate this with previous messages on load
+          ],
+          input: ''
+        };
+        this.socket = io.connect('http://localhost:8080');
+      }
+
+      removeQuotes(string) {
+        return string.replace(/(^')|('$)|(^")|("$)/g, "");
+      }
+
+      parseArguments(parts) {
+        let args = {};
+
+        for (let i = 1; i < parts.length; i++) {
+          let [key, ...val] = parts[i].split(":", 1);
+          val = val.length > 0 ? val[0] : true;
+
+          try {
+            args[key] = JSON.parse(this.removeQuotes(val));
+          } catch (e) {
+            args[key] = val;
+          }
+        }
+
+        return args;
+      }
+
+      // The equivalent of the python method in util.py
+      parseSlashSyntaxAction(action_text) {
+        if (!action_text.startsWith("/")) {
+          return {
+            "action": "say",
+            "args": { "content": action_text }
+          }
+        }
+
+        let parts = action_text.split(" ");
+        let action_name = parts[0].substring(1);
+        let args = this.parseArguments(parts);
+
+        return {
+          "from": window.__everything_channel_id,
+          "to": args['to'] || "Space",
+          "thoughts": "",
+          "action": action_name,
+          "args": args
+        };
+      }
+
+
+
+      componentDidMount() {
+        this.socket.on('message', (msg) => {
+          this.setState(state => {
+            console.log(msg)
+            // Replace the last message (the "thinking..." message) with the server's response
+            const messages = state.messages.slice(0, -1);
+            messages.push(msg);
+            return { messages };
+          });
+        });
+
+        this.socket.on('permission_request', (proposed_msg) => {
+          const answer = window.confirm(`Do you permit the following?\n${proposed_msg}`);
+          this.socket.emit('permission_response')
+        });
+      }
+
+      handleInputChange = (event) => {
+        this.setState({ input: event.target.value });
+      }
+
+      handleKeyDown = (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault(); // Prevents the addition of a new line in the input field
+          if (event.shiftKey) {
+            // Add a newline character to the input
+            this.setState(state => ({ input: state.input + '\n' }));
+          } else {
+            // Send the message
+            this.sendMessage();
+          }
+        }
+      }
+
+      sendMessage = () => {
+        const content = this.state.input;
+        if (content.trim() !== '') {
+          const action = this.parseSlashSyntaxAction(content);
+          const newMessage = {
+            from: window.__everything_channel_id,
+            to: "Space",
+            thoughts: "",
+            ...action
+          }
+          console.log(newMessage);
+          this.setState(state => ({
+            // append our message to the list of messages
+            messages: [
+              ...state.messages,
+              newMessage,
+              "..."
+            ],
+            input: ''
+          }));
+          // send it to the server
+          this.socket.emit('message', content);
+        }
+      }
+
+      render() {
+        return (
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div id="chatbox">
+              {this.state.messages.map((message, index) => (
+                <div key={index}>({
+                  message.from ? message.from.split('.')[0] : ''
+                }): {
+                  typeof message === 'string' ? message :
+                  message.args.content || message.args.return_value || message.args.error_message
+                }</div>
+              ))}
+            </div>
+            <div id="input-area">
+              <textarea id="user-input" value={this.state.input} onChange={this.handleInputChange} onKeyDown={this.handleKeyDown} />
+              <button onClick={this.sendMessage}>Send</button>
+            </div>
+          </div>
+        );
+      }
+    }
+
+    const root = document.getElementById('root');
+    ReactDOM.createRoot(root).render(<ChatApp />);
+  </script>
+  {% endraw %}
+</body>
+
+</html>
