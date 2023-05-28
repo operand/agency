@@ -143,14 +143,14 @@ Each `Operator`, may send a `help` message to discover which other operators,
 channels, and actions are available in the space, and what arguments they take.
 
 ```python
-# TODO
+# TODO write an example
 ```
 
 This common `help` action, allows both human users _and_ AI agents or any other
 system to discover and call on each other!
 
 ```python
-# TODO
+# TODO write an example
 ```
 
 
