@@ -101,13 +101,13 @@ Space([
     ...
   ))
 
-  # Existing AI agent frameworks may integrate as either an Operator or Channel
+  # Existing AI agent frameworks may integrate as well
   Operator("MyLangChainAgent", LangChainAgentChannel(
     ...
   ))
 
-  # Model training is also minimized. You would only need to add one new
-  # channel that reads in a data set and sends it as messages to the channel
+  # Model training is also benefited. You would only need to add one new
+  # channel that reads a data set and sends it as messages to the channel
   # class used for inference, provided the underlying LM is first switched to a
   # training mode.
   # For example:
