@@ -55,73 +55,85 @@ Space([
   # Each channel may take whatever configuration makes sense for it.
 
   # A chat-like web UI driven by a human
-  Operator("Dan", WebChannel(
+  WebChannel(
+    Operator("Dan"),
     port: 8080,
-  )),
+  ),
 
   # A language model backend
-  Operator("ChattyAI", ChattyLMChannel(
+  ChattyLMChannel(
+    Operator("ChattyAI"), 
     model="chattylm/123b"
-  )),
+  ),
 
 
   # One could easily add many more. (the following are NOT implemented)
 
   # Allow access to an OS for file i/o etc.
-  Operator("Ubuntu", OSChannel(
+  OSChannel(
+    Operator("Ubuntu"), 
     ...
-  )),
+  ),
 
   # Add a concurrent channel to "Dan" for speech in/out, like an Alexa
-  Operator("Dan", VoiceAssistantChannel(
+  VoiceAssistantChannel(
+    Operator("Dan"), 
     ...
-  ))
+  )
 
   # "Dan" may also communicate via email through another channel
-  Operator("Dan", EmailChannel(
+  EmailChannel(
+    Operator("Dan"), 
     ...
-  ))
+  )
 
   # Perhaps "ChattyAI" also uses multiple channels, like one for images
-  Operator("ChattyAI", ImageIOChannel(
+  ImageIOChannel(
+    Operator("ChattyAI"),
     ...
-  ))
+  )
 
   # Horizontal scaling of LM backends could be achieved by duplicating channels
   # (notice we repeat the last one)
-  Operator("ChattyAI", ImageIOChannel(
+  ImageIOChannel(
+    Operator("ChattyAI"),
     ...
-  ))
+  )
 
   # Existing AI agent frameworks may integrate as well
-  Operator("MyLangChainAgent", LangChainAgentChannel(
+  LangChainAgentChannel(
+    Operator("MyLangChainAgent"),
     ...
-  ))
+  )
 
   # Model training is also benefited. You would only need to add one new
   # channel that reads a data set and sends it as messages to the channel
   # class used for inference, provided the underlying LM is first switched to a
   # training mode.
   # For example:
-  Operator("LMTrainer", LMTrainerChannel(
+  LMTrainerChannel(
+    Operator("LMTrainer"),
     trainee: "ChattyAIInTraining",
     ...
-  ))
-  Operator("ChattyAIInTraining", ChattyLMChannel(
+  )
+  ChattyLMChannel(
+    Operator("ChattyAIInTraining"),
     training_mode: True,
     ...
-  ))
+  )
 
   # Network with friends and share your LM's and Agents for fun and profit
-  Operator("AgentHelperDude", RemoteAgentChannel(
+  RemoteAgentChannel(
+    Operator("AgentHelperDude"),
     url: "https://agent.helper.dude:2023",
     ...
-  ))
+  )
 
   # You get the idea...
-  Operator("Guest", AnySystemOrPersonOrFunctionAtAllThatYouWantToShareChannel(
+  AnySystemOrPersonOrFunctionAtAllThatYouWantToShareChannel(
+    Operator("Guest"),
     ...
-  ))
+  )
 ]).create()
 ```
 
