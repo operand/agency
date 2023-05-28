@@ -1,15 +1,7 @@
 # `everything`
 
-A fast and minimal foundation for building "multi-operator" systems in
-python.
-
-
-## What is a "multi-operator" system?
-
-It's the best term I can come up with to say:
-
-> A system where human, AI, and other computing systems may interact with each
-other via a common messaging protocol.
+A fast and minimal foundation for combining human, AI, and other computing
+systems, in python
 
 
 ## How does `everything` work?
