@@ -47,8 +47,8 @@ allowing you to limit the resources and directories it may access.
 # Example Use
 
 ```python
-# We simply pass an array of `Operator`s to the `Space` initializer.
-# Each Operator has a unique name and may connect through multiple `Channel`s.
+# We simply pass an array of `Channel`s to the `Space` initializer.
+# Each Channel has a single named Operator, representing a user or outside system.
 Space([
 
   # We'll start with two typical operators. (These channels are implemented)
