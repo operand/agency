@@ -51,7 +51,7 @@ allowing you to limit the resources and directories it may access.
 # Each Channel has a single named Operator, representing a user or outside system.
 Space([
 
-  # We'll start with two typical operators. (These channels are implemented)
+  # We'll start with two typical Channels. (These are implemented)
   # Each channel may take whatever configuration makes sense for it.
 
   # A chat-like web UI driven by a human
