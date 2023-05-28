@@ -20,7 +20,7 @@ or other systems may equally connect and "talk" to each other.
 Artificial systems as well as humans are addressed equally in the chat-room as
 individual "operators" that you may perform "actions" on.
 
-`everything` hides the details of the common messaging protocol and allows
+`everything` hides the details of the common messaging format and allows
 discovering and invoking actions across all parties, automatically handling
 things such as reporting exceptions, enforcing access restrictions, and more.
 
@@ -231,9 +231,15 @@ _each_ request, thanks to logic in `ChattyLMChannel`. As the context size limit
 is reached, `ChattyLMChannel` could summarize as needed to represent earlier
 events.
 
-This ability to reconstruct context from a prior message stream into an
-appropriate message for any given operator is fundamental to the flexibility
-that `everything` provides.
+Also, note how each participant may see an entirely different view of the messages passed.
+
+An AI agent (full example to come), may see conversations with only structured
+messages that follow a format, whereas a human in that same conversation may
+only need to be presented with the "thoughts" field, as things are happening...
+
+The combined ability of restoring context from prior messages and translating
+to/from a common message schema is fundamental to the flexibility that
+`everything` provides.
 
 This leaves the developer to only need to define the minimum translation and
 "re-hydration" logic to interface with any new system, and ignore the details of
