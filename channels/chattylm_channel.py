@@ -5,7 +5,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
 # This class is an example of how you can create a channel that constructs
-# a prompt using previous messages and sends it to a backend AI model.
+# a prompt using previous messages and sends it to a backend language model.
 
 
 class ChattyLMChannel(Channel):
