@@ -154,16 +154,40 @@ interact via messages we also call `Action`s.
 Each `Operator`, may send a `help` message to discover which other operators,
 channels, and actions are available in the space, and what arguments they take.
 
+The `WebChannel`, driven by a human (probably) supports a "slash" syntax
+summarized here:
 ```python
-# TODO write an example
+/actionname arg1:val1 arg2:val2 arg3:
+```
+Note that an empty argument value is considered true.
+
+So, for a person using the web UI, they can discover the available actions in
+their space with:
+```python
+/help
+```
+And that will return a (currently crude) data structure listing the actions.
+
+---
+
+Agents may be presented with the same help information, either as part of their
+prompt or they may act directly by invoking the /help action themselves.
+
+Note that Agents, like any other "operator" does not need to follow the same 
+syntax for passing action messages. To the agent, they may be trained to
+communicate entirely in JSON.
+
+So just to illustrate, the equivalent of an Agent's /help command could be:
+```json
+{
+  "from": "AgentChannel",
+  "action": "help",
+  "args": {}
+}
 ```
 
-This common `help` action, allows both human users _and_ AI agents or any other
-system to discover and call on each other!
-
-```python
-# TODO write an example
-```
+This approach allows both human users _and_ AI agents or any other system to
+dynamically discover and call on each other!
 
 
 ## Going Deeper
@@ -329,5 +353,6 @@ artificial, and other computing systems together, with the following priorities.
   - multimodal model example
 - Consider queuing/storage API
 - Consider prior work on distributed access control
+- Consider cross compiling to support multiple languages
 - Add a docker file to encourage using it
 - [_feel free to make suggestions_](https://github.com/operand/everything/issues)
