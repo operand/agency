@@ -40,20 +40,21 @@ Projects like LangChain, AutoGPT, the HF agent API, and others are exploring how
 to create purpose-built agents that solve diverse problems using tools.
 
 `everything` is concerned with creating a safe and dynamic _environment_ for
-these types of agents to work, where they can _discover_ and use the tools
-available in their given environment.
+these types of agents to work, where they can _discover_ and communicate with
+the tools, as well as each other, and any humans available in their given
+environment.
 
-`everything` provides a simple means for defining actions _and_ access policies
-on those actions that you can use to monitor and ensure safety for the systems
-you expose to your agents.
+`everything` provides a simple means for defining actions, callbacks, _and_
+access policies on those actions that you can use to monitor and ensure safety
+for the systems you expose to your agents.
 
 A central part of the design, is that humans and other systems can easily
 integrate as well, using a simple common format for messages. You can even use
-`everything` to set up a basic chat room to interface with other systems and
-not use agents at all!
+`everything` to set up a basic chat room to interface with other systems and not
+use agents at all!
 
-So, `everything` is very much a compliment to agent libraries and is intended
-to enable agents to safely integrate with _any_ system imaginable.
+So, `everything` is very much a compliment to agent libraries and is intended to
+enable agents to safely integrate with _any_ systems in any way imaginable.
 
 
 # Install
