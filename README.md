@@ -260,9 +260,9 @@ that requires _you_ as the developer of a channel to indicate what form of
 access control you associate with each action on the channel. The access policy
 can currently be one of three values:
 
-- "always" - which permits any operator in the space to use that action at any time
-- "never" - which prevents use
-- "ask" - which will prompt the receiving operator for permission when access is
+- `always` - which permits any operator in the space to use that action at any time
+- `never` - which prevents use
+- `ask` - which will prompt the receiving operator for permission when access is
 attempted. Access will await your approval or denial. If denied, the sender is
 notified of the denial and reason.
 
@@ -273,8 +273,6 @@ a priority.
 ```python
 # TODO write an example
 ```
-
-
 
 
 # Contributing
