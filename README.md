@@ -19,8 +19,8 @@ individual "operators" that you may perform "actions" on.
 discovering and invoking actions across all parties, automatically handling
 things such as reporting exceptions, enforcing access restrictions, and more.
 
-By defining just a single channel class, the API may accommodate systems as
-varied as:
+By defining just a single `Channel` subclass, the API may accommodate systems
+as varied as:
 - voice assistants
 - UI driven applications
 - terminal environments
