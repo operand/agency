@@ -50,6 +50,10 @@ allowing you to limit the resources and directories it may access.
 
 # Example Use
 
+In the following example, please note that the first two channel classes
+`WebChannel` and `ChattyLMChannel` are minimally implemented for you to try out.
+The rest are hypothetical but example implementations may follow.
+
 ```python
 # We simply pass an array of `Channel`s to the `Space` initializer.
 # Each Channel has a single named Operator, representing a user or outside system.
