@@ -181,6 +181,7 @@ So just to illustrate, the equivalent of an Agent's /help command could be:
 ```json
 {
   "from": "AgentChannel",
+  "thoughts": "I need to find what actions are available",
   "action": "help",
   "args": {}
 }
