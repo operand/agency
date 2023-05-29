@@ -15,7 +15,7 @@ interface to them.
 number of humans, artificial, or other computing systems may equally address
 each other as individual "operators" that you may perform "actions" on.
 
-`everything` hides the details of the common messaging format and allows
+`everything` handles the details of the common messaging system and allows
 discovering and invoking actions across all parties, automatically handling
 things such as reporting exceptions, enforcing access restrictions, and more.
 
