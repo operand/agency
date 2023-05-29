@@ -184,7 +184,7 @@ summarized here:
 ```python
 /actionname arg1:val1 arg2:val2 arg3:
 ```
-Note that an empty argument value is considered true.
+_Note that an empty argument value is considered true._
 
 So, for a person using the chat UI, they can discover the available actions in
 their space with:
@@ -196,13 +196,13 @@ And that will return a (currently crude) data structure listing the actions.
 ---
 
 Agents may be presented with the same help information, either as part of their
-prompt or they may act directly by invoking the /help action themselves.
+prompt or they may act directly by invoking the `/help` action themselves.
 
 Note that Agents, like any other "operator" does not need to follow the same 
-syntax for passing action messages. The Agent may be designed to communicate
-entirely in JSON.
+syntax for calling actions. An Agent may, for example, be designed to
+communicate entirely in JSON.
 
-So just to illustrate, the equivalent of an Agent's /help command could be:
+So just to illustrate, the equivalent of an Agent's `/help` command in JSON could be:
 ```json
 {
   "from": "AgentChannel",
