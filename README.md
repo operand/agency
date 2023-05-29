@@ -142,7 +142,7 @@ Space([
 ```
 
 
-## Discovering and invoking Actions
+## Discovering and Invoking Actions
 
 After loading the above, all the `Operator`'s are in the same `Space`, and can
 interact via messages we also call `Action`s.
