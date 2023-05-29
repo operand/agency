@@ -76,19 +76,6 @@ class WebChannel(Channel):
     approves the action"""
     self.socketio.server.emit('permission_request', proposed_message)
 
-  @access_policy(ACCESS_ALWAYS)
-  def _action__error(self, original_message, error_message: dict):
-    """
-    Define this action to handle errors from an action
-    """
-    raise NotImplementedError
-
-  @access_policy(ACCESS_ALWAYS)
-  def _action__return(self, original_message, return_value):
-    """
-    Define this action to handle returned data from an action
-    """
-
   # We use the _after_action__ method to pass through all messages to the
   # socketio web client
   def _after_action___(self, original_message, return_value, error):
@@ -98,3 +85,11 @@ class WebChannel(Channel):
   @access_policy(ACCESS_ALWAYS)
   def _action__say(self, content: str):
     pass
+
+  @access_policy(ACCESS_ALWAYS)
+  def _action__error(self, original_message, error_message: dict):
+    """
+    Define this action to handle errors from an action
+    """
+    # TODO send the error to the user
+    raise NotImplementedError

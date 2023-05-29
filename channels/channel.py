@@ -223,6 +223,22 @@ class Channel():
     """
     return self._get_help(action_name)
 
+  @access_policy(ACCESS_ALWAYS)
+  def _action__return(self, original_message, return_value):
+    """
+    Overwrite this action to handle returned data from a prior action
+    By default, this action simply sends a "say" action as a reply
+    """
+    self._send({
+      "from": original_message['to'],
+      "to": self.id(),
+      "thoughts": "A value was returned for your action",
+      "action": "say",
+      "args": {
+        "content": return_value.__str__(), # cast as string
+      },
+    })
+
   # Override the following methods as needed to implement your channel
 
   @abstractmethod
@@ -241,14 +257,6 @@ class Channel():
     Define this action to handle errors from an action
     """
     # TODO: handle errors during errors to stop infinite loops
-    raise NotImplementedError
-
-  @abstractmethod
-  @access_policy(ACCESS_ALWAYS)
-  def _action__return(self, original_message, return_value):
-    """
-    Define this action to handle returned data from an action
-    """
     raise NotImplementedError
 
   def _after_action___(self, original_message, return_value, error):
