@@ -11,9 +11,9 @@ systems, in python
 abstraction of a "channel" sitting in front of each actor, serving as an
 interface to them.
 
-`everything` establishes a sort of "chat-room" where any number of humans,
-artificial, or other computing systems may equally address eachother as
-individual "operators" that you may perform "actions" on.
+`everything` establishes a sort of chat-room called a "space" where any
+number of humans, artificial, or other computing systems may equally address
+each other as individual "operators" that you may perform "actions" on.
 
 `everything` hides the details of the common messaging format and allows
 discovering and invoking actions across all parties, automatically handling
