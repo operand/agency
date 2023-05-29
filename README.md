@@ -6,17 +6,22 @@ systems, in python
 
 ## How does `everything` work?
 
-`everything` establishes a sort of "chat-room" where any number of humans, AI's,
-or other systems may equally connect and "talk" to each other.
+`everything` is an implementation of the
+[Actor pattern](https://en.wikipedia.org/wiki/Actor_model) with an additional
+abstraction of a "channel" sitting in front of each actor, serving as an
+interface to them.
 
-Artificial systems as well as humans are addressed equally in the chat-room as
-individual "operators" that you may perform "actions" on.
+`everything` establishes a sort of "chat-room" where any number of humans,
+artificial, or other computing systems may equally connect and "talk" to each
+other through, addressing eachother as individual "operators" that you may
+perform "actions" on.
 
 `everything` hides the details of the common messaging format and allows
 discovering and invoking actions across all parties, automatically handling
 things such as reporting exceptions, enforcing access restrictions, and more.
 
-The API described below accommodates systems as varied as:
+By defining just a single channel class, the API may accommodate systems as
+varied as:
 - voice assistants
 - UI driven applications
 - terminal environments
@@ -159,11 +164,6 @@ system to discover and call on each other!
 
 
 ## Going Deeper
-
-`everything` is an implementation of the
-[Actor pattern](https://en.wikipedia.org/wiki/Actor_model) with an additional
-abstraction of a "channel" sitting in front of each actor, serving as an
-interface to them.
 
 What makes `everything` work flexibly is largely thanks to the `Channel` class
 and its responsibility in translating from the shared messaging format to any
