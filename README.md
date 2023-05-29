@@ -154,14 +154,14 @@ interact via messages we also call `Action`s.
 Each `Operator`, may send a `help` message to discover which other operators,
 channels, and actions are available in the space, and what arguments they take.
 
-The `WebChannel`, driven by a human (probably) supports a "slash" syntax
+The `WebChannel` which hosts a simple chat UI, supports a "slash" syntax
 summarized here:
 ```python
 /actionname arg1:val1 arg2:val2 arg3:
 ```
 Note that an empty argument value is considered true.
 
-So, for a person using the web UI, they can discover the available actions in
+So, for a person using the chat UI, they can discover the available actions in
 their space with:
 ```python
 /help
@@ -174,8 +174,8 @@ Agents may be presented with the same help information, either as part of their
 prompt or they may act directly by invoking the /help action themselves.
 
 Note that Agents, like any other "operator" does not need to follow the same 
-syntax for passing action messages. To the agent, they may be trained to
-communicate entirely in JSON.
+syntax for passing action messages. The Agent may be designed to communicate
+entirely in JSON.
 
 So just to illustrate, the equivalent of an Agent's /help command could be:
 ```json
