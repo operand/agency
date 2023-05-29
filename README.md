@@ -330,4 +330,4 @@ artificial, and other computing systems together, with the following priorities.
 - Consider queuing/storage API
 - Consider prior work on distributed access control
 - Add a docker file to encourage using it
-- _feel free to make suggestions_
+- [_feel free to make suggestions_](https://github.com/operand/everything/issues)
