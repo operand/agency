@@ -198,8 +198,8 @@ And that will return a (currently crude) data structure listing the actions.
 Agents may be presented with the same help information, either as part of their
 prompt or they may act directly by invoking the `/help` action themselves.
 
-Note that Agents, like any other "operator" does not need to follow the same 
-syntax for calling actions. An Agent may, for example, be designed to
+Note that agents, like any other "operator" do not need to follow the same 
+"slash" syntax for calling actions. An Agent may, for example, be designed to
 communicate entirely in JSON.
 
 So just to illustrate, the equivalent of an Agent's `/help` command in JSON could be:
