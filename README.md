@@ -30,6 +30,29 @@ as varied as:
 - anything
 
 
+## How does `everything` compare to agent libraries like LangChain?
+
+`everything` is not an agent toolset and does not intend to be.
+
+Projects like LangChain, AutoGPT, the HF agent API, and others are exploring how
+to create purpose built agents that solve diverse problems using tools.
+
+`everything` is concerned with creating a safe and dynamic _environment_ for
+these types of agents to work, where they can _discover_ and use the tools
+available in their given environment.
+
+`everything` provides a simple means for defining actions, _and_ defining
+access policies on those actions that you can use to ensure safety for the
+systems you expose to your agents.
+
+A central part of the design, is that humans and other systems can easily
+integrate as well, using a simple common format for messages. You can even use
+`everything` to set up a basic chat room and not use Agents at all!
+
+So, `everything` is very much a compliment to Agent toolchains and is intended
+to enable agents to safely integrate with _any_ system imaginable.
+
+
 # Install
 
 I haven't published this as a pip package yet, so for now just:
