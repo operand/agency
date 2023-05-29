@@ -42,7 +42,7 @@ how to create purpose built agents that solve diverse problems using tools.
 these types of agents to work, where they can _discover_ and use the tools
 available in their given environment.
 
-`everything` provides a simple means for defining actions, _and_ defining
+`everything` provides a simple means for defining actions _and_ defining
 access policies on those actions that you can use to ensure safety for the
 systems you expose to your agents.
 
