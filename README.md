@@ -33,7 +33,7 @@ as varied as:
 ## How does `everything` compare to agent libraries like LangChain?
 
 `everything` is not an agent toolset and does not intend to be. It can be
-thought of as an "integration" framework.
+thought of as an "integration" framework, intended for use with agents.
 
 Projects like LangChain, AutoGPT, the HF agent API, and others are exploring
 how to create purpose built agents that solve diverse problems using tools.
@@ -49,7 +49,7 @@ systems you expose to your agents.
 A central part of the design, is that humans and other systems can easily
 integrate as well, using a simple common format for messages. You can even use
 `everything` to set up a basic chat room to interface with other systems and
-not use Agents at all!
+not use agents at all!
 
 So, `everything` is very much a compliment to agent libraries and is intended
 to enable agents to safely integrate with _any_ system imaginable.
