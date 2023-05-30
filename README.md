@@ -199,7 +199,7 @@ their space with:
 ```python
 /help
 ```
-And that will return a (currently crude) data structure listing the actions.
+and that will return a data structure listing the actions.
 
 ---
 
@@ -304,12 +304,13 @@ only need to be presented with the "thoughts" field, as things are happening...
 
 The combined ability of restoring context from prior messages and translating
 to/from a common message schema is fundamental to the flexibility that
-`everything` provides.
+the `Channel` class provides.
 
-This leaves the developer to only need to define the minimum translation and
-"re-hydration" logic to interface with any new system, and ignore the details of
-how messages are carried and translated between systems, as long as they can
-translate to/from the [common message schema](./things/schema.py).
+This leaves the developer to only need to define the actions, their policies,
+and the minimum translation logic to interface with any new system, ignoring the
+details of how messages are carried and translated between systems, as long as
+they can translate to/from the
+[common message schema](./things/schema.py).
 
 
 ## Access Control
