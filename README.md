@@ -4,29 +4,29 @@ A fast and minimal foundation for combining human, AI, and other computing
 systems, in python
 
 
-## How does `everything` work?
+## What is `everything`?
 
 `everything` is an implementation of the
 [Actor model](https://en.wikipedia.org/wiki/Actor_model) with an additional
 abstraction of a "channel" sitting in front of each actor, serving as an
-interface to them.
+interface to them. It defines a common communication and action framework for
+integrating AI agents, humans, and traditional computing systems.
 
-`everything` establishes a sort of chat-room called a "space" where any
-number of humans, artificial, or other computing systems may equally address
-each other as individual "operators" that you may perform "actions" on.
+Conceptually, `everything` establishes a sort of chat-room called a "space"
+where any number of humans, artificial, or other computing systems may equally
+address each other as individual "operators" that you may perform "actions" on.
 
 `everything` handles the details of the common messaging system and allows
 discovering and invoking actions across all parties, automatically handling
 things such as reporting exceptions, enforcing access restrictions, and more.
 
-By defining just a single `Channel` subclass, the API allows integration
-of systems and tasks as varied as:
+By defining just a single `Channel` subclass, the API allows integration of
+systems as varied as:
 - voice assistants
 - UI driven applications
 - terminal environments
 - software APIs
-- model training
-- model/agent hosting
+- people
 - ...
 - anything
 
