@@ -85,11 +85,3 @@ class WebChannel(Channel):
   @access_policy(ACCESS_ALWAYS)
   def _action__say(self, content: str):
     pass
-
-  @access_policy(ACCESS_ALWAYS)
-  def _action__error(self, original_message, error_message: dict):
-    """
-    Define this action to handle errors from an action
-    """
-    # TODO send the error to the user
-    raise NotImplementedError

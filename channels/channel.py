@@ -215,6 +215,10 @@ class Channel():
       raise Exception(
         f"Invalid access policy for method: {message['action']}, got '{policy}'")
 
+
+  # Override any of the following methods as needed to implement your channel
+  # The only required method to implement is _ask_permission
+
   @access_policy(ACCESS_ALWAYS)
   def _action__help(self, action_name=None) -> array:
     """
@@ -227,7 +231,7 @@ class Channel():
   def _action__return(self, original_message, return_value):
     """
     Overwrite this action to handle returned data from a prior action
-    By default, this action simply sends a "say" action as a reply
+    By default, this action simply converts it to a "say" action
     """
     self._send({
       "from": original_message['to'],
@@ -235,29 +239,26 @@ class Channel():
       "thoughts": "A value was returned for your action",
       "action": "say",
       "args": {
-        "content": return_value.__str__(), # cast as string
+        "content": return_value.__str__(),
       },
     })
 
-  # Override the following methods as needed to implement your channel
-
-  @abstractmethod
-  def _ask_permission(self, proposed_message: dict) -> bool:
-    """
-    Implement this method to receive a proposed action message and present it to
-    the operator of the channel for review. Return true or false to indicate
-    whether access should be permitted.
-    """
-    raise NotImplementedError
-
-  @abstractmethod
   @access_policy(ACCESS_ALWAYS)
-  def _action__error(self, original_message, error_message: dict):
+  def _action__error(self, original_message, error: dict):
     """
-    Define this action to handle errors from an action
+    Overwrite this action to handle errors from an action
+    By default, this action simply converts it to a "say" action
     """
     # TODO: handle errors during errors to stop infinite loops
-    raise NotImplementedError
+    self._send({
+      "from": original_message['to'],
+      "to": self.id(),
+      "thoughts": "An error occurred while performing your action",
+      "action": "say",
+      "args": {
+        "content": error,
+      },
+    })
 
   def _after_action___(self, original_message, return_value, error):
     """
@@ -268,3 +269,12 @@ class Channel():
     BOTH the action exists _and_ is permitted.
     """
     pass
+
+  @abstractmethod
+  def _ask_permission(self, proposed_message: dict) -> bool:
+    """
+    Implement this method to receive a proposed action message and present it to
+    the operator of the channel for review. Return true or false to indicate
+    whether access should be permitted.
+    """
+    raise NotImplementedError

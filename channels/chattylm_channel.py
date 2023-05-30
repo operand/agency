@@ -44,9 +44,12 @@ class ChattyLMChannel(Channel):
     message
     """
     pre_prompt = self.__pre_prompt(message['from'].split('.')[0])
-    # Since chatty is only for chatting, and only takes a 'say' action, we can
-    # assume that the message is a 'say', and use the content arg.
-    return f"\n{pre_prompt} {message['args']['content']}"
+    if message['action'] == 'say':
+      return f"\n{pre_prompt} {message['args']['content']}"
+    elif message['action'] == 'return':
+      return f"\n{pre_prompt} {message['args']['return_value']}"
+    elif message['action'] == 'error':
+      return f"\n{pre_prompt} {message['args']['error']}"
 
   def __pre_prompt(self, channel_id, timestamp=util.to_timestamp()):
     return f"\n### {channel_id.split('.')[0]}: "

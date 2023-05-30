@@ -377,7 +377,7 @@ artificial, and other computing systems together, with the following priorities.
 
 
 ## Planned work:
-- Add examples
+- Add test driven examples
   - Agent using JSON actions and discovery
   - simple function channel
   - web i/o
