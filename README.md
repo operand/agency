@@ -56,9 +56,9 @@ An additional benefit of its general nature is that `everything` may even be
 used to simplify general machine learning development and training workflows.
 See the example below.
 
-So, `everything` is a more general purpose tool and intended to compliment
-agents and their development, to ultimately enable agents to safely integrate
-with anything, in any way imaginable.
+So, `everything` is a simple but more general purpose library intended to
+compliment agents and their development, to ultimately enable agents to safely
+integrate with anything, in any way imaginable.
 
 
 # Install
