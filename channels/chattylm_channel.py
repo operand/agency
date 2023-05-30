@@ -44,12 +44,14 @@ class ChattyLMChannel(Channel):
     message
     """
     pre_prompt = self.__pre_prompt(message['from'].split('.')[0])
+    # Here we format what a previous message looks like in the prompt
+    # For "say" actions, we just present the content as a line of text
     if message['action'] == 'say':
       return f"\n{pre_prompt} {message['args']['content']}"
-    elif message['action'] == 'return':
-      return f"\n{pre_prompt} {message['args']['return_value']}"
-    elif message['action'] == 'error':
-      return f"\n{pre_prompt} {message['args']['error']}"
+    # For all other actions, we present the full JSON message. This
+    # is more useful for Agents, but is here just as a demonstration.
+    # A chatting AI would probably only deal with "say" actions.
+    return f"\n{pre_prompt} {message}"
 
   def __pre_prompt(self, channel_id, timestamp=util.to_timestamp()):
     return f"\n### {channel_id.split('.')[0]}: "
