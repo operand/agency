@@ -7,7 +7,7 @@ systems, in python
 ## How does `everything` work?
 
 `everything` is an implementation of the
-[Actor pattern](https://en.wikipedia.org/wiki/Actor_model) with an additional
+[Actor model](https://en.wikipedia.org/wiki/Actor_model) with an additional
 abstraction of a "channel" sitting in front of each actor, serving as an
 interface to them.
 
