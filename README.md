@@ -53,7 +53,7 @@ integrate as well, using a simple common format for messages. You can even use
 use agents at all!
 
 So, `everything` is very much a compliment to agent libraries and is intended to
-enable agents to safely integrate with _any_ systems in any way imaginable.
+enable agents to safely integrate with anything, in any way imaginable.
 
 
 # Install
