@@ -65,7 +65,13 @@ anything, in any way imaginable.
 
 # Install
 
-I haven't published this as a pip package yet, so for now just:
+Please note that `everything` is still under active development and is not yet
+at a fully stable release, though it is very close. I expect to have a stable
+API within the next few days. There's not a lot more to do except for shoring up
+what's there with tests etc, but that may reveal some API changes.
+
+As I don't consider it fully stable yet, I haven't published this as a pip
+package, so for now just:
 ```
 git clone git@github.com:operand/everything.git
 pip install ./everything
