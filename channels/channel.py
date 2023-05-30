@@ -217,7 +217,8 @@ class Channel():
 
 
   # Override any of the following methods as needed to implement your channel
-  # The only required method to implement is _ask_permission
+  # If you define any custom _action__* methods, then you must also implement
+  # _ask_permission
 
   @access_policy(ACCESS_ALWAYS)
   def _action__help(self, action_name=None) -> array:
@@ -231,7 +232,7 @@ class Channel():
   def _action__return(self, original_message, return_value):
     """
     Overwrite this action to handle returned data from a prior action
-    By default, this action simply converts it to a "say" action
+    By default, this action simply converts it to an incoming "say"
     """
     self._send({
       "from": original_message['to'],
@@ -247,7 +248,7 @@ class Channel():
   def _action__error(self, original_message, error: dict):
     """
     Overwrite this action to handle errors from an action
-    By default, this action simply converts it to a "say" action
+    By default, this action simply converts it to an incoming "say"
     """
     # TODO: handle errors during errors to stop infinite loops
     self._send({
