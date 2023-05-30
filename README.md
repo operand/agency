@@ -35,7 +35,7 @@ of systems and tasks as varied as:
 
 Though you could entirely create a simple agent using only the primitives in
 `everything`, it is not intended to be a full-fledged agent toolset. It can be
-thought of as more of an "integration" framework, intended for use with agents.
+thought of as more of an agent "integration" framework.
 
 Projects like LangChain, AutoGPT, the HF agent API, and others are exploring how
 to create purpose-built agents that solve diverse problems using tools.
@@ -48,13 +48,13 @@ the tools, each other, and any humans available in their given environment.
 access policies that you can use to monitor and ensure safety for the systems
 you expose to your agents.
 
-A central part of the design, is that humans and other systems can easily
+A central part of the design is that humans and other systems can easily
 integrate as well, using a simple common format for messages. You can even use
 `everything` to set up a basic chat room to interface with other systems and not
 use agents at all!
 
-An additional benefit of its general nature is that `everything` may also be
-used to simplify some machine learning development workflows. See the example below.
+An additional benefit of its general design is that `everything` may also
+simplify some agent development workflows. See the example below.
 
 So, `everything` is a simple but more general purpose library intended to
 compliment agents and their development, to ultimately enable agents to safely
