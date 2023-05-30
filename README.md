@@ -6,11 +6,13 @@ systems, in python
 
 ## What is `everything`?
 
-`everything` is an implementation of the
+`everything` defines a common communication and action framework for integrating
+AI agents, humans, and traditional computing systems.
+
+It is an implementation of the
 [Actor model](https://en.wikipedia.org/wiki/Actor_model) with an additional
 abstraction of a "channel" sitting in front of each actor, serving as an
-interface to them. It defines a common communication and action framework for
-integrating AI agents, humans, and traditional computing systems.
+interface to them.
 
 Conceptually, `everything` establishes a sort of chat-room called a "space"
 where any number of humans, artificial, or other computing systems may equally
@@ -50,15 +52,15 @@ you expose to your agents.
 
 A central part of the design is that humans and other systems can easily
 integrate as well, using a simple common format for messages. You can even use
-`everything` to set up a basic chat room to interface with other systems and not
-use agents at all!
+`everything` to set up a basic chat room to use with friends or other systems
+and not use agents at all!
 
 An additional benefit of its general design is that `everything` may also
 simplify some agent development workflows. See the example below.
 
-So, `everything` is a simple but more general purpose library intended to
-compliment agents and their development, to ultimately enable agents to safely
-integrate with anything, in any way imaginable.
+So, `everything` is a simple but more general framework intended to support
+agent development and to ultimately enable agents to safely integrate with
+anything, in any way imaginable.
 
 
 # Install
