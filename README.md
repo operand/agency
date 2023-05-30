@@ -32,7 +32,7 @@ as varied as:
 
 ## How does `everything` compare to agent libraries like LangChain?
 
-Though you could entirely create an agent using only the primitives in
+Though you could entirely create a simple agent using only the primitives in
 `everything`, it is not intended to be a full-fledged agent toolset. It can be
 thought of as more of an "integration" framework, intended for use with agents.
 
@@ -52,8 +52,13 @@ integrate as well, using a simple common format for messages. You can even use
 `everything` to set up a basic chat room to interface with other systems and not
 use agents at all!
 
-So, `everything` is very much a compliment to agent libraries and is intended to
-enable agents to safely integrate with anything, in any way imaginable.
+An additional benefit of its general nature is that `everything` may even be
+used to simplify general machine learning development and training workflows.
+See the example below.
+
+So, `everything` is a more general purpose tool and intended to compliment
+agents and their development, to ultimately enable agents to safely integrate
+with anything, in any way imaginable.
 
 
 # Install
