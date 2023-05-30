@@ -19,13 +19,14 @@ each other as individual "operators" that you may perform "actions" on.
 discovering and invoking actions across all parties, automatically handling
 things such as reporting exceptions, enforcing access restrictions, and more.
 
-By defining just a single `Channel` subclass, the API may accommodate systems
-as varied as:
+By defining just a single `Channel` subclass, the API allows integration
+of systems and tasks as varied as:
 - voice assistants
 - UI driven applications
 - terminal environments
 - software APIs
-- people
+- model training
+- model/agent hosting
 - ...
 - anything
 
@@ -52,9 +53,8 @@ integrate as well, using a simple common format for messages. You can even use
 `everything` to set up a basic chat room to interface with other systems and not
 use agents at all!
 
-An additional benefit of its general nature is that `everything` may even be
-used to simplify general machine learning development and training workflows.
-See the example below.
+An additional benefit of its general nature is that `everything` may also be
+used to simplify some machine learning development workflows. See the example below.
 
 So, `everything` is a simple but more general purpose library intended to
 compliment agents and their development, to ultimately enable agents to safely
