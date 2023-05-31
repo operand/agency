@@ -1,0 +1,10 @@
+# Core library requirements
+asyncio
+python-dotenv
+
+# Required by ChattyLMChannel example
+transformers
+
+# Required by WebChannel example
+Flask-SocketIO
+eventlet
