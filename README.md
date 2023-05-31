@@ -95,19 +95,19 @@ The rest are hypothetical but example implementations may follow.
 
 ```python
 # We simply pass an array of `Channel`s to the `Space` initializer.
-# Each Channel has a single named Operator, representing a user or outside system.
 Space([
 
   # We'll start with two typical Channels. (These are implemented)
-  # Each channel may take whatever configuration makes sense for it.
+  # Each Channel has a single named Operator, representing a user or outside
+  # system and may take additional configuration options.
 
-  # A chat-like web UI driven by a human
+  # A web UI driven by a human
   WebChannel(
     Operator("Dan"),
     port: 8080,
   ),
 
-  # A language model backend
+  # A simple chatting AI
   ChattyLMChannel(
     Operator("ChattyAI"), 
     model="chattylm/123b"
@@ -198,14 +198,14 @@ summarized here:
 ```python
 /actionname arg1:val1 arg2:val2 arg3:
 ```
-_Note that an empty argument value is considered true._
+_(Note that an empty argument value is considered true.)_
 
-So, for a person using the chat UI, they can discover the available actions in
-their space with:
+So a person using the chat UI can discover the available actions in their space
+with:
 ```python
 /help
 ```
-and that will return a data structure listing the actions.
+And that will return a data structure listing the actions.
 
 ---
 
@@ -337,11 +337,6 @@ notified of the denial and reason.
 
 This is just a start, and further development of the access control mechanics is
 a priority.
-
-
-```python
-# TODO write an example
-```
 
 
 # Contributing
