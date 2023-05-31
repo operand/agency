@@ -1,9 +1,9 @@
 import threading
 import time
 import unittest
-from channels.channel import Channel
-from things.space import Space
-from things.operator import Operator
+from everything.channels.channel import Channel
+from everything.things.space import Space
+from everything.things.operator import Operator
 
 
 class TestChannel(Channel):
