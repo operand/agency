@@ -1,2 +1,2 @@
--e ./setup.py
+-e .
 pip-tools
