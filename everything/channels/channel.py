@@ -3,8 +3,8 @@ from array import array
 import inspect
 import re
 import traceback
-from things.schema import MessageSchema
-import things.util as util
+from everything.things.schema import MessageSchema
+import everything.things.util as util
 import queue
 
 
