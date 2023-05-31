@@ -1,7 +1,7 @@
 import threading
 import time
 import unittest
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock, create_autospec
 from everything.channels.channel import Channel
 from everything.things.space import Space
 from everything.things.operator import Operator
@@ -12,7 +12,8 @@ from everything.things.operator import Operator
 class TestSpace(unittest.TestCase):
   def setUp(self):
     # Create space in a separate thread
-    self.mock_channel = Mock(spec=Channel)
+    self.mock_channel = create_autospec(Channel)
+    self.mock_channel._process.return_value = AsyncMock()
     self.space = Space([
       self.mock_channel(Operator("test")),
     ])
