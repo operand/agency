@@ -363,11 +363,10 @@ pip install -r requirements-dev.txt
 
 You can run the (currently minimal) test suite with:
 ```bash
-python -m unittest discover -s tests
+python3 -m unittest discover -s tests
 ```
 
-This test suite is currently set up to run on pull requests to the `main`
-branch.
+The test suite is currently set up to run on pull requests to the `main` branch.
 
 
 # Roadmap
