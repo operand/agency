@@ -4,7 +4,7 @@
 #
 #    pip-compile requirements-dev.in
 #
--e file:///app/everything
+-e .
     # via -r requirements-dev.in
 asyncio==3.4.3
     # via everything
