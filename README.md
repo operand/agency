@@ -37,7 +37,7 @@ systems as varied as:
 
 Though you could entirely create a simple agent using only the primitives in
 `everything`, it is not intended to be a full-fledged agent toolset. It can be
-thought of as more of an agent "integration" framework.
+thought of as more of an "agent integration framework".
 
 Projects like LangChain, AutoGPT, the HF agent API, and others are exploring how
 to create purpose-built agents that solve diverse problems using tools.
@@ -392,8 +392,8 @@ artificial, and other computing systems together, with the following priorities.
     - video
   - model training example
   - multimodal model example
-- Consider queuing/storage API
+- Consider generalizing queuing/storage API
 - Consider prior work on distributed access control
-- Consider cross compiling to support multiple languages
+- Consider cross compiling to C and other languages
 - Add a docker file to encourage using it
 - [_feel free to make suggestions_](https://github.com/operand/everything/issues)
