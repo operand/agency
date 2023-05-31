@@ -13,14 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
+    - uses: actions/setup-python@v2
+      with: { python-version: 3.9 }
     - name: Install development dependencies
       run: |
+        ls -l
         python -m pip install --upgrade pip
         pip install -r requirement-dev.txt
-    - name: Run tests
-      run: |
-        python -m unittest discover tests
+    - run: python -m unittest discover tests
