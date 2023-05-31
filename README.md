@@ -230,7 +230,7 @@ This approach allows both human users _and_ AI agents or any other system to
 dynamically discover and call on each other!
 
 
-## Going Deeper
+# Going Deeper
 
 What makes `everything` work flexibly is largely thanks to the `Channel` class
 and its responsibility in translating from the shared messaging format to any
@@ -346,14 +346,14 @@ Please feel free to open PRs!
 If you have questions, suggestions, or problems, please open an
 [issue](https://github.com/operand/everything/issues).
 
-## Development installation
+## Development Installation
 
 You can install development dependencies with:
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-## Test suite
+## Test Suite
 
 You can run the (currently minimal) test suite with:
 ```bash
@@ -369,7 +369,7 @@ My goal is to maintain a minimal, natural, and practical API for bringing human,
 artificial, and other computing systems together, with the following priorities.
 
 
-## Priorities:
+## Priorities
 - **Speed**:
   Performance is always a concern. If it's not performant, it's not practical.
   There is a clear opportunity to use established messaging/queueing solutions
@@ -396,7 +396,7 @@ artificial, and other computing systems together, with the following priorities.
   readme serves as a start.
 
 
-## Planned work:
+## Planned Work
 - Add test driven examples
   - Agent using JSON actions and discovery
   - simple function channel
