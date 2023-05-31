@@ -1,6 +1,6 @@
 # `everything`
 
-A fast and minimal foundation for combining human, AI, and other computing
+A fast and minimal foundation for integrating human, AI, and other computing
 systems, in python
 
 
