@@ -66,12 +66,13 @@ anything, in any way imaginable.
 # Install
 
 Please note that `everything` is still under active development and is not yet
-at a fully stable release, though it is very close. I expect to have a stable
-API within the next few days. There's not a lot more to do except for shoring up
-what's there with tests etc, but that may reveal some API changes.
+at a first stable release, though it is close. I expect to have a stable 0.1.0
+API version within the next few days. There's not a lot more to do except for
+shoring up what's there with tests etc, but that may reveal some minor API
+changes.
 
-As I don't consider it fully stable yet, I haven't published this as a pip
-package, so for now just:
+As I don't consider it stable yet, I haven't published this as a pip package, so
+for now just:
 ```
 git clone git@github.com:operand/everything.git
 pip install ./everything
@@ -346,7 +347,26 @@ a priority.
 
 # Contributing
 
-Feel free to open PRs or issues!
+Please feel free to open PRs!
+
+If you have questions, suggestions, or problems, please open an
+[issue](https://github.com/operand/everything/issues).
+
+## Development installation
+
+You can install development dependencies with:
+```bash
+pip install -r requirements-dev.txt
+```
+
+## Test suite
+
+You can run the (currently minimal) test suite with:
+```bash
+python3 -m unittest discover -s tests
+```
+
+The test suite is currently set up to run on pull requests to the `main` branch.
 
 
 # Roadmap

@@ -29,7 +29,7 @@ class Space(Channel):
     self.running = True
     while self.running:
       await channel._process()
-      await asyncio.sleep(1)
+      await asyncio.sleep(0.01)
 
   async def __start_channels(self):
     # start and run all channels concurrently
