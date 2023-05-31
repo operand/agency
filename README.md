@@ -169,7 +169,7 @@ Space([
     ...
   )
 
-  # Network with friends and share your LM's and Agents for fun and profit
+  # Network with friends and share your LMs and Agents
   RemoteAgentChannel(
     Operator("AgentHelperDude"),
     url: "https://agent.helper.dude:2023",
