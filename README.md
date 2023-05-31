@@ -66,17 +66,19 @@ anything, in any way imaginable.
 # Install
 
 Please note that `everything` is still under active development and is not yet
-at a first stable release, though it is close. I expect to have a stable 0.1.0
-API version within the next few days. There's not a lot more to do except for
-shoring up what's there with tests etc, but that may reveal some minor API
-changes.
+at a stable release, though it is very close. I expect to have a first stable
+API within the next few days. There's not a lot more to do except for shoring up
+what's there with tests etc, but that may reveal some API changes.
 
-As I don't consider it stable yet, I haven't published this as a pip package, so
-for now just:
+As I don't consider it fully stable yet, I haven't published this as a pip
+package, so for now just:
 ```
 git clone git@github.com:operand/everything.git
 pip install ./everything
 ```
+
+
+# Example Use
 
 > **WARNING:**\
 Running `everything` may result in exposing your computer to access by any
@@ -86,9 +88,6 @@ using this software and do not configure it for OS access otherwise.\
 If you want to enable OS access, to allow for file I/O for example, I HIGHLY
 RECOMMEND using a Docker container to prevent direct access to your host,
 allowing you to limit the resources and directories it may access.
-
-
-# Example Use
 
 In the following example, please note that the first two channel classes
 `WebChannel` and `ChattyLMChannel` are minimally implemented for you to try out.
