@@ -26,7 +26,8 @@ class Space(Channel):
     return self.__class__.__name__
 
   async def __start_channel(self, channel):
-    while True:
+    self.running = True
+    while self.running:
       await channel._process()
       await asyncio.sleep(1)
 
@@ -54,6 +55,9 @@ class Space(Channel):
       loop.call_soon_threadsafe(loop.stop)
       thread.join()
       loop.close()
+
+  def destroy(self):
+    self.running = False
 
   def _route(self, action):
     """
