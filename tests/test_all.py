@@ -11,24 +11,28 @@ class TestChannel(Channel):
 
 
 class TestAll(unittest.TestCase):
-  def test_create_space(self):
-    """
-    Tests basic creation and destruction of a Space.
-    """
-    space = Space([
+  def setUp(self):
+    # Create space in a separate thread
+    self.space = Space([
       TestChannel(
         Operator("test"),
       ),
     ])
-    # Start create() in a separate thread.
-    thread = threading.Thread(target=space.create, daemon=True)
-    thread.start()
-    print(f"thread started {thread}")
-    time.sleep(2)  # Wait for 2 seconds in the main thread.
-    space.destroy()
-    # Wait for the thread to complete.
-    thread.join()
-    self.assertFalse(space.running)  # Assert that the loop has stopped.
+    self.thread = threading.Thread(target=self.space.create, daemon=True)
+    self.thread.start()
+
+  def tearDown(self) -> None:
+    self.space.destroy()
+    # Wait for the thread to complete
+    self.thread.join()
+    self.assertFalse(self.space.running)  # Assert that the loop has stopped
+
+  def test_create_space(self):
+    """
+    Tests basic creation and destruction of a Space.
+    """
+    time.sleep(2)  # Wait for 2 seconds in the main thread
+
 
 
 if __name__ == '__main__':
