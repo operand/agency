@@ -66,8 +66,8 @@ def breakpoint():
 
 # enables debug messages for the listed keys
 DEBUG_KEYS = {
-  "*", # special key, uncomment to enable all debug messages
-  # "-", # special key, uncomment to disable all debug messages
+  "*", # special key, uncomment to force enable all debug messages
+  # "-", # special key, uncomment to force disable all debug messages
 
   # you can also list keys to watch directly below:
   # "abc",

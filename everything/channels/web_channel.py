@@ -4,7 +4,7 @@ from eventlet import wsgi
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
-from things.util import parse_slash_syntax_action
+from everything.things.util import parse_slash_syntax_action
 from everything.channels.channel import ACCESS_ALWAYS, Channel, access_policy
 
 

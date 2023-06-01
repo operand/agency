@@ -267,7 +267,7 @@ class Channel():
     situations where you may want to pass through all actions.
 
     Note that this is ONLY called if the action was actually attempted, meaning
-    BOTH the action exists _and_ is permitted.
+    BOTH the action exists AND is permitted.
     """
     pass
 
