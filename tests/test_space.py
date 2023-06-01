@@ -9,9 +9,6 @@ def test_create_destroy(space):
   # Just wait for 2 seconds here and the fixture handles the rest
   time.sleep(2)
 
-def test_anything(space):
-  raise NotImplementedError()
-
 
 if __name__ == '__main__':
   unittest.main()
