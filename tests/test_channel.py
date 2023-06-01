@@ -1,4 +1,3 @@
-from types import MethodType
 from everything.channels.channel import ACCESS_PERMITTED, Channel
 from everything.things.operator import Operator
 import pytest
@@ -39,26 +38,27 @@ def test_send_and_receive(webster_and_chatty):
   webchannel, chatchannel = webster_and_chatty
 
   # We use callable class to dynamically define the _say action for chatty
-  class ChattySay:
-    def __init__(self) -> None:
+  class ChattySay():
+    def __init__(self, channel) -> None:
+      self.channel = channel
       self.access_policy = ACCESS_PERMITTED
 
     def __call__(self, content):
-      print(f"Chatty({self}) received: {self._current_message}")
+      print(f"Chatty({self}) received: {self.channel._current_message}")
       # Note that we are also testing the default "return" impl which converts a
       # returned value into an incoming "say" action, by returning a string here.
       return 'Hello, Webster!'
   
-  chatchannel._action__say = ChattySay()
+  chatchannel._action__say = ChattySay(chatchannel)
 
   # The context manager handles setup/teardown of the space
   with space_context([webchannel, chatchannel]):
-    # Send the first message
+    # Send the first message from Webster
     webchannel._send({
       'action': 'say',
       'from': webchannel.id(),
       'to': chatchannel.id(),
-      'thoughts': 'I wonder how Chatty is doing.',
+      'thoughts': '',
       'args': {
         'content': 'Hello, Chatty!'
       }
