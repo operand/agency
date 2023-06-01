@@ -108,7 +108,8 @@ class Channel():
       action_method = getattr(
         self, f"{ACTION_METHOD_PREFIX}{message['action']}")
     except AttributeError as e:
-      raise AttributeError(f"Action \"{self.id()}.{message['action']}\" not found")
+      raise AttributeError(
+        f"Action \"{self.id()}.{message['action']}\" not found")
 
     return_value = None
     error = None
@@ -125,10 +126,6 @@ class Channel():
         # An immediate data structure response (return value) if any, from an
         # action method is sent back to the sender as a "return" action. This is
         # useful for actions that simply need to return a value to the sender.
-        #
-        # Note that you are still free to send messages to channels from within
-        # an action method, and you can also reply to the sender later on
-        # however you choose, even using the "return" action directly.
         if return_value is not None:
           self._send({
             "from": self.id(),
@@ -141,11 +138,12 @@ class Channel():
             },
           })
       else:
-        raise PermissionError(f"Access denied for {message['action']}")
+        raise PermissionError(
+          f"Action \"{self.id()}.{message['action']}\" not permitted")
     except Exception as e:
       # If an error occurs, we reraise it to be handled by the process loop
       error = e
-      raise e
+      raise Exception(e)
     finally:
       # Always call __action__after__
       self._after_action___(message, return_value, error)
