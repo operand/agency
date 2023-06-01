@@ -30,7 +30,6 @@ def webster_and_chatty():
   return webchannel, chatchannel
 
 
-@pytest.mark.focus
 def test_send_and_receive(webster_and_chatty):
   """
   Tests sending a basic "say" message from one channel to another and receiving
@@ -48,7 +47,7 @@ def test_send_and_receive(webster_and_chatty):
       # Note that we are also testing the default "return" impl which converts a
       # returned value into an incoming "say" action, by returning a string here.
       return 'Hello, Webster!'
-  
+
   chatchannel._action__say = ChattySay(chatchannel)
 
   # The context manager handles setup/teardown of the space
@@ -69,9 +68,13 @@ def test_send_and_receive(webster_and_chatty):
     while time.time() - start_time < 3 and webchannel.received_messages.__len__() == 0:
       time.sleep(0.1)
 
-    assert webchannel.received_messages == [
-      'Hello, Webster!'
-    ]
+    assert webchannel.received_messages == [{
+      'from': 'Chatty.ChattyChannel',
+      'to': 'Webster.WebsterChannel',
+      'thoughts': 'A value was returned for your action',
+      'action': 'say',
+      'args': {'content': 'Hello, Webster!'}
+    }]
 
 
 def test_send_undefined_action(webster_and_chatty):
