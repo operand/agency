@@ -3,6 +3,8 @@ from everything.channels.channel import Channel
 import asyncio
 import threading
 
+from everything.things import util
+
 
 load_dotenv()
 
@@ -19,6 +21,7 @@ class Space(Channel):
   def __init__(self, channels):
     super().__init__(None)
     self.channels = channels
+    self.should_stop = threading.Event()
     for channel in self.channels:
       channel.space = self
 
@@ -26,12 +29,14 @@ class Space(Channel):
     return self.__class__.__name__
 
   async def __start_channel(self, channel):
-    self.running = True
-    while self.running:
+    util.debug(f"Starting {channel.id()} ...")
+    while not self.should_stop.is_set():
+      util.debug(f"Processing {channel.id()} ...")
       await channel._process()
-      await asyncio.sleep(0.01)
+      await asyncio.sleep(1)
 
   async def __start_channels(self):
+    util.debug("Starting channels ...")
     # start and run all channels concurrently
     channel_processes = [
       asyncio.create_task(self.__start_channel(channel))
@@ -40,6 +45,7 @@ class Space(Channel):
     await asyncio.gather(*channel_processes)
 
   def create(self):
+    util.debug("Creating space ...")
     # start channels thread
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -57,7 +63,8 @@ class Space(Channel):
       loop.close()
 
   def destroy(self):
-    self.running = False
+    util.debug("Destroying space ...")
+    self.should_stop.set()
 
   def _route(self, action):
     """
