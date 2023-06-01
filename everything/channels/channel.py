@@ -72,8 +72,7 @@ class Channel():
         try:
           self.__commit_action(message)
         except PermissionError as e:
-          # prompt operator for permission and requeue message or raise new
-          # permission error
+          # prompt for permission and requeue or raise new permission error
           if self._ask_permission(message):
             self.__message_queue.put(message)
           else:
