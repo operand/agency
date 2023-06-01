@@ -44,20 +44,20 @@ class Channel():
 
   def _send(self, action):
     """
-    Validates and sends an action"""
-    self._message_log.append(MessageSchema(**{
-      **action,
-    }).dict(by_alias=True))
+    Validates and sends (out) an action
+    """
+    self._message_log.append(
+      MessageSchema(**action).dict(by_alias=True)
+    )
     self.space._route(action)
 
   def _receive(self, action: dict):
     """
-    Validates and enqueues an action to be processed by this channel
+    Validates and enqueues an incoming action to be processed
     """
-    message = MessageSchema(**{
-      **action,
-    }).dict(by_alias=True)
+    message = MessageSchema(**action).dict(by_alias=True)
 
+    # Record message to log and place on queue
     self._message_log.append(message)
     self.__message_queue.put(message)
 
@@ -186,7 +186,7 @@ class Channel():
       }
       self.__cached__get_action_help = [
         {
-          'to': self.id(), # the channel that the action is on
+          'to': self.id(),  # the channel that the action is on
           'action': name.replace(ACTION_METHOD_PREFIX, ''),
           'thoughts': get_docstring(method),
           'args': get_arguments(method),
@@ -213,7 +213,6 @@ class Channel():
     else:
       raise Exception(
         f"Invalid access policy for method: {message['action']}, got '{policy}'")
-
 
   # Override any of the following methods as needed to implement your channel
   # If you define any custom _action__* methods, then you must also implement

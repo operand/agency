@@ -13,8 +13,8 @@ class WebsterChannel(Channel):
     self.received_messages = []
 
   def _action__say(self, content):
-    print(f"Chatty({self}) received: {self.__current_message__}")
-    self.received_messages.append(self.__current_message__)
+    print(f"Chatty({self}) received: {self._current_message}")
+    self.received_messages.append(self._current_message)
   _action__say.access_policy = ACCESS_PERMITTED
 
 
@@ -44,10 +44,12 @@ def test_send_and_receive(webster_and_chatty):
       self.access_policy = ACCESS_PERMITTED
 
     def __call__(self, content):
-      print(f"Chatty({self}) received: {self.__current_message__}")
+      print(f"Chatty({self}) received: {self._current_message}")
       # Note that we are also testing the default "return" impl which converts a
       # returned value into an incoming "say" action, by returning a string here.
       return 'Hello, Webster!'
+  
+  chatchannel._action__say = ChattySay()
 
   # The context manager handles setup/teardown of the space
   with space_context([webchannel, chatchannel]):
@@ -66,6 +68,7 @@ def test_send_and_receive(webster_and_chatty):
     start_time = time.time()
     while time.time() - start_time < 3 and webchannel.received_messages.__len__() == 0:
       time.sleep(0.1)
+
     assert webchannel.received_messages == [
       'Hello, Webster!'
     ]
