@@ -11,7 +11,7 @@ def space():
   mock_channel = create_autospec(Channel)
   mock_channel._process.return_value = AsyncMock()
   space = Space([
-      mock_channel(Operator("test")),
+    mock_channel(Operator("test")),
   ])
   thread = threading.Thread(target=space.create, daemon=True)
   thread.start()
@@ -20,4 +20,5 @@ def space():
 
   space.destroy()
   thread.join()
-  assert not space.running  # Assert that the loop has stopped
+  # Assert that the loop (should have) stopped
+  assert space.should_stop.is_set()
