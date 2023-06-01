@@ -6,22 +6,24 @@ import pytest
 # send message -> receive reply
 @pytest.mark.focus
 def test_send_basic_message(chat_space):
-  # Here we set up Chatty's reply to a basic message by implementing a mock _say
-  # method on the channel
+  # Set up Chatty's reply by implementing a mock _say method
   chatty = chat_space.channels[1]
   def chatty_say(content):
+    print(f"Chatty received: {content}")
     return 'Hello, Webster!'
   chatty._action__say = chatty_say
 
-  # Here we set up Webster's message to Chatty and an
+  # Set up Webster's _say to receive the reply
   webster = chat_space.channels[0]
-  websters_received = None
+  webster_received = None
   def webster_say(content):
-    nonlocal websters_received
-    websters_received = content
+    print(f"Webster received: {content}")
+    nonlocal webster_received
+    webster_received = content
   webster._action__say = webster_say
 
-  # and send the message to Chatty
+  # Send the first message
+  print(f"Webster sending...")
   webster._send({
     'action': 'say',
     'from': webster.id(),
@@ -31,9 +33,9 @@ def test_send_basic_message(chat_space):
     }
   })
 
-  time.sleep(1) # not crazy about this
+  time.sleep(3) # really not crazy about this
 
-  assert websters_received == 'Hello, Webster!'
+  assert webster_received == 'Hello, Webster!'
 
 
 # send unknown action -> error

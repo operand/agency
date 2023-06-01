@@ -21,7 +21,8 @@ class Space(Channel):
   def __init__(self, channels):
     super().__init__(None)
     self.channels = channels
-    self.should_stop = threading.Event()
+    self.created = threading.Event() # set when the space is fully created
+    self.destructing = threading.Event() # set when the space is being destroyed
     for channel in self.channels:
       channel.space = self
 
@@ -29,14 +30,11 @@ class Space(Channel):
     return self.__class__.__name__
 
   async def __start_channel(self, channel):
-    util.debug(f"Starting {channel.id()} ...")
-    while not self.should_stop.is_set():
-      util.debug(f"Processing {channel.id()} ...")
+    while not self.destructing.is_set():
       await channel._process()
       await asyncio.sleep(1)
 
   async def __start_channels(self):
-    util.debug("Starting channels ...")
     # start and run all channels concurrently
     channel_processes = [
       asyncio.create_task(self.__start_channel(channel))
@@ -45,7 +43,6 @@ class Space(Channel):
     await asyncio.gather(*channel_processes)
 
   def create(self):
-    util.debug("Creating space ...")
     # start channels thread
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -53,6 +50,7 @@ class Space(Channel):
     thread = threading.Thread(target=loop.run_forever)
     thread.start()
     print("A small pop...")
+    self.created.set()
     try:
       # wait for the future to complete
       future.result()
@@ -63,8 +61,7 @@ class Space(Channel):
       loop.close()
 
   def destroy(self):
-    util.debug("Destroying space ...")
-    self.should_stop.set()
+    self.destructing.set()
 
   def _route(self, action):
     """
