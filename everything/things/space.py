@@ -63,7 +63,6 @@ class Space(Channel):
     """
     Enqueues the action on intended recipient(s)
     """
-    # "send" by ultimately calling the receiver's "_receive"
     recipients = []
     if 'to' in action:
       # if receiver is specified send to only that channel
