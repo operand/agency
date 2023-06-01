@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - test # TEMP
+      - tests # TEMP
   pull_request:
     branches: [ main ]
 
