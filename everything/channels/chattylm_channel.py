@@ -1,5 +1,5 @@
 import textwrap
-from everything.channels.channel import ACCESS_ALWAYS, Channel, access_policy
+from everything.channels.channel import ACCESS_PERMITTED, Channel, access_policy
 import everything.things.util as util
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
@@ -56,7 +56,7 @@ class ChattyLMChannel(Channel):
   def __pre_prompt(self, channel_id, timestamp=util.to_timestamp()):
     return f"\n### {channel_id.split('.')[0]}: "
 
-  @access_policy(ACCESS_ALWAYS)
+  @access_policy(ACCESS_PERMITTED)
   def _action__say(self, content: str) -> bool:
     # Here we demonstrate constructing a full prompt using previous messages for
     # context

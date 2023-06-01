@@ -10,8 +10,8 @@ import queue
 
 # access keys
 ACCESS = "access"
-ACCESS_ALWAYS = "always"
-ACCESS_NEVER = "never"
+ACCESS_PERMITTED = "permitted"
+ACCESS_DENIED = "denied"
 ACCESS_ASK = "ask"
 
 
@@ -204,9 +204,9 @@ class Channel():
     """
     policy = getattr(
       self, f"{ACTION_METHOD_PREFIX}{message['action']}").access_policy
-    if policy == ACCESS_ALWAYS:
+    if policy == ACCESS_PERMITTED:
       return True
-    elif policy == ACCESS_NEVER:
+    elif policy == ACCESS_DENIED:
       return False
     elif policy == ACCESS_ASK:
       return self._ask_permission(message)
@@ -219,7 +219,7 @@ class Channel():
   # If you define any custom _action__* methods, then you must also implement
   # _ask_permission
 
-  @access_policy(ACCESS_ALWAYS)
+  @access_policy(ACCESS_PERMITTED)
   def _action__help(self, action_name=None) -> array:
     """
     Returns list of actions on this channel matching action_name, or all if none
@@ -227,7 +227,7 @@ class Channel():
     """
     return self._get_help(action_name)
 
-  @access_policy(ACCESS_ALWAYS)
+  @access_policy(ACCESS_PERMITTED)
   def _action__return(self, original_message, return_value):
     """
     Overwrite this action to handle returned data from a prior action
@@ -243,7 +243,7 @@ class Channel():
       },
     })
 
-  @access_policy(ACCESS_ALWAYS)
+  @access_policy(ACCESS_PERMITTED)
   def _action__error(self, original_message, error: dict):
     """
     Overwrite this action to handle errors from an action

@@ -1,21 +1,26 @@
+from everything.channels.channel import ACCESS_PERMITTED, Channel
+from everything.things.operator import Operator
+import pytest
 import time
 import unittest
-from everything.channels.web_channel import WebChannel
-import pytest
-from tests.conftest import create_mock_channel, space_context
+from tests.conftest import space_context
 
 
 # send message -> receive reply
 @pytest.mark.focus
 def test_send_basic_message():
-  mock_webchannel = create_mock_channel(WebChannel, "Webster")
-  mock_chattychannel = create_mock_channel(WebChannel, "Chatty")
+  webster = Operator("Webster")
+  webchannel = Channel(webster)
+  chatty = Operator("Chatty")
+  chattychannel = Channel(chatty)
 
   # Set up Chatty's reply by implementing a mock _say method
   def chatty_say(content):
     print(f"Chatty received: {content}")
     return 'Hello, Webster!'
-  mock_chattychannel._action__say = chatty_say
+  chattychannel._action__say = chatty_say
+  chattychannel._action__say.access_policy = ACCESS_PERMITTED
+
 
   # Set up Webster's _say to receive the reply
   webster_received = None
@@ -23,16 +28,18 @@ def test_send_basic_message():
     print(f"Webster received: {content}")
     nonlocal webster_received
     webster_received = content
-  mock_webchannel._action__say = webster_say
+  webchannel._action__say = webster_say
+  webchannel._action__say.access_policy = ACCESS_PERMITTED
 
   # Use the context manager to handle setup/teardown of the space
-  with space_context([mock_webchannel, mock_chattychannel]) as chat_space:
+  with space_context([webchannel, chattychannel]):
     # Send the first message
     print(f"Webster sending...")
-    mock_webchannel._send({
+    webchannel._send({
       'action': 'say',
-      'from': mock_webchannel.id(),
-      'to': mock_chattychannel.id(),
+      'from': webchannel.id(),
+      'to': chattychannel.id(),
+      'thoughts': 'I wonder how Chatty is doing.',
       'args': {
         'content': 'Hello, Chatty!'
       }

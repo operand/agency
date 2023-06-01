@@ -1,15 +1,7 @@
 from contextlib import contextmanager
 import threading
 import time
-from unittest.mock import AsyncMock, create_autospec
-from everything.things.operator import Operator
 from everything.things.space import Space
-
-
-def create_mock_channel(class_, operator_name):
-  mock_channel = create_autospec(class_)
-  mock_channel._process.return_value = AsyncMock()
-  return mock_channel(Operator(operator_name))
 
 
 def setup_and_teardown_space(channels):
