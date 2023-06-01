@@ -77,7 +77,7 @@ class Channel():
             self.__message_queue.put(message)
           else:
             raise PermissionError(
-              f"Access denied by '{self.operator}' for: {message}")
+              f"Access denied by '{self.operator.id()}' for: {message}")
       except Exception as e:
         try:
           # Here we handle errors that occur while handling an action, including
@@ -89,7 +89,7 @@ class Channel():
             "action": "error",
             "args": {
               "original_message": message,
-              "error": f"ERROR: {e}: {traceback.format_exc()}",
+              "error": f"{e}",
             },
           })
         except Exception as e:
@@ -108,7 +108,7 @@ class Channel():
       action_method = getattr(
         self, f"{ACTION_METHOD_PREFIX}{message['action']}")
     except AttributeError as e:
-      raise AttributeError(f"Action \"{message['action']}\" not found")
+      raise AttributeError(f"Action \"{self.id()}.{message['action']}\" not found")
 
     return_value = None
     error = None
@@ -243,7 +243,7 @@ class Channel():
     })
 
   @access_policy(ACCESS_PERMITTED)
-  def _action__error(self, original_message, error: dict):
+  def _action__error(self, original_message, error):
     """
     Overwrite this action to handle errors from an action
     By default, this action simply converts it to an incoming "say"
@@ -255,7 +255,7 @@ class Channel():
       "thoughts": "An error occurred while committing your action",
       "action": "say",
       "args": {
-        "content": error,
+        "content": f"ERROR: {error}",
       },
     })
 
