@@ -67,7 +67,7 @@ class Channel():
     """
     while not self.__message_queue.empty():
       message = self.__message_queue.get()
-      util.debug(f"*({self}) processing:", message)
+      util.debug(f"*({self.id()}) processing:", message)
       try:
         try:
           self.__commit_action(message)
