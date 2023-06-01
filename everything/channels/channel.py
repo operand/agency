@@ -108,7 +108,7 @@ class Channel():
       action_method = getattr(
         self, f"{ACTION_METHOD_PREFIX}{message['action']}")
     except AttributeError as e:
-      raise AttributeError(f"Action '{message['action']}' not found")
+      raise AttributeError(f"Action \"{message['action']}\" not found")
 
     return_value = None
     error = None
@@ -252,7 +252,7 @@ class Channel():
     self._send({
       "from": original_message['to'],
       "to": self.id(),
-      "thoughts": "An error occurred while performing your action",
+      "thoughts": "An error occurred while committing your action",
       "action": "say",
       "args": {
         "content": error,

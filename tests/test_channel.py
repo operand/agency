@@ -81,20 +81,10 @@ def test_send_undefined_action(webster_and_chatty):
   """
   Tests sending an undefined action from one channel to another and receiving
   an appropriate error response."""
-  webchannel, chattychannel, webster_received = webster_and_chatty
+  webchannel, chattychannel = webster_and_chatty
 
   # In this test we skip defining a _say action on chatty in order to test the
   # error response
-
-  # Set up Webster's _say to receive the reply
-  webster_received = None
-
-  def webster_say(content):
-    print(f"Webster received: {content}")
-    nonlocal webster_received
-    webster_received = content
-  webchannel._action__say = webster_say
-  webchannel._action__say.access_policy = ACCESS_PERMITTED
 
   # Use the context manager to handle setup/teardown of the space
   with space_context([webchannel, chattychannel]):
@@ -112,9 +102,16 @@ def test_send_undefined_action(webster_and_chatty):
 
     # Wait for a response for up to 3 seconds
     start_time = time.time()
-    while time.time() - start_time < 3 and webster_received is None:
+    while time.time() - start_time < 3 and webchannel.received_messages.__len__() == 0:
       time.sleep(0.1)
-    assert webster_received == 'ERROR: Action "say" is not defined on channel "Chatty.Channel".'
+
+    # assert one field at a time so we can do a regex on args.content
+    assert webchannel.received_messages[0]['from'] == 'Chatty.ChattyChannel'
+    assert webchannel.received_messages[0]['to'] == 'Webster.WebsterChannel'
+    assert webchannel.received_messages[0]['thoughts'] == 'An error occurred while committing your action'
+    assert webchannel.received_messages[0]['action'] == 'say'
+    assert webchannel.received_messages[0]['args']['content'].startswith(
+      'ERROR: Action "say" not found')
 
 
 # send unpermitted action -> permission error
