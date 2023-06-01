@@ -10,11 +10,11 @@ from tests.conftest import space_context
 class WebsterChannel(Channel):
   def __init__(self):
     super().__init__(Operator("Webster"))
-    self.webchannel_received_messages = []
+    self.received_messages = []
 
   def _action__say(self, content):
     print(f"Chatty({self}) received: {self.__current_message__}")
-    self.webchannel_received_messages.append(self.__current_message__)
+    self.received_messages.append(self.__current_message__)
   _action__say.access_policy = ACCESS_PERMITTED
 
 
@@ -38,14 +38,16 @@ def test_send_and_receive(webster_and_chatty):
   a reply."""
   webchannel, chatchannel = webster_and_chatty
 
-  # Set up Chatty's reply
-  def chatty_say(self, content):
-    print(f"Chatty({self}) received: {self.__current_message__}")
-    # Note that we are also testing the default "return" impl which converts a
-    # returned value into an incoming "say" action, by returning a string here.
-    return 'Hello, Webster!'
-  chatchannel._action__say = MethodType(chatty_say, chatchannel)
-  chatchannel._action__say.access_policy = ACCESS_PERMITTED
+  # We use callable class to dynamically define the _say action for chatty
+  class ChattySay:
+    def __init__(self) -> None:
+      self.access_policy = ACCESS_PERMITTED
+
+    def __call__(self, content):
+      print(f"Chatty({self}) received: {self.__current_message__}")
+      # Note that we are also testing the default "return" impl which converts a
+      # returned value into an incoming "say" action, by returning a string here.
+      return 'Hello, Webster!'
 
   # The context manager handles setup/teardown of the space
   with space_context([webchannel, chatchannel]):
@@ -62,9 +64,9 @@ def test_send_and_receive(webster_and_chatty):
 
     # Wait for a response for up to 3 seconds
     start_time = time.time()
-    while time.time() - start_time < 3 and webchannel.received.__len__() == 0:
+    while time.time() - start_time < 3 and webchannel.received_messages.__len__() == 0:
       time.sleep(0.1)
-    assert webchannel.received == [
+    assert webchannel.received_messages == [
       'Hello, Webster!'
     ]
 
