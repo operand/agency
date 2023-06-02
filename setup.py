@@ -22,6 +22,7 @@ setup(
 
     # Required by ChattyLMChannel example
     "transformers>=4.29",
+    "torch>=2.0",
 
     # Required by WebChannel example
     "Flask-SocketIO>=5.3",
