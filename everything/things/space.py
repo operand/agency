@@ -3,8 +3,6 @@ from everything.channels.channel import Channel
 import asyncio
 import threading
 
-from everything.things import util
-
 
 load_dotenv()
 

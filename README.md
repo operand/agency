@@ -329,11 +329,12 @@ that requires _you_ as the developer of a channel to indicate what form of
 access control you associate with each action on the channel. The access policy
 can currently be one of three values:
 
-- `permitted` - which permits any operator in the space to use that action at any time
+- `permitted` - which permits any operator in the space to use that action at
+any time
 - `denied` - which prevents use
-- `ask` - which will prompt the receiving operator for permission when access is
-attempted. Access will await your approval or denial. If denied, the sender is
-notified of the denial and reason.
+- `requested` - which will prompt the receiving operator for permission when
+access is attempted. Access will await approval or denial. If denied, the sender
+is notified of the denial and reason.
 
 This is just a start, and further development of the access control mechanics is
 a priority.
