@@ -146,17 +146,17 @@ class Channel():
       # Always call __action__after__
       self._after_action___(message, return_value, error)
 
-  def _get_help(self, action_name=None) -> array:
+  def _get_help(self, action_name=None) -> list:
     """
     Returns an array of all action methods on this class that match
     'action_name'. If no action_name is passed, returns all actions.
     [
       {
-        "channel": <channel_name>,
-        "action": <action_name>,
-        "thoughts": <docstring of method>,
+        "operator.channel": "<operator_name>.<channel_name>",
+        "action": "<action_name>",
+        "thoughts": "<docstring_of_method>",
         "args": {
-          "arg_name": "arg_type",
+          "arg_name": "<arg_type>",
           ...
         }
       },
@@ -215,7 +215,7 @@ class Channel():
   # _request_permission
 
   @access_policy(ACCESS_PERMITTED)
-  def _action__help(self, action_name=None) -> array:
+  def _action__help(self, action_name=None) -> list:
     """
     Returns list of actions on this channel matching action_name, or all if none
     is passed.

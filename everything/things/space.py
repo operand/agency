@@ -84,9 +84,9 @@ class Space(Channel):
       action['to'] = recipient.id()
       recipient._receive(action)
 
-  def _get_help__sync(self, action=None):
+  def _get_help__sync(self, action=None) -> list:
     """
-    Returns a help object immediately without forwarding messages
+    Returns an action list immediately without forwarding messages
     """
     help = [
       channel._get_help(action)

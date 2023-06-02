@@ -1,6 +1,6 @@
 import os
 import subprocess
-from channels.channel import Channel
+from everything.channels.channel import Channel
 
 
 
