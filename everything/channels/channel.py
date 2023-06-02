@@ -10,9 +10,9 @@ import queue
 
 # access keys
 ACCESS = "access"
-ACCESS_ALWAYS = "always"
-ACCESS_NEVER = "never"
-ACCESS_ASK = "ask"
+ACCESS_PERMITTED = "permitted"
+ACCESS_DENIED = "denied"
+ACCESS_REQUESTED = "requested"
 
 
 def access_policy(level):
@@ -44,20 +44,20 @@ class Channel():
 
   def _send(self, action):
     """
-    Validates and sends an action"""
-    self._message_log.append(MessageSchema(**{
-      **action,
-    }).dict(by_alias=True))
+    Validates and sends (out) an action
+    """
+    self._message_log.append(
+      MessageSchema(**action).dict(by_alias=True)
+    )
     self.space._route(action)
 
   def _receive(self, action: dict):
     """
-    Validates and enqueues an action to be processed by this channel
+    Validates and enqueues an incoming action to be processed
     """
-    message = MessageSchema(**{
-      **action,
-    }).dict(by_alias=True)
+    message = MessageSchema(**action).dict(by_alias=True)
 
+    # Record message to log and place on queue
     self._message_log.append(message)
     self.__message_queue.put(message)
 
@@ -67,18 +67,17 @@ class Channel():
     """
     while not self.__message_queue.empty():
       message = self.__message_queue.get()
-      util.debug(f"*({self}) processing:", message)
+      util.debug(f"*({self.id()}) processing:", message)
       try:
         try:
           self.__commit_action(message)
         except PermissionError as e:
-          # prompt operator for permission and requeue message or raise new
-          # permission error
+          # prompt for permission and requeue or raise new permission error
           if self._ask_permission(message):
             self.__message_queue.put(message)
           else:
             raise PermissionError(
-              f"Access denied by '{self.operator}' for: {message}")
+              f"Access denied by '{self.operator.id()}' for: {message}")
       except Exception as e:
         try:
           # Here we handle errors that occur while handling an action, including
@@ -90,7 +89,7 @@ class Channel():
             "action": "error",
             "args": {
               "original_message": message,
-              "error": f"ERROR: {e}: {traceback.format_exc()}",
+              "error": f"{e}",
             },
           })
         except Exception as e:
@@ -109,7 +108,8 @@ class Channel():
       action_method = getattr(
         self, f"{ACTION_METHOD_PREFIX}{message['action']}")
     except AttributeError as e:
-      raise AttributeError(f"Action '{message['action']}' not found")
+      raise AttributeError(
+        f"Action \"{self.id()}.{message['action']}\" not found")
 
     return_value = None
     error = None
@@ -126,10 +126,6 @@ class Channel():
         # An immediate data structure response (return value) if any, from an
         # action method is sent back to the sender as a "return" action. This is
         # useful for actions that simply need to return a value to the sender.
-        #
-        # Note that you are still free to send messages to channels from within
-        # an action method, and you can also reply to the sender later on
-        # however you choose, even using the "return" action directly.
         if return_value is not None:
           self._send({
             "from": self.id(),
@@ -142,11 +138,12 @@ class Channel():
             },
           })
       else:
-        raise PermissionError(f"Access denied for {message['action']}")
+        raise PermissionError(
+          f"Action \"{self.id()}.{message['action']}\" not permitted")
     except Exception as e:
       # If an error occurs, we reraise it to be handled by the process loop
       error = e
-      raise e
+      raise Exception(e)
     finally:
       # Always call __action__after__
       self._after_action___(message, return_value, error)
@@ -187,7 +184,7 @@ class Channel():
       }
       self.__cached__get_action_help = [
         {
-          'to': self.id(), # the channel that the action is on
+          'to': self.id(),  # the channel that the action is on
           'action': name.replace(ACTION_METHOD_PREFIX, ''),
           'thoughts': get_docstring(method),
           'args': get_arguments(method),
@@ -205,22 +202,21 @@ class Channel():
     """
     policy = getattr(
       self, f"{ACTION_METHOD_PREFIX}{message['action']}").access_policy
-    if policy == ACCESS_ALWAYS:
+    if policy == ACCESS_PERMITTED:
       return True
-    elif policy == ACCESS_NEVER:
+    elif policy == ACCESS_DENIED:
       return False
-    elif policy == ACCESS_ASK:
+    elif policy == ACCESS_REQUESTED:
       return self._ask_permission(message)
     else:
       raise Exception(
         f"Invalid access policy for method: {message['action']}, got '{policy}'")
 
-
   # Override any of the following methods as needed to implement your channel
   # If you define any custom _action__* methods, then you must also implement
   # _ask_permission
 
-  @access_policy(ACCESS_ALWAYS)
+  @access_policy(ACCESS_PERMITTED)
   def _action__help(self, action_name=None) -> array:
     """
     Returns list of actions on this channel matching action_name, or all if none
@@ -228,7 +224,7 @@ class Channel():
     """
     return self._get_help(action_name)
 
-  @access_policy(ACCESS_ALWAYS)
+  @access_policy(ACCESS_PERMITTED)
   def _action__return(self, original_message, return_value):
     """
     Overwrite this action to handle returned data from a prior action
@@ -244,8 +240,8 @@ class Channel():
       },
     })
 
-  @access_policy(ACCESS_ALWAYS)
-  def _action__error(self, original_message, error: dict):
+  @access_policy(ACCESS_PERMITTED)
+  def _action__error(self, original_message, error):
     """
     Overwrite this action to handle errors from an action
     By default, this action simply converts it to an incoming "say"
@@ -254,10 +250,10 @@ class Channel():
     self._send({
       "from": original_message['to'],
       "to": self.id(),
-      "thoughts": "An error occurred while performing your action",
+      "thoughts": "An error occurred while committing your action",
       "action": "say",
       "args": {
-        "content": error,
+        "content": f"ERROR: {error}",
       },
     })
 
@@ -267,7 +263,7 @@ class Channel():
     situations where you may want to pass through all actions.
 
     Note that this is ONLY called if the action was actually attempted, meaning
-    BOTH the action exists _and_ is permitted.
+    BOTH the action exists AND is permitted.
     """
     pass
 
@@ -278,4 +274,4 @@ class Channel():
     the operator of the channel for review. Return true or false to indicate
     whether access should be permitted.
     """
-    raise NotImplementedError
+    raise NotImplementedError()

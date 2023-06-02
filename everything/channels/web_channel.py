@@ -4,8 +4,8 @@ from eventlet import wsgi
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
-from things.util import parse_slash_syntax_action
-from everything.channels.channel import ACCESS_ALWAYS, Channel, access_policy
+from everything.things.util import parse_slash_syntax_action
+from everything.channels.channel import ACCESS_PERMITTED, Channel, access_policy
 
 
 class WebChannel(Channel):
@@ -82,6 +82,6 @@ class WebChannel(Channel):
     self.socketio.server.emit('message', original_message, room=self.connected_sid)
 
   # And define pass through methods to whitelist the actions we want to allow
-  @access_policy(ACCESS_ALWAYS)
+  @access_policy(ACCESS_PERMITTED)
   def _action__say(self, content: str):
     pass

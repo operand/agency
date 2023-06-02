@@ -9,151 +9,116 @@
 asyncio==3.4.3
     # via everything
 bidict==0.22.1
-    # via
-    #   everything
-    #   python-socketio
+    # via python-socketio
 blinker==1.6.2
-    # via
-    #   everything
-    #   flask
+    # via flask
 build==0.10.0
     # via pip-tools
 certifi==2023.5.7
-    # via
-    #   everything
-    #   requests
+    # via requests
 charset-normalizer==3.1.0
-    # via
-    #   everything
-    #   requests
+    # via requests
 click==8.1.3
     # via
-    #   everything
     #   flask
     #   pip-tools
+colorama==0.4.6
+    # via everything
 dnspython==2.3.0
-    # via
-    #   eventlet
-    #   everything
+    # via eventlet
 eventlet==0.33.3
     # via everything
+exceptiongroup==1.1.1
+    # via pytest
 filelock==3.12.0
     # via
-    #   everything
     #   huggingface-hub
     #   transformers
 flask==2.3.2
-    # via
-    #   everything
-    #   flask-socketio
+    # via flask-socketio
 flask-socketio==5.3.4
     # via everything
 fsspec==2023.5.0
-    # via
-    #   everything
-    #   huggingface-hub
+    # via huggingface-hub
 greenlet==2.0.2
-    # via
-    #   eventlet
-    #   everything
+    # via eventlet
 huggingface-hub==0.14.1
-    # via
-    #   everything
-    #   transformers
+    # via transformers
 idna==3.4
-    # via
-    #   everything
-    #   requests
+    # via requests
 importlib-metadata==6.6.0
-    # via
-    #   everything
-    #   flask
+    # via flask
+iniconfig==2.0.0
+    # via pytest
 itsdangerous==2.1.2
-    # via
-    #   everything
-    #   flask
+    # via flask
 jinja2==3.1.2
-    # via
-    #   everything
-    #   flask
+    # via flask
 markupsafe==2.1.2
     # via
-    #   everything
     #   jinja2
     #   werkzeug
 numpy==1.24.3
-    # via
-    #   everything
-    #   transformers
+    # via transformers
 packaging==23.1
     # via
     #   build
-    #   everything
     #   huggingface-hub
+    #   pytest
     #   transformers
 pip-tools==6.13.0
     # via -r requirements-dev.in
+pluggy==1.0.0
+    # via pytest
+pydantic==1.10.8
+    # via everything
 pyproject-hooks==1.0.0
     # via build
+pytest==7.3.1
+    # via -r requirements-dev.in
 python-dotenv==1.0.0
     # via everything
 python-engineio==4.4.1
-    # via
-    #   everything
-    #   python-socketio
+    # via python-socketio
 python-socketio==5.8.0
-    # via
-    #   everything
-    #   flask-socketio
+    # via flask-socketio
 pyyaml==6.0
     # via
-    #   everything
     #   huggingface-hub
     #   transformers
 regex==2023.5.5
-    # via
-    #   everything
-    #   transformers
+    # via transformers
 requests==2.31.0
     # via
-    #   everything
     #   huggingface-hub
     #   transformers
 six==1.16.0
-    # via
-    #   eventlet
-    #   everything
+    # via eventlet
 tokenizers==0.13.3
-    # via
-    #   everything
-    #   transformers
+    # via transformers
 tomli==2.0.1
-    # via build
+    # via
+    #   build
+    #   pyproject-hooks
+    #   pytest
 tqdm==4.65.0
     # via
-    #   everything
     #   huggingface-hub
     #   transformers
 transformers==4.29.2
     # via everything
 typing-extensions==4.6.2
     # via
-    #   everything
     #   huggingface-hub
+    #   pydantic
 urllib3==2.0.2
-    # via
-    #   everything
-    #   requests
+    # via requests
 werkzeug==2.3.4
-    # via
-    #   everything
-    #   flask
+    # via flask
 wheel==0.40.0
     # via pip-tools
 zipp==3.15.0
-    # via
-    #   everything
-    #   importlib-metadata
+    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip

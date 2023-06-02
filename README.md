@@ -65,8 +65,8 @@ anything, in any way imaginable.
 
 # Install
 
-Please note that `everything` is still under active development and is not yet
-at a stable release, though it is very close. I expect to have a first stable
+Please note that `everything` is still under active development and is **not yet
+at a stable release**, though it is very close. I expect to have a first stable
 API within the next few days. There's not a lot more to do except for shoring up
 what's there with tests etc, but that may reveal some API changes.
 
@@ -329,11 +329,12 @@ that requires _you_ as the developer of a channel to indicate what form of
 access control you associate with each action on the channel. The access policy
 can currently be one of three values:
 
-- `always` - which permits any operator in the space to use that action at any time
-- `never` - which prevents use
-- `ask` - which will prompt the receiving operator for permission when access is
-attempted. Access will await your approval or denial. If denied, the sender is
-notified of the denial and reason.
+- `permitted` - which permits any operator in the space to use that action at
+any time
+- `denied` - which prevents use
+- `requested` - which will prompt the receiving operator for permission when
+access is attempted. Access will await approval or denial. If denied, the sender
+is notified of the denial and reason.
 
 This is just a start, and further development of the access control mechanics is
 a priority.
@@ -357,7 +358,7 @@ pip install -r requirements-dev.txt
 
 You can run the (currently minimal) test suite with:
 ```bash
-python3 -m unittest discover -s tests
+pytest
 ```
 
 The test suite is currently set up to run on pull requests to the `main` branch.

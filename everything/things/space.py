@@ -19,6 +19,8 @@ class Space(Channel):
   def __init__(self, channels):
     super().__init__(None)
     self.channels = channels
+    self.created = threading.Event() # set when the space is fully created
+    self.destructing = threading.Event() # set when the space is being destroyed
     for channel in self.channels:
       channel.space = self
 
@@ -26,8 +28,7 @@ class Space(Channel):
     return self.__class__.__name__
 
   async def __start_channel(self, channel):
-    self.running = True
-    while self.running:
+    while not self.destructing.is_set():
       await channel._process()
       await asyncio.sleep(0.01)
 
@@ -47,6 +48,7 @@ class Space(Channel):
     thread = threading.Thread(target=loop.run_forever)
     thread.start()
     print("A small pop...")
+    self.created.set()
     try:
       # wait for the future to complete
       future.result()
@@ -57,13 +59,12 @@ class Space(Channel):
       loop.close()
 
   def destroy(self):
-    self.running = False
+    self.destructing.set()
 
   def _route(self, action):
     """
     Enqueues the action on intended recipient(s)
     """
-    # "send" by ultimately calling the receiver's "_receive"
     recipients = []
     if 'to' in action:
       # if receiver is specified send to only that channel

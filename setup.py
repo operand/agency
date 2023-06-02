@@ -15,16 +15,16 @@ setup(
   packages=find_packages(),
   install_requires=[
     # Core library requirements
-    "asyncio",
+    "asyncio>=3.4",
     "colorama>=0.4",
     "pydantic>=1.8",
     "python-dotenv>=0.19",
 
     # Required by ChattyLMChannel example
-    "transformers",
+    "transformers>=4.29",
 
     # Required by WebChannel example
-    "Flask-SocketIO",
-    "eventlet",
+    "Flask-SocketIO>=5.3",
+    "eventlet>=0.33",
   ],
 )

@@ -1,4 +1,4 @@
-name: tests
+name: build
 
 on:
   push:
@@ -18,4 +18,4 @@ jobs:
       run: |
         python3 -m pip install --upgrade pip
         pip install -r requirements-dev.txt
-    - run: python3 -m unittest discover tests
+    - run: pytest -vv
