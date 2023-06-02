@@ -404,6 +404,5 @@ artificial, and other computing systems together, with the following priorities.
   - multimodal model example
 - Consider generalizing queuing/storage API
 - Consider prior work on distributed access control
-- Consider cross compiling to C and other languages
 - Add a docker file to encourage using it
 - [_feel free to make suggestions_](https://github.com/operand/everything/issues)
