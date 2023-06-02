@@ -12,7 +12,7 @@ import queue
 ACCESS = "access"
 ACCESS_PERMITTED = "permitted"
 ACCESS_DENIED = "denied"
-ACCESS_ASK = "ask"
+ACCESS_REQUESTED = "requested"
 
 
 def access_policy(level):
@@ -206,7 +206,7 @@ class Channel():
       return True
     elif policy == ACCESS_DENIED:
       return False
-    elif policy == ACCESS_ASK:
+    elif policy == ACCESS_REQUESTED:
       return self._ask_permission(message)
     else:
       raise Exception(
@@ -274,4 +274,4 @@ class Channel():
     the operator of the channel for review. Return true or false to indicate
     whether access should be permitted.
     """
-    raise NotImplementedError
+    raise NotImplementedError()
