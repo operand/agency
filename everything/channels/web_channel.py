@@ -70,7 +70,7 @@ class WebChannel(Channel):
         ('', int(self.kwargs['port']))), app, log=eventlet_logger)
     eventlet.spawn(run_server)
 
-  def _ask_permission(self, proposed_message: dict) -> bool:
+  def _request_permission(self, proposed_message: dict) -> bool:
     """
     Raises an alert in the users browser and returns true if the user
     approves the action"""

@@ -21,6 +21,28 @@ class ChattyLMChannel(Channel):
     self.tokenizer.pad_token = self.tokenizer.eos_token
     self.model = AutoModelForCausalLM.from_pretrained(kwargs['model'])
 
+  def _message_log_to_list(self, indent=None):
+    """Convert an array of message_log entries to a prompt ready list"""
+    promptable_list = ""
+    for message in self._message_log:
+      promptable_list += self._message_line(message, indent)
+    return promptable_list
+
+  def _message_line(self, message, indent=None):
+    """
+    Returns a single line appropriate for a prompt that represents a previous
+    message
+    """
+    pre_prompt = self._pre_prompt(message['from'].split('.')[0])
+    # Here we format what a previous message looks like in the prompt
+    # For "say" actions, we just present the content as a line of text
+    if message['action'] == 'say':
+      return f"\n{pre_prompt} {message['args']['content']}"
+    # For all other actions, we present the full JSON message. This
+    # is more useful for Agents, but is here just as a demonstration.
+    # A chatting AI would probably only deal with "say" actions.
+    return f"\n{pre_prompt} {message}"
+
   def __prompt_head(self):
     """
     Returns the head portion of the prompt containing context/instructions
@@ -31,29 +53,7 @@ class ChattyLMChannel(Channel):
     instructions and a human who they serve.
     """)
 
-  def __message_log_to_list(self, indent=None):
-    """Convert an array of message_log entries to a prompt ready list"""
-    promptable_list = ""
-    for message in self._message_log:
-      promptable_list += self.__message_line(message, indent)
-    return promptable_list
-
-  def __message_line(self, message, indent=None):
-    """
-    Returns a single line appropriate for a prompt that represents a previous
-    message
-    """
-    pre_prompt = self.__pre_prompt(message['from'].split('.')[0])
-    # Here we format what a previous message looks like in the prompt
-    # For "say" actions, we just present the content as a line of text
-    if message['action'] == 'say':
-      return f"\n{pre_prompt} {message['args']['content']}"
-    # For all other actions, we present the full JSON message. This
-    # is more useful for Agents, but is here just as a demonstration.
-    # A chatting AI would probably only deal with "say" actions.
-    return f"\n{pre_prompt} {message}"
-
-  def __pre_prompt(self, channel_id, timestamp=util.to_timestamp()):
+  def _pre_prompt(self, channel_id, timestamp=util.to_timestamp()):
     return f"\n### {channel_id.split('.')[0]}: "
 
   @access_policy(ACCESS_PERMITTED)
@@ -62,8 +62,8 @@ class ChattyLMChannel(Channel):
     # context
     full_prompt = \
       self.__prompt_head() + \
-      self.__message_log_to_list() + \
-      self.__pre_prompt(self.id())
+      self._message_log_to_list() + \
+      self._pre_prompt(self.id())
     util.debug(f"Sending full_prompt to LM:", full_prompt)
     input_ids = self.tokenizer.encode(full_prompt, return_tensors="pt")
     output = self.model.generate(
