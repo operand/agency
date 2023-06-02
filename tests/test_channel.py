@@ -43,8 +43,6 @@ def test_send_and_receive(webster_and_chatty):
 
     def __call__(self, content):
       print(f"Chatty({self}) received: {self.channel._current_message}")
-      # Note that we are also testing the default "return" impl which converts a
-      # returned value into an incoming "say" action, by returning a string here.
       return 'Hello, Webster!'
 
   chattychannel._action__say = ChattySay(chattychannel)
@@ -173,8 +171,6 @@ def test_send_ask_permitted_action(webster_and_chatty):
 
     def __call__(self, content):
       print(f"Chatty({self}) received: {self.channel._current_message}")
-      # Note that we are also testing the default "return" impl which converts a
-      # returned value into an incoming "say" action, by returning a string here
       return '42'
 
   chattychannel._action__say = ChattySay(chattychannel)
@@ -219,7 +215,55 @@ def test_send_ask_permitted_action(webster_and_chatty):
 def test_send_ask_rejected_action(webster_and_chatty):
   """
   Tests sending an action, rejecting permission, and returning error"""
-  raise NotImplementedError()
+  webchannel, chattychannel = webster_and_chatty
+
+  # We use callable classes to dynamically define _action__say and
+  # _ask_permission
+  class ChattySay():
+    def __init__(self, channel) -> None:
+      self.channel = channel
+      self.access_policy = ACCESS_REQUESTED
+
+    def __call__(self, content):
+      print(f"Chatty({self}) received: {self.channel._current_message}")
+      return '42'
+
+  chattychannel._action__say = ChattySay(chattychannel)
+
+  class ChattyAsk():
+    def __call__(self, proposed_message):
+      print(f"Chatty({self}) received permission request for: {proposed_message}")
+      return False
+    
+  chattychannel._ask_permission = ChattyAsk()
+
+
+  # Use the context manager to handle setup/teardown of the space
+  with space_context([webchannel, chattychannel]):
+    # Send the first message
+    print(f"Webster sending...")
+    webchannel._send({
+      'action': 'say',
+      'from': webchannel.id(),
+      'to': chattychannel.id(),
+      'thoughts': 'hmmmm',
+      'args': {
+        'content': 'Chatty, what is the answer to life, the universe, and everything?'
+      }
+    })
+
+    # Wait for a response for up to 2 seconds
+    start_time = time.time()
+    while time.time() - start_time < 2 and webchannel.received_messages.__len__() == 0:
+      time.sleep(0.1)
+
+    assert webchannel.received_messages == [{
+      'from': 'Chatty.ChattyChannel',
+      'to': 'Webster.WebsterChannel',
+      'thoughts': 'An error occurred while committing your action',
+      'action': 'say',
+      'args': {'content': 'ERROR: Action "Chatty.ChattyChannel.say" not permitted'}
+    }]
 
 
 if __name__ == '__main__':
