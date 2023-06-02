@@ -65,8 +65,8 @@ anything, in any way imaginable.
 
 # Install
 
-Please note that `everything` is still under active development and is not yet
-at a stable release, though it is very close. I expect to have a first stable
+Please note that `everything` is still under active development and is **not yet
+at a stable release**, though it is very close. I expect to have a first stable
 API within the next few days. There's not a lot more to do except for shoring up
 what's there with tests etc, but that may reveal some API changes.
 
