@@ -380,16 +380,11 @@ artificial, and other computing systems together, with the following priorities.
   "multi-operator" system is a fundamental problem to solve in order to ensure
   safety for AI interactions. I believe I've included a sane first attempt at
   such a pattern, but further exploration will be a focus of this project.
-- **Interoperability**:
-  Especially as it pertains to the common messaging protocol.  Again, I think
-  what I have is a good start. This may also be simplified once
-  messaging/queuing solutions are reviewed. There is enormous potential to
-  establish a common protocol for agents to collaborate online. That's
-  essentially what this project is attempting.
-- **Flexibility**:
-  The examples show how flexible the API is already. I intend to keep
-  questioning the design to identify the lowest common denominator that will
-  work with whatever use cases arise.
+- **Compatibility and Usability**:
+  In general, I believe this is a fair start in defining a set of patterns for
+  creating AI integrated systems. I intend to continually improve the API,
+  protocol, and other aspects of its design as needed based on feedback from
+  real world use. [So please let me know!](https://github.com/operand/everything/issues)
 - **Stability**
   A strong testing and versioning stance will be taken ASAP
 - **Documentation**:
