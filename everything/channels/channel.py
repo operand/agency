@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from array import array
 import inspect
 import re
 import traceback
