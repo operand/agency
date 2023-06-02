@@ -77,23 +77,21 @@ class Channel():
             raise PermissionError(
               f"Access denied by '{self.operator.id()}' for: {message}")
       except Exception as e:
-        try:
-          # Here we handle errors that occur while handling an action, including
-          # access denial, by reporting the error back to the sender.
-          self._send({
-            "from": self.id(),
-            "to": message['from'],
-            "thoughts": "An error occurred while processing your action",
-            "action": "error",
-            "args": {
-              "original_message": message,
-              "error": f"{e}\n{traceback.format_exc()}",
-            },
-          })
-        except Exception as e:
-          # an error happened while handling an error, just exit. this is bad
-          print(f"ERROR: {e}: {traceback.format_exc()}")
-          exit(1)
+        # Here we handle errors that occur while handling an action including
+        # access denial by reporting the error back to the sender. If an error
+        # occurs here, indicating that basic _send() functionality is broken,
+        # the application will exit.
+        util.debug(f"*({self.id()}) error:({e})")
+        self._send({
+          "from": self.id(),
+          "to": message['from'],
+          "thoughts": "An error occurred while processing your action",
+          "action": "error",
+          "args": {
+            "original_message": message,
+            "error": f"{e}\n{traceback.format_exc()}",
+          },
+        })
 
   def __commit_action(self, message: dict) -> dict:
     """
@@ -225,8 +223,8 @@ class Channel():
   @access_policy(ACCESS_PERMITTED)
   def _action__return(self, original_message, return_value):
     """
-    Overwrite this action to handle returned data from a prior action
-    By default, this action simply converts it to an incoming "say"
+    Overwrite this action to handle returned data from a prior action. By
+    default this action simply converts it to an incoming "say".
     """
     self._send({
       "from": original_message['to'],
@@ -241,8 +239,8 @@ class Channel():
   @access_policy(ACCESS_PERMITTED)
   def _action__error(self, original_message: dict, error: str):
     """
-    Overwrite this action to handle errors from an action
-    By default, this action simply converts it to an incoming "say"
+    Overwrite this action to handle errors from an action. By default this
+    action simply converts it to an incoming "say".
     """
     # TODO: handle errors during errors to stop infinite loops
     self._send({
