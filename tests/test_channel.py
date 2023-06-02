@@ -26,8 +26,13 @@ class ChattyChannel(Channel):
 def webster_and_chatty():
   webchannel = WebsterChannel()
   chattychannel = ChattyChannel()
-
   return webchannel, chattychannel
+
+
+def wait_for_message(channel):
+  start_time = time.time()
+  while time.time() - start_time < 1 and channel.received_messages.__len__() == 0:
+    time.sleep(0.1)
 
 
 def test_send_and_receive(webster_and_chatty):
@@ -60,10 +65,7 @@ def test_send_and_receive(webster_and_chatty):
       }
     })
 
-    # Wait for a response for up to 3 seconds
-    start_time = time.time()
-    while time.time() - start_time < 3 and webchannel.received_messages.__len__() == 0:
-      time.sleep(0.1)
+    wait_for_message(webchannel)
 
     assert webchannel.received_messages == [{
       'from': 'Chatty.ChattyChannel',
@@ -96,17 +98,16 @@ def test_send_undefined_action(webster_and_chatty):
       }
     })
 
-    # Wait for a response for up to 3 seconds
-    start_time = time.time()
-    while time.time() - start_time < 3 and webchannel.received_messages.__len__() == 0:
-      time.sleep(0.1)
+    wait_for_message(webchannel)
 
+    # We assert the error message content first with a regex then the rest of the message
+    assert webchannel.received_messages[0].pop('args')['content'].startswith(
+      "ERROR: \"Chatty.ChattyChannel.say\" not found\nTraceback (most recent call last):")
     assert webchannel.received_messages == [{
       'from': 'Chatty.ChattyChannel',
       'to': 'Webster.WebsterChannel',
       'thoughts': 'An error occurred while committing your action',
       'action': 'say',
-      'args': {'content': 'ERROR: Action "Chatty.ChattyChannel.say" not found'}
     }]
 
 
@@ -143,27 +144,26 @@ def test_send_unpermitted_action(webster_and_chatty):
       }
     })
 
-    # Wait for a response for up to 3 seconds
-    start_time = time.time()
-    while time.time() - start_time < 3 and webchannel.received_messages.__len__() == 0:
-      time.sleep(0.1)
+    wait_for_message(webchannel)
 
+    # We assert the error message content first with a regex then the rest of the message
+    assert webchannel.received_messages[0].pop('args')['content'].startswith(
+      "ERROR: \"Chatty.ChattyChannel.say\" not permitted\nTraceback (most recent call last):")
     assert webchannel.received_messages == [{
       'from': 'Chatty.ChattyChannel',
       'to': 'Webster.WebsterChannel',
       'thoughts': 'An error occurred while committing your action',
       'action': 'say',
-      'args': {'content': 'ERROR: Action "Chatty.ChattyChannel.say" not permitted'}
     }]
 
 
-def test_send_ask_permitted_action(webster_and_chatty):
+def test_send_request_permitted_action(webster_and_chatty):
   """
   Tests sending an action, granting permission, and returning response"""
   webchannel, chattychannel = webster_and_chatty
 
   # We use callable classes to dynamically define _action__say and
-  # _ask_permission
+  # _request_permission
   class ChattySay():
     def __init__(self, channel) -> None:
       self.channel = channel
@@ -177,11 +177,11 @@ def test_send_ask_permitted_action(webster_and_chatty):
 
   class ChattyAsk():
     def __call__(self, proposed_message):
-      print(f"Chatty({self}) received permission request for: {proposed_message}")
+      print(
+        f"Chatty({self}) received permission request for: {proposed_message}")
       return True
-    
-  chattychannel._ask_permission = ChattyAsk()
 
+  chattychannel._request_permission = ChattyAsk()
 
   # Use the context manager to handle setup/teardown of the space
   with space_context([webchannel, chattychannel]):
@@ -197,28 +197,27 @@ def test_send_ask_permitted_action(webster_and_chatty):
       }
     })
 
-    # Wait for a response for up to 2 seconds
-    start_time = time.time()
-    while time.time() - start_time < 2 and webchannel.received_messages.__len__() == 0:
-      time.sleep(0.1)
+    wait_for_message(webchannel)
 
     assert webchannel.received_messages == [{
       'from': 'Chatty.ChattyChannel',
       'to': 'Webster.WebsterChannel',
       'thoughts': 'A value was returned for your action',
       'action': 'say',
-      'args': {'content': '42'}
+      'args': {
+        'content': '42'
+      }
     }]
-    
 
-# send ask permitted action -> reject -> return permission error
-def test_send_ask_rejected_action(webster_and_chatty):
+
+# send action -> reject -> return permission error
+def test_send_request_rejected_action(webster_and_chatty):
   """
   Tests sending an action, rejecting permission, and returning error"""
   webchannel, chattychannel = webster_and_chatty
 
   # We use callable classes to dynamically define _action__say and
-  # _ask_permission
+  # _request_permission
   class ChattySay():
     def __init__(self, channel) -> None:
       self.channel = channel
@@ -232,11 +231,11 @@ def test_send_ask_rejected_action(webster_and_chatty):
 
   class ChattyAsk():
     def __call__(self, proposed_message):
-      print(f"Chatty({self}) received permission request for: {proposed_message}")
+      print(
+        f"Chatty({self}) received permission request for: {proposed_message}")
       return False
-    
-  chattychannel._ask_permission = ChattyAsk()
 
+  chattychannel._request_permission = ChattyAsk()
 
   # Use the context manager to handle setup/teardown of the space
   with space_context([webchannel, chattychannel]):
@@ -252,17 +251,16 @@ def test_send_ask_rejected_action(webster_and_chatty):
       }
     })
 
-    # Wait for a response for up to 2 seconds
-    start_time = time.time()
-    while time.time() - start_time < 2 and webchannel.received_messages.__len__() == 0:
-      time.sleep(0.1)
+    wait_for_message(webchannel)
 
+    # We assert the error message content first with a regex then the rest of the message
+    assert webchannel.received_messages[0].pop('args')['content'].startswith(
+      "ERROR: \"Chatty.ChattyChannel.say\" not permitted\nTraceback (most recent call last):")
     assert webchannel.received_messages == [{
       'from': 'Chatty.ChattyChannel',
       'to': 'Webster.WebsterChannel',
       'thoughts': 'An error occurred while committing your action',
       'action': 'say',
-      'args': {'content': 'ERROR: Action "Chatty.ChattyChannel.say" not permitted'}
     }]
 
 
