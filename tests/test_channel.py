@@ -22,23 +22,17 @@ class ChattyChannel(Channel):
     super().__init__(Operator("Chatty"))
 
 
-@pytest.fixture
-def webster_and_chatty():
-  webchannel = WebsterChannel()
-  chattychannel = ChattyChannel()
-  return webchannel, chattychannel
-
-
 def wait_for_message(channel):
   start_time = time.time()
   while time.time() - start_time < 1 and channel.received_messages.__len__() == 0:
     time.sleep(0.1)
 
 
-def test_send_and_receive(webster_and_chatty):
+def test_send_and_receive():
   """
   Tests sending a basic "say" message receiving a "return"ed reply."""
-  webchannel, chattychannel = webster_and_chatty
+  webchannel = WebsterChannel()
+  chattychannel = ChattyChannel()
 
   # We use callable class to dynamically define the _say action for chatty
   class ChattySay():
@@ -76,10 +70,11 @@ def test_send_and_receive(webster_and_chatty):
     }]
 
 
-def test_send_undefined_action(webster_and_chatty):
+def test_send_undefined_action():
   """
   Tests sending an undefined action and receiving an error response."""
-  webchannel, chattychannel = webster_and_chatty
+  webchannel = WebsterChannel()
+  chattychannel = ChattyChannel()
 
   # In this test we skip defining a _say action on chatty in order to test the
   # error response
@@ -111,10 +106,11 @@ def test_send_undefined_action(webster_and_chatty):
     }]
 
 
-def test_send_unpermitted_action(webster_and_chatty):
+def test_send_unpermitted_action():
   """
   Tests sending an unpermitted action and receiving an error response."""
-  webchannel, chattychannel = webster_and_chatty
+  webchannel = WebsterChannel()
+  chattychannel = ChattyChannel()
 
   # We use callable class to dynamically define the _say action for chatty
   class ChattySay():
@@ -157,10 +153,11 @@ def test_send_unpermitted_action(webster_and_chatty):
     }]
 
 
-def test_send_request_permitted_action(webster_and_chatty):
+def test_send_request_permitted_action():
   """
   Tests sending an action, granting permission, and returning response"""
-  webchannel, chattychannel = webster_and_chatty
+  webchannel = WebsterChannel()
+  chattychannel = ChattyChannel()
 
   # We use callable classes to dynamically define _action__say and
   # _request_permission
@@ -211,10 +208,11 @@ def test_send_request_permitted_action(webster_and_chatty):
 
 
 # send action -> reject -> return permission error
-def test_send_request_rejected_action(webster_and_chatty):
+def test_send_request_rejected_action():
   """
   Tests sending an action, rejecting permission, and returning error"""
-  webchannel, chattychannel = webster_and_chatty
+  webchannel = WebsterChannel()
+  chattychannel = ChattyChannel()
 
   # We use callable classes to dynamically define _action__say and
   # _request_permission
