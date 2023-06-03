@@ -80,7 +80,6 @@ class ChattyLMChannel(Channel):
     response_content = response_text.split('\n###')[0]
     self._send({
       "to": self._current_message['from'],
-      "from": self.id(),
       "thoughts": "",
       "action": "say",
       "args": {

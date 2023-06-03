@@ -51,7 +51,6 @@ class WebChannel(Channel):
       Handles incoming messages from the user interface
       """
       action = {
-        "from": self.id(),
         "thoughts": "",
       }
       action.update(**parse_slash_syntax_action(message_text))

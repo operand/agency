@@ -61,28 +61,30 @@ class Space(Channel):
   def destroy(self):
     self.destructing.set()
 
-  def _route(self, action):
+  def _route(self, message):
     """
     Enqueues the action on intended recipient(s)
     """
     recipients = []
-    if 'to' in action:
+    if 'to' in message:
       # if receiver is specified send to only that channel
       recipients = [
         channel for channel in self.channels
-        if channel.id() == action['to']
+        if channel.id() == message['to']
       ]
     else:
-      # if it isn't send to all _but_ the sender
+      # if it isn't broadcast to all _but_ the sender
       recipients = [
         channel for channel in self.channels
-        if channel.id() != action['from']
+        if channel.id() != message['from']
       ]
     
     # send to all, setting the 'to' field to the recipient's id
     for recipient in recipients:
-      action['to'] = recipient.id()
-      recipient._receive(action)
+      recipient._receive({
+        **message,
+        'to': recipient.id(),
+      })
 
   def _get_help__sync(self, action=None) -> list:
     """

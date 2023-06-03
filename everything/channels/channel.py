@@ -2,7 +2,7 @@ from abc import abstractmethod
 import inspect
 import re
 import traceback
-from everything.things.schema import MessageSchema
+from everything.things.schema import ActionSchema, MessageSchema
 import everything.things.util as util
 import queue
 
@@ -45,19 +45,18 @@ class Channel():
     """
     Validates and sends (out) an action
     """
-    # prevent impersonation
-    # TODO: instead validate that the action does not specify the from field in
-    # the first place
-    action['from'] = self.id()
-
-    self._message_log.append(MessageSchema(**action).dict(by_alias=True))
+    # define message, validate, and route it
+    self._message_log.append(MessageSchema(**{
+      "from": self.id(),
+      **ActionSchema(**action).dict(by_alias=True),
+    }).dict(by_alias=True))
     self.space._route(action)
 
-  def _receive(self, action: dict):
+  def _receive(self, message: dict):
     """
     Validates and enqueues an incoming action to be processed
     """
-    message = MessageSchema(**action).dict(by_alias=True)
+    message = MessageSchema(**message).dict(by_alias=True)
 
     # Record message to log and place on queue
     self._message_log.append(message)
@@ -98,7 +97,7 @@ class Channel():
 
   def __commit_action(self, message: dict) -> dict:
     """
-    Invokes action if permitted, otherwise raises PermissionError
+    Invokes action if permitted otherwise raises PermissionError
     """
 
     # Check if the action exists

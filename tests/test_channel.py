@@ -51,7 +51,6 @@ def test_send_and_receive():
     # Send the first message from Webster
     webchannel._send({
       'action': 'say',
-      'from': webchannel.id(),
       'to': chattychannel.id(),
       'thoughts': '',
       'args': {
@@ -85,7 +84,6 @@ def test_send_undefined_action():
     print(f"Webster sending...")
     webchannel._send({
       'action': 'say',
-      'from': webchannel.id(),
       'to': chattychannel.id(),
       'thoughts': 'I wonder how Chatty is doing.',
       'args': {
@@ -132,7 +130,6 @@ def test_send_unpermitted_action():
     print(f"Webster sending...")
     webchannel._send({
       'action': 'say',
-      'from': webchannel.id(),
       'to': chattychannel.id(),
       'thoughts': 'I wonder how Chatty is doing.',
       'args': {
@@ -186,7 +183,6 @@ def test_send_request_permitted_action():
     print(f"Webster sending...")
     webchannel._send({
       'action': 'say',
-      'from': webchannel.id(),
       'to': chattychannel.id(),
       'thoughts': 'hmmmm',
       'args': {
@@ -241,7 +237,6 @@ def test_send_request_rejected_action():
     print(f"Webster sending...")
     webchannel._send({
       'action': 'say',
-      'from': webchannel.id(),
       'to': chattychannel.id(),
       'thoughts': 'hmmmm',
       'args': {
