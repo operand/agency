@@ -356,7 +356,7 @@ pip install -r requirements-dev.txt
 
 ## Test Suite
 
-You can run the (currently minimal) test suite with:
+You can run the test suite with:
 ```bash
 pytest
 ```
@@ -402,7 +402,9 @@ artificial, and other computing systems together, with the following priorities.
     - video
   - model training example
   - multimodal model example
+- Add integration example with mlc-llm
 - Consider generalizing queuing/storage API
 - Consider prior work on distributed access control
+- Consider cross-compilation to C or other languages
 - Add a docker file to encourage using it
 - [_feel free to make suggestions_](https://github.com/operand/everything/issues)
