@@ -5,12 +5,12 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
 # This class is an example of how you can create a channel that constructs
-# a prompt using previous messages and sends it to a backend language model.
+# a prompt using the message log and sends it to a backend language model.
 
 
 class ChattyLMChannel(Channel):
   """
-  Encapsulates a chatting AI
+  Encapsulates a chatting AI backed by a language model
   Currently uses transformers library as a backend provider
   """
 
@@ -73,16 +73,17 @@ class ChattyLMChannel(Channel):
       max_new_tokens=50,
     )
     new_tokens = output[0][input_ids.shape[1]:]
-    output_text = self.tokenizer.decode(
+    response_text = self.tokenizer.decode(
       new_tokens,
       skip_special_tokens=True,
     )
+    response_content = response_text.split('\n###')[0]
     self._send({
       "to": self._current_message['from'],
       "from": self.id(),
       "thoughts": "",
       "action": "say",
       "args": {
-        "content": output_text,
+        "content": response_content,
       }
     })

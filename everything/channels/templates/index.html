@@ -39,6 +39,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
 </head>
 
 <body>
@@ -107,10 +108,7 @@
       componentDidMount() {
         this.socket.on('message', (msg) => {
           this.setState(state => {
-            console.log(msg)
-            // Replace the last message (the "thinking..." message) with the server's response
-            const messages = state.messages.slice(0, -1);
-            messages.push(msg);
+            const messages = [...state.messages, msg];
             return { messages };
           });
         });
@@ -154,7 +152,6 @@
             messages: [
               ...state.messages,
               newMessage,
-              "..."
             ],
             input: ''
           }));
