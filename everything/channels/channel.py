@@ -45,6 +45,11 @@ class Channel():
     """
     Validates and sends (out) an action
     """
+    # prevent impersonation
+    # TODO: instead validate that the action does not specify the from field in
+    # the first place
+    action['from'] = self.id()
+
     self._message_log.append(MessageSchema(**action).dict(by_alias=True))
     self.space._route(action)
 
@@ -77,12 +82,11 @@ class Channel():
               f"Access denied by '{self.operator.id()}' for: {message}")
       except Exception as e:
         # Here we handle errors that occur while handling an action including
-        # access denial by reporting the error back to the sender. If an error
+        # access denial, by reporting the error back to the sender. If an error
         # occurs here, indicating that basic _send() functionality is broken,
         # the application will exit.
-        util.debug(f"*({self.id()}) error:({e})")
+        util.debug(f"action error: {e}, message: {message}")
         self._send({
-          "from": self.id(),
           "to": message['from'],
           "thoughts": "An error occurred while processing your action",
           "action": "error",
@@ -123,7 +127,6 @@ class Channel():
         # useful for actions that simply need to return a value to the sender.
         if return_value is not None:
           self._send({
-            "from": self.id(),
             "to": message['from'],
             "thoughts": "A value was returned for your action",
             "action": "return",
@@ -223,9 +226,9 @@ class Channel():
   def _action__return(self, original_message, return_value):
     """
     Overwrite this action to handle returned data from a prior action. By
-    default this action simply converts it to an incoming "say".
+    default this action simply replaces it with an incoming "say".
     """
-    self._send({
+    self._receive({
       "from": original_message['to'],
       "to": self.id(),
       "thoughts": "A value was returned for your action",
@@ -242,7 +245,7 @@ class Channel():
     action simply converts it to an incoming "say".
     """
     # TODO: handle errors during errors to stop infinite loops
-    self._send({
+    self._receive({
       "from": original_message['to'],
       "to": self.id(),
       "thoughts": "An error occurred while committing your action",
