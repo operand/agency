@@ -46,11 +46,14 @@ class Channel():
     Validates and sends (out) an action
     """
     # define message, validate, and route it
-    self._message_log.append(MessageSchema(**{
+    message = MessageSchema(**{
       "from": self.id(),
       **ActionSchema(**action).dict(by_alias=True),
-    }).dict(by_alias=True))
-    self.space._route(action)
+    }).dict(by_alias=True)
+
+    # Record message and route it
+    self._message_log.append(message)
+    self.space._route(message)
 
   def _receive(self, message: dict):
     """
@@ -58,7 +61,7 @@ class Channel():
     """
     message = MessageSchema(**message).dict(by_alias=True)
 
-    # Record message to log and place on queue
+    # Record message and place on queue
     self._message_log.append(message)
     self.__message_queue.put(message)
 
