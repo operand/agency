@@ -41,14 +41,15 @@ class Channel():
   def id(self) -> str:
     return f"{self.operator.id()}.{self.__class__.__name__}"
 
-  def _send(self, action):
+  def _send(self, action: ActionSchema):
     """
     Validates and sends (out) an action
     """
     # define message, validate, and route it
     message = MessageSchema(**{
       "from": self.id(),
-      **ActionSchema(**action).dict(by_alias=True),
+      "to": self.space.id(),
+      **action,
     }).dict(by_alias=True)
 
     # Record message and route it
@@ -71,7 +72,7 @@ class Channel():
     """
     while not self.__message_queue.empty():
       message = self.__message_queue.get()
-      util.debug(f"*({self.id()}) processing:", message)
+      util.debug(f"[{self.id()}] processing:", message)
       try:
         try:
           self.__commit_action(message)
@@ -87,7 +88,6 @@ class Channel():
         # access denial, by reporting the error back to the sender. If an error
         # occurs here, indicating that basic _send() functionality is broken,
         # the application will exit.
-        util.debug(f"action error: {e}, message: {message}")
         self._send({
           "to": message['from'],
           "thoughts": "An error occurred while processing your action",

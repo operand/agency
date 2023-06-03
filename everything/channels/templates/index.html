@@ -165,12 +165,13 @@
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div id="chatbox">
               {this.state.messages.map((message, index) => (
-                <div key={index}>({
-                  message.from ? message.from.split('.')[0] : ''
-                }): {
-                  typeof message === 'string' ? message :
-                  message.args.content || message.args.return_value || message.args.error
-                }</div>
+                <div key={index}>
+                  {message.from ? message.from.split('.')[0] : ''}:&nbsp;
+                  {
+                    typeof message === 'string' ? message :
+                    message.args.content || message.args.return_value || message.args.error
+                  }
+                </div>
               ))}
             </div>
             <div id="input-area">

@@ -3,6 +3,9 @@ from everything.channels.channel import Channel
 import asyncio
 import threading
 
+from everything.things import util
+from everything.things.schema import MessageSchema
+
 
 load_dotenv()
 
@@ -61,7 +64,7 @@ class Space(Channel):
   def destroy(self):
     self.destructing.set()
 
-  def _route(self, message):
+  def _route(self, message: MessageSchema):
     """
     Enqueues the action on intended recipient(s)
     """
