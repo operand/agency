@@ -32,7 +32,7 @@ class WebChannel(Channel):
     app.config['SECRET_KEY'] = 'secret!'
     # app.config['DEBUG'] = True
     self.socketio = SocketIO(app, async_mode='eventlet',
-                        logger=False, engineio_logger=False)  # seven!
+                             logger=False, engineio_logger=False)  # seven!
 
     # Define routes
     @app.route('/')
@@ -51,7 +51,6 @@ class WebChannel(Channel):
       Handles incoming messages from the user interface
       """
       action = {
-        "from": self.id(),
         "thoughts": "",
       }
       action.update(**parse_slash_syntax_action(message_text))
@@ -79,9 +78,20 @@ class WebChannel(Channel):
   # We use the _after_action__ method to pass through all messages to the
   # socketio web client
   def _after_action___(self, original_message, return_value, error):
-    self.socketio.server.emit('message', original_message, room=self.connected_sid)
+    self.socketio.server.emit(
+      'message', original_message, room=self.connected_sid)
 
-  # And define pass through methods to whitelist the actions we want to allow
+  # And define pass through methods to whitelist the actions we allow
   @access_policy(ACCESS_PERMITTED)
   def _action__say(self, content: str):
+    pass
+
+  # Allow return values to be passed through
+  @access_policy(ACCESS_PERMITTED)
+  def _action__return(self, original_message, return_value):
+    pass
+
+  # Allow errors to be passed through
+  @access_policy(ACCESS_PERMITTED)
+  def _action__error(self, original_message: dict, error: str):
     pass

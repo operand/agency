@@ -39,6 +39,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
 </head>
 
 <body>
@@ -54,7 +55,7 @@
         super(props);
         this.state = {
           messages: [
-            // TODO: hydrate this with previous messages on load
+            // TODO: hydrate this with message_log on load
           ],
           input: ''
         };
@@ -62,7 +63,8 @@
       }
 
       removeQuotes(string) {
-        return string.replace(/(^')|('$)|(^")|("$)/g, "");
+        withoutQuotes = string.replace(/(^')|('$)|(^")|("$)/g, "");
+        return withoutQuotes;
       }
 
       parseArguments(parts) {
@@ -106,16 +108,18 @@
 
       componentDidMount() {
         this.socket.on('message', (msg) => {
+          console.log('message: ', msg);
           this.setState(state => {
-            console.log(msg)
-            // Replace the last message (the "thinking..." message) with the server's response
-            const messages = state.messages.slice(0, -1);
-            messages.push(msg);
+            const messages = [
+              ...state.messages,
+              msg
+            ];
             return { messages };
           });
         });
 
         this.socket.on('permission_request', (proposed_msg) => {
+          console.log('permission_request: ', proposed_msg);
           const answer = window.confirm(`Do you permit the following?\n${proposed_msg}`);
           this.socket.emit('permission_response')
         });
@@ -148,13 +152,11 @@
             thoughts: "",
             ...action
           }
-          console.log(newMessage);
           this.setState(state => ({
             // append our message to the list of messages
             messages: [
               ...state.messages,
               newMessage,
-              "..."
             ],
             input: ''
           }));
@@ -163,18 +165,31 @@
         }
       }
 
+      messageToText(message) {
+        if (typeof message === 'string') {
+          // this covers when we simply put "..." as a message
+          return message;
+        } else {
+          if (message.action === 'say') {
+            return message.args.content.toString();
+          } else {
+            return <pre>{ JSON.stringify(message, null, 2) }</pre>;
+          }
+        }
+      }
+
       render() {
         return (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div id="chatbox">
-              {this.state.messages.map((message, index) => (
-                <div key={index}>({
-                  message.from ? message.from.split('.')[0] : ''
-                }): {
-                  typeof message === 'string' ? message :
-                  message.args.content || message.args.return_value || message.args.error
-                }</div>
-              ))}
+              {
+                this.state.messages.map((message, index) => (
+                  <div key={index}>
+                    {message.from ? `${message.from.split('.')[0]}: ` : ''}
+                    {this.messageToText(message)}
+                  </div>
+                ))
+              }
             </div>
             <div id="input-area">
               <textarea id="user-input" value={this.state.input} onChange={this.handleInputChange} onKeyDown={this.handleKeyDown} />

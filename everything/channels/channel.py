@@ -1,9 +1,8 @@
 from abc import abstractmethod
-from array import array
 import inspect
 import re
 import traceback
-from everything.things.schema import MessageSchema
+from everything.things.schema import ActionSchema, MessageSchema
 import everything.things.util as util
 import queue
 
@@ -42,20 +41,28 @@ class Channel():
   def id(self) -> str:
     return f"{self.operator.id()}.{self.__class__.__name__}"
 
-  def _send(self, action):
+  def _send(self, action: ActionSchema):
     """
     Validates and sends (out) an action
     """
-    self._message_log.append(MessageSchema(**action).dict(by_alias=True))
-    self.space._route(action)
+    # define message, validate, and route it
+    util.debug(f"[{self.id()}] sending:", action)
+    message = MessageSchema(**{
+      "from": self.id(),
+      **action,
+    }).dict(by_alias=True)
 
-  def _receive(self, action: dict):
+    # Record message and route it
+    self._message_log.append(message)
+    self.space._route(message)
+
+  def _receive(self, message: MessageSchema):
     """
     Validates and enqueues an incoming action to be processed
     """
-    message = MessageSchema(**action).dict(by_alias=True)
+    message = MessageSchema(**message).dict(by_alias=True)
 
-    # Record message to log and place on queue
+    # Record message and place on queue
     self._message_log.append(message)
     self.__message_queue.put(message)
 
@@ -65,7 +72,7 @@ class Channel():
     """
     while not self.__message_queue.empty():
       message = self.__message_queue.get()
-      util.debug(f"*({self.id()}) processing:", message)
+      util.debug(f"[{self.id()}] processing:", message)
       try:
         try:
           self.__commit_action(message)
@@ -77,29 +84,24 @@ class Channel():
             raise PermissionError(
               f"Access denied by '{self.operator.id()}' for: {message}")
       except Exception as e:
-        try:
-          # Here we handle errors that occur while handling an action, including
-          # access denial, by reporting the error back to the sender.
-          self._send({
-            "from": self.id(),
-            "to": message['from'],
-            "thoughts": "An error occurred while processing your action",
-            "action": "error",
-            "args": {
-              "original_message": message,
-              "error": f"{e}\n{traceback.format_exc()}",
-            },
-          })
-        except Exception as e:
-          # an error happened while handling an error, just exit. this is bad
-          print(f"ERROR: {e}: {traceback.format_exc()}")
-          exit(1)
+        # Here we handle errors that occur while handling an action including
+        # access denial, by reporting the error back to the sender. If an error
+        # occurs here, indicating that basic _send() functionality is broken,
+        # the application will exit.
+        self._send({
+          "to": message['from'],
+          "thoughts": "An error occurred while processing your action",
+          "action": "error",
+          "args": {
+            "original_message": message,
+            "error": f"{e}\n{traceback.format_exc()}",
+          },
+        })
 
-  def __commit_action(self, message: dict) -> dict:
+  def __commit_action(self, message: MessageSchema):
     """
-    Invokes action if permitted, otherwise raises PermissionError
+    Invokes action if permitted otherwise raises PermissionError
     """
-
     # Check if the action exists
     action_method = None
     try:
@@ -126,7 +128,6 @@ class Channel():
         # useful for actions that simply need to return a value to the sender.
         if return_value is not None:
           self._send({
-            "from": self.id(),
             "to": message['from'],
             "thoughts": "A value was returned for your action",
             "action": "return",
@@ -146,17 +147,17 @@ class Channel():
       # Always call __action__after__
       self._after_action___(message, return_value, error)
 
-  def _get_help(self, action_name=None) -> array:
+  def _get_help(self, action_name: str = None) -> list:
     """
     Returns an array of all action methods on this class that match
     'action_name'. If no action_name is passed, returns all actions.
     [
       {
-        "channel": <channel_name>,
-        "action": <action_name>,
-        "thoughts": <docstring of method>,
+        "operator.channel": "<operator_name>.<channel_name>",
+        "action": "<action_name>",
+        "thoughts": "<docstring_of_method>",
         "args": {
-          "arg_name": "arg_type",
+          "arg_name": "<arg_type>",
           ...
         }
       },
@@ -215,7 +216,7 @@ class Channel():
   # _request_permission
 
   @access_policy(ACCESS_PERMITTED)
-  def _action__help(self, action_name=None) -> array:
+  def _action__help(self, action_name: str = None) -> list:
     """
     Returns list of actions on this channel matching action_name, or all if none
     is passed.
@@ -223,12 +224,12 @@ class Channel():
     return self._get_help(action_name)
 
   @access_policy(ACCESS_PERMITTED)
-  def _action__return(self, original_message, return_value):
+  def _action__return(self, original_message: MessageSchema, return_value):
     """
-    Overwrite this action to handle returned data from a prior action
-    By default, this action simply converts it to an incoming "say"
+    Overwrite this action to handle returned data from a prior action. By
+    default this action simply replaces it with an incoming "say".
     """
-    self._send({
+    self._receive({
       "from": original_message['to'],
       "to": self.id(),
       "thoughts": "A value was returned for your action",
@@ -239,13 +240,13 @@ class Channel():
     })
 
   @access_policy(ACCESS_PERMITTED)
-  def _action__error(self, original_message: dict, error: str):
+  def _action__error(self, original_message: MessageSchema, error: str):
     """
-    Overwrite this action to handle errors from an action
-    By default, this action simply converts it to an incoming "say"
+    Overwrite this action to handle errors from an action. By default this
+    action simply converts it to an incoming "say".
     """
     # TODO: handle errors during errors to stop infinite loops
-    self._send({
+    self._receive({
       "from": original_message['to'],
       "to": self.id(),
       "thoughts": "An error occurred while committing your action",

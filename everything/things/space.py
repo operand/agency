@@ -1,5 +1,7 @@
 from dotenv import load_dotenv
 from everything.channels.channel import Channel
+from everything.things import util
+from everything.things.schema import MessageSchema
 import asyncio
 import threading
 
@@ -13,7 +15,7 @@ class Space(Channel):
   - starting and running itself and its member channels
   - routing all sent messages
   
-  Space's could eventually be nested (but this hasn't been tested yet)
+  Space's could potentially be nested but this hasn't been tested
   """
 
   def __init__(self, channels):
@@ -24,7 +26,7 @@ class Space(Channel):
     for channel in self.channels:
       channel.space = self
 
-  def id(self):
+  def id(self) -> str:
     return self.__class__.__name__
 
   async def __start_channel(self, channel):
@@ -61,32 +63,35 @@ class Space(Channel):
   def destroy(self):
     self.destructing.set()
 
-  def _route(self, action):
+  def _route(self, message: MessageSchema):
     """
     Enqueues the action on intended recipient(s)
     """
     recipients = []
-    if 'to' in action:
+    if 'to' in message and message['to'] is not None:
       # if receiver is specified send to only that channel
       recipients = [
         channel for channel in self.channels
-        if channel.id() == action['to']
+        if channel.id() == message['to']
       ]
     else:
-      # if it isn't send to all _but_ the sender
+      # if it isn't broadcast to all _but_ the sender
       recipients = [
         channel for channel in self.channels
-        if channel.id() != action['from']
+        if channel.id() != message['from']
       ]
     
     # send to all, setting the 'to' field to the recipient's id
+    util.debug(f"Routing to {[recipient.id() for recipient in recipients]}", message)
     for recipient in recipients:
-      action['to'] = recipient.id()
-      recipient._receive(action)
+      recipient._receive({
+        **message,
+        'to': recipient.id(),
+      })
 
-  def _get_help__sync(self, action=None):
+  def _get_help__sync(self, action=None) -> list:
     """
-    Returns a help object immediately without forwarding messages
+    Returns an action list immediately without forwarding messages
     """
     help = [
       channel._get_help(action)
