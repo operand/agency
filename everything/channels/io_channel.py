@@ -1,5 +1,4 @@
-from channel import Channel
-
+from everything.things.channel import Channel
 
 class IOChannel(Channel):
   """

@@ -35,7 +35,8 @@ class Space(Channel):
       await asyncio.sleep(0.01)
 
   async def __start_channels(self):
-    # start and run all channels concurrently
+    """
+    Starts all channels and runs them concurrently"""
     channel_processes = [
       asyncio.create_task(self.__start_channel(channel))
       for channel in self.channels + [self]
@@ -43,6 +44,8 @@ class Space(Channel):
     await asyncio.gather(*channel_processes)
 
   def create(self):
+    """
+    Starts the space and all channels"""
     # start channels thread
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

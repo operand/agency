@@ -2,6 +2,7 @@
 *.py[cod]
 .DS_Store
 .env
+.pytest_cache
 .venv
 __pycache__/
 build/

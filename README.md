@@ -402,8 +402,9 @@ artificial, and other computing systems together, with the following priorities.
     - video
   - model training example
   - multimodal model example
+- Add broker/network support
 - Add integration example with mlc-llm
-- Consider generalizing queuing/storage API
+- Consider storage API
 - Consider prior work on distributed access control
 - Consider cross-compilation to C or other languages
 - Add a docker file to encourage using it
