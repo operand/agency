@@ -55,7 +55,7 @@
         super(props);
         this.state = {
           messages: [
-            // TODO: hydrate this with previous messages on load
+            // TODO: hydrate this with message_log on load
           ],
           input: ''
         };
@@ -63,7 +63,8 @@
       }
 
       removeQuotes(string) {
-        return string.replace(/(^')|('$)|(^")|("$)/g, "");
+        withoutQuotes = string.replace(/(^')|('$)|(^")|("$)/g, "");
+        return withoutQuotes;
       }
 
       parseArguments(parts) {
@@ -109,7 +110,10 @@
         this.socket.on('message', (msg) => {
           console.log('message: ', msg);
           this.setState(state => {
-            const messages = [...state.messages, msg];
+            const messages = [
+              ...state.messages,
+              msg
+            ];
             return { messages };
           });
         });
@@ -161,19 +165,31 @@
         }
       }
 
+      messageToText(message) {
+        if (typeof message === 'string') {
+          // this covers when we simply put "..." as a message
+          return message;
+        } else {
+          if (message.action === 'say') {
+            return message.args.content.toString();
+          } else {
+            return <pre>{ JSON.stringify(message, null, 2) }</pre>;
+          }
+        }
+      }
+
       render() {
         return (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div id="chatbox">
-              {this.state.messages.map((message, index) => (
-                <div key={index}>
-                  {message.from ? message.from.split('.')[0] : ''}:&nbsp;
-                  {
-                    typeof message === 'string' ? message :
-                    message.args.content || message.args.return_value || message.args.error
-                  }
-                </div>
-              ))}
+              {
+                this.state.messages.map((message, index) => (
+                  <div key={index}>
+                    {message.from ? `${message.from.split('.')[0]}: ` : ''}
+                    {this.messageToText(message)}
+                  </div>
+                ))
+              }
             </div>
             <div id="input-area">
               <textarea id="user-input" value={this.state.input} onChange={this.handleInputChange} onKeyDown={this.handleKeyDown} />

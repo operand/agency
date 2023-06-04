@@ -191,7 +191,8 @@ def parse_slash_syntax_action(action_text) -> dict:
     except json.JSONDecodeError:
       args[key] = val
 
-  return {
+  action = {
     "action": command,
     "args": args,
   }
+  return action
