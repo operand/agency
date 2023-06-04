@@ -1,5 +1,5 @@
 import textwrap
-from everything.channels.channel import ACCESS_PERMITTED, Channel, access_policy
+from everything.things.channel import ACCESS_PERMITTED, Channel, access_policy
 import everything.things.util as util
 from transformers import AutoTokenizer, AutoModelForCausalLM
 

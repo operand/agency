@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from everything.channels.channel import Channel
+from everything.things.channel import Channel
 from everything.things import util
 from everything.things.schema import MessageSchema
 import asyncio

@@ -1,4 +1,4 @@
-from everything.channels.channel import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, Channel
+from everything.things.channel import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, Channel
 from everything.things.operator import Operator
 import pytest
 import time

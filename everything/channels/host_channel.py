@@ -1,6 +1,6 @@
 import os
 import subprocess
-from everything.channels.channel import ACCESS_REQUESTED, Channel, access_policy
+from everything.things.channel import ACCESS_REQUESTED, Channel, access_policy
 
 
 # TODO
