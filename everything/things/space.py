@@ -1,10 +1,9 @@
 from dotenv import load_dotenv
 from everything.channels.channel import Channel
-import asyncio
-import threading
-
 from everything.things import util
 from everything.things.schema import MessageSchema
+import asyncio
+import threading
 
 
 load_dotenv()
@@ -16,7 +15,7 @@ class Space(Channel):
   - starting and running itself and its member channels
   - routing all sent messages
   
-  Space's could eventually be nested (but this hasn't been tested yet)
+  Space's could potentially be nested but this hasn't been tested
   """
 
   def __init__(self, channels):
@@ -27,7 +26,7 @@ class Space(Channel):
     for channel in self.channels:
       channel.space = self
 
-  def id(self):
+  def id(self) -> str:
     return self.__class__.__name__
 
   async def __start_channel(self, channel):
@@ -69,7 +68,7 @@ class Space(Channel):
     Enqueues the action on intended recipient(s)
     """
     recipients = []
-    if 'to' in message:
+    if 'to' in message and message['to'] is not None:
       # if receiver is specified send to only that channel
       recipients = [
         channel for channel in self.channels
@@ -83,6 +82,7 @@ class Space(Channel):
       ]
     
     # send to all, setting the 'to' field to the recipient's id
+    util.debug(f"Routing to {[recipient.id() for recipient in recipients]}", message)
     for recipient in recipients:
       recipient._receive({
         **message,

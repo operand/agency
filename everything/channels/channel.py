@@ -46,9 +46,9 @@ class Channel():
     Validates and sends (out) an action
     """
     # define message, validate, and route it
+    util.debug(f"[{self.id()}] sending:", action)
     message = MessageSchema(**{
       "from": self.id(),
-      "to": self.space.id(),
       **action,
     }).dict(by_alias=True)
 
@@ -56,7 +56,7 @@ class Channel():
     self._message_log.append(message)
     self.space._route(message)
 
-  def _receive(self, message: dict):
+  def _receive(self, message: MessageSchema):
     """
     Validates and enqueues an incoming action to be processed
     """
@@ -98,11 +98,10 @@ class Channel():
           },
         })
 
-  def __commit_action(self, message: dict) -> dict:
+  def __commit_action(self, message: MessageSchema):
     """
     Invokes action if permitted otherwise raises PermissionError
     """
-
     # Check if the action exists
     action_method = None
     try:
@@ -148,7 +147,7 @@ class Channel():
       # Always call __action__after__
       self._after_action___(message, return_value, error)
 
-  def _get_help(self, action_name=None) -> list:
+  def _get_help(self, action_name: str = None) -> list:
     """
     Returns an array of all action methods on this class that match
     'action_name'. If no action_name is passed, returns all actions.
@@ -217,7 +216,7 @@ class Channel():
   # _request_permission
 
   @access_policy(ACCESS_PERMITTED)
-  def _action__help(self, action_name=None) -> list:
+  def _action__help(self, action_name: str = None) -> list:
     """
     Returns list of actions on this channel matching action_name, or all if none
     is passed.
@@ -225,7 +224,7 @@ class Channel():
     return self._get_help(action_name)
 
   @access_policy(ACCESS_PERMITTED)
-  def _action__return(self, original_message, return_value):
+  def _action__return(self, original_message: MessageSchema, return_value):
     """
     Overwrite this action to handle returned data from a prior action. By
     default this action simply replaces it with an incoming "say".
@@ -241,7 +240,7 @@ class Channel():
     })
 
   @access_policy(ACCESS_PERMITTED)
-  def _action__error(self, original_message: dict, error: str):
+  def _action__error(self, original_message: MessageSchema, error: str):
     """
     Overwrite this action to handle errors from an action. By default this
     action simply converts it to an incoming "say".

@@ -58,6 +58,9 @@ class ChattyLMChannel(Channel):
 
   @access_policy(ACCESS_PERMITTED)
   def _action__say(self, content: str) -> bool:
+    """
+    Use this action to say something to Chatty
+    """
     # Here we demonstrate constructing a full prompt using previous messages for
     # context
     full_prompt = \

@@ -107,6 +107,7 @@
 
       componentDidMount() {
         this.socket.on('message', (msg) => {
+          console.log('message: ', msg);
           this.setState(state => {
             const messages = [...state.messages, msg];
             return { messages };
@@ -114,6 +115,7 @@
         });
 
         this.socket.on('permission_request', (proposed_msg) => {
+          console.log('permission_request: ', proposed_msg);
           const answer = window.confirm(`Do you permit the following?\n${proposed_msg}`);
           this.socket.emit('permission_response')
         });
@@ -146,7 +148,6 @@
             thoughts: "",
             ...action
           }
-          console.log(newMessage);
           this.setState(state => ({
             // append our message to the list of messages
             messages: [
