@@ -119,6 +119,7 @@ class Channel():
 
         # Invoke the action method
         # (set _current_message so that it can be used by the action)
+        util.debug(f"*[{self.id()}] invoking '{message['action']}' with args:", message['args']) 
         self._current_message = message
         return_value = action_method(**message['args'])
         self._current_message = None

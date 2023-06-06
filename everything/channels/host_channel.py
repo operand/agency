@@ -1,6 +1,8 @@
+import json
 import os
 import re
 import subprocess
+import textwrap
 from colorama import Fore, Style
 from everything.things.channel import ACCESS_REQUESTED, Channel, access_policy
 
@@ -60,14 +62,18 @@ class HostChannel(Channel):
     return f"Deleted {filepath}"
 
   @access_policy(ACCESS_REQUESTED)
-  def _action__list_files(self, directory_path: str):
+  def _action__list_files(self, directory_path: str = "."):
     """List files in a directory"""
     files = os.listdir(directory_path)
     return f"{files}"
 
   def _request_permission(self, proposed_message: dict) -> bool:
     """Asks for permission on the command line"""
-    print(f"{Fore.RED}Permission requested to execute:\n{Fore.YELLOW + proposed_message + Style.RESET_ALL}\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+    text = \
+    f"{Fore.RED}***** Permission requested to execute: *****{Style.RESET_ALL}\n" + \
+    json.dumps(proposed_message, indent=2) + \
+    f"\n{Fore.RED}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{Style.RESET_ALL}\n"
+    print(text)
     permission_response = input("Allow? (y/n) ")
     return re.search(r"^y(es)?$", permission_response)
   

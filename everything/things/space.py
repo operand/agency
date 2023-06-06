@@ -85,7 +85,7 @@ class Space(Channel):
       ]
     
     # send to all, setting the 'to' field to the recipient's id
-    util.debug(f"Routing to {[recipient.id() for recipient in recipients]}", message)
+    util.debug(f"*Routing to {[recipient.id() for recipient in recipients]}", message)
     for recipient in recipients:
       recipient._receive({
         **message,
