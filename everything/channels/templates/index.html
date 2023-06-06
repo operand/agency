@@ -60,22 +60,23 @@
           input: ''
         };
         this.socket = io.connect('http://localhost:8080');
-      }
-
-      removeQuotes(string) {
-        withoutQuotes = string.replace(/(^')|('$)|(^")|("$)/g, "");
-        return withoutQuotes;
+        this.chatbox = React.createRef()
       }
 
       parseArguments(parts) {
         let args = {};
 
         for (let i = 1; i < parts.length; i++) {
-          let [key, ...val] = parts[i].split(":", 1);
-          val = val.length > 0 ? val[0] : true;
+          let splitIndex = parts[i].indexOf(":");
+          let key = parts[i].substring(0, splitIndex);
+          let val = parts[i].substring(splitIndex + 1);
+
+          if (val.startsWith('"') && val.endsWith('"')) {
+            val = val.slice(1, -1);
+          }
 
           try {
-            args[key] = JSON.parse(this.removeQuotes(val));
+            args[key] = JSON.parse(val);
           } catch (e) {
             args[key] = val;
           }
@@ -97,13 +98,20 @@
         let action_name = parts[0].substring(1);
         let args = this.parseArguments(parts);
 
-        return {
+        // pull out the "to" argument if it exists
+        let to = args['to']
+        delete args['to']
+
+
+        let action = {
           "from": window.__everything_channel_id,
-          "to": args['to'] || "Space",
+          "to": to || "Space",
           "thoughts": "",
           "action": action_name,
           "args": args
         };
+        console.log("returning action: ", action)
+        return action;
       }
 
       componentDidMount() {
@@ -123,6 +131,10 @@
           const answer = window.confirm(`Do you permit the following?\n${proposed_msg}`);
           this.socket.emit('permission_response')
         });
+      }
+
+      componentDidUpdate() {
+        this.chatbox.current.scrollTop = this.chatbox.current.scrollHeight;
       }
 
       handleInputChange = (event) => {
@@ -181,7 +193,7 @@
       render() {
         return (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <div id="chatbox">
+            <div id="chatbox" ref={this.chatbox}>
               {
                 this.state.messages.map((message, index) => (
                   <div key={index}>

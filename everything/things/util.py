@@ -171,6 +171,8 @@ def parse_slash_syntax_action(action_text) -> dict:
 
   This method does NOT validate the action object, it only parses it.
   """
+
+def parse_slash_syntax_action(action_text) -> dict:
   # Handle /say command case
   if not action_text.startswith("/"):
     return {
@@ -186,7 +188,7 @@ def parse_slash_syntax_action(action_text) -> dict:
     key, *val = part.split(":", 1)
     val = val[0] if val else 'true'
     try:
-      args[key] = json.loads(val.strip('\'"'))
+      args[key] = json.loads(val)
     except json.JSONDecodeError:
       args[key] = val
 

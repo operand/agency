@@ -47,7 +47,7 @@ class Channel():
     Validates and sends (out) an action
     """
     # define message, validate, and route it
-    util.debug(f"[{self.id()}] sending:", action)
+    util.debug(f"*[{self.id()}] sending:", action)
     message = MessageSchema(**{
       "from": self.id(),
       **action,
@@ -234,7 +234,7 @@ class Channel():
     return self._get_help(action_name)
 
   @access_policy(ACCESS_PERMITTED)
-  def _action__return(self, original_message: MessageSchema, return_value):
+  def _action__return(self, original_message: MessageSchema, return_value: str):
     """
     Overwrite this action to handle returned data from a prior action. By
     default this action simply replaces it with an incoming "say".

@@ -62,7 +62,7 @@ class HostChannel(Channel):
     return f"Deleted {filepath}"
 
   @access_policy(ACCESS_REQUESTED)
-  def _action__list_files(self, directory_path: str = "."):
+  def _action__list_files(self, directory_path: str):
     """List files in a directory"""
     files = os.listdir(directory_path)
     return f"{files}"
