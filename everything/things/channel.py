@@ -2,6 +2,7 @@ from abc import abstractmethod
 import inspect
 import re
 import traceback
+from everything.things.operator import Operator
 from everything.things.schema import ActionSchema, MessageSchema
 import everything.things.util as util
 import queue
@@ -29,7 +30,7 @@ class Channel():
   An action based interface to an Operator
   """
 
-  def __init__(self, operator, **kwargs) -> None:
+  def __init__(self, operator: Operator, **kwargs) -> None:
     self.operator = operator
     self.kwargs = kwargs
     self.__message_queue = queue.Queue()
@@ -148,6 +149,22 @@ class Channel():
       # Always call __action__after__
       self._after_action___(message, return_value, error)
 
+  def __permitted(self, message) -> bool:
+    """
+    Checks whether the action represented by the message is allowed
+    """
+    policy = getattr(
+      self, f"{ACTION_METHOD_PREFIX}{message['action']}").access_policy
+    if policy == ACCESS_PERMITTED:
+      return True
+    elif policy == ACCESS_DENIED:
+      return False
+    elif policy == ACCESS_REQUESTED:
+      return self._request_permission(message)
+    else:
+      raise Exception(
+        f"Invalid access policy for method: {message['action']}, got '{policy}'")
+
   def _get_help(self, action_name: str = None) -> list:
     """
     Returns an array of all action methods on this class that match
@@ -198,21 +215,11 @@ class Channel():
     else:
       return self.__cached__get_action_help
 
-  def __permitted(self, message) -> bool:
+  def _action_exists(self, action_name: str):
     """
-    Checks whether the action represented by the message is allowed
+    Returns true if the action exists on this channel
     """
-    policy = getattr(
-      self, f"{ACTION_METHOD_PREFIX}{message['action']}").access_policy
-    if policy == ACCESS_PERMITTED:
-      return True
-    elif policy == ACCESS_DENIED:
-      return False
-    elif policy == ACCESS_REQUESTED:
-      return self._request_permission(message)
-    else:
-      raise Exception(
-        f"Invalid access policy for method: {message['action']}, got '{policy}'")
+    return hasattr(self, f"{ACTION_METHOD_PREFIX}{action_name}")
 
   # Override any of the following methods as needed to implement your channel
   # If you define any custom _action__* methods, then you must also implement
@@ -259,7 +266,7 @@ class Channel():
       },
     })
 
-  def _after_action___(self, original_message: dict, return_value: str, error: str):
+  def _after_action___(self, original_message: MessageSchema, return_value: str, error: str):
     """
     Called after every action. Override and use this method for logging or other
     situations where you may want to pass through all actions.
@@ -270,7 +277,7 @@ class Channel():
     pass
 
   @abstractmethod
-  def _request_permission(self, proposed_message: dict) -> bool:
+  def _request_permission(self, proposed_message: MessageSchema) -> bool:
     """
     Implement this method to receive a proposed action message and present it to
     the operator of the channel for review. Return true or false to indicate

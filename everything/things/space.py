@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from everything.things.channel import Channel
 from everything.things import util
-from everything.things.schema import MessageSchema
+from everything.things.schema import ActionSchema, MessageSchema
 import asyncio
 import threading
 
@@ -73,16 +73,24 @@ class Space(Channel):
     recipients = []
     if 'to' in message and message['to'] is not None:
       # if receiver is specified send to only that channel
+      # if the channel supports the action
       recipients = [
         channel for channel in self.channels
         if channel.id() == message['to']
+        and channel._action_exists(message['action'])
       ]
     else:
-      # if it isn't broadcast to all _but_ the sender
+      # if 'to' is not specified broadcast to all _but_ the sender
+      # if the channel supports the action
       recipients = [
         channel for channel in self.channels
         if channel.id() != message['from']
+        and channel._action_exists(message['action'])
       ]
+
+    # if there are no recipients, raise an error
+    if len(recipients) == 0:
+      raise Exception(f"No recipients for message: {message}")
     
     # send to all, setting the 'to' field to the recipient's id
     util.debug(f"*Routing to {[recipient.id() for recipient in recipients]}", message)
@@ -92,12 +100,12 @@ class Space(Channel):
         'to': recipient.id(),
       })
 
-  def _get_help__sync(self, action=None) -> list:
+  def _get_help__sync(self, action_name: str = None) -> list:
     """
     Returns an action list immediately without forwarding messages
     """
     help = [
-      channel._get_help(action)
+      channel._get_help(action_name)
       for channel in [self] + self.channels
     ]
     return help
