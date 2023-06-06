@@ -1,3 +1,4 @@
+import json
 import eventlet
 import logging
 from eventlet import wsgi
@@ -7,7 +8,6 @@ from everything.things.schema import MessageSchema
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
-from everything.things.util import parse_slash_syntax_action
 from everything.things.channel import ACCESS_PERMITTED, Channel, access_policy
 
 
@@ -49,15 +49,11 @@ class WebChannel(Channel):
       self.connected_sid = request.sid
 
     @self.socketio.on('message')
-    def handle_message(message_text):
+    def handle_action(action):
       """
-      Handles incoming messages from the web user interface
+      Handles incoming actions from the web user interface
       """
-      util.debug(f"Received message from ui: ", message_text)
-      action = {
-        "thoughts": "",
-      }
-      action.update(**parse_slash_syntax_action(message_text))
+      util.debug(f"*Received action from ui: ", action)
       self._send(action)
 
     @self.socketio.on('permission_response')

@@ -71,7 +71,7 @@ class Space(Channel):
     Enqueues the action on intended recipient(s)
     """
     recipients = []
-    if 'to' in message and message['to'] is not None:
+    if 'to' in message and message['to'] not in [None, self.id()]:
       # if receiver is specified send to only that channel
       # if the channel supports the action
       recipients = [
