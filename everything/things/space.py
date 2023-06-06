@@ -88,10 +88,20 @@ class Space(Channel):
         and channel._action_exists(message['action'])
       ]
 
-    # if there are no recipients, raise an error
+    # no recipients means the action is not supported
     if len(recipients) == 0:
-      raise Exception(f"No recipients for message: {message}")
-    
+      # enqueue an error message to the sender
+      self._receive({
+        'from': self.id(),
+        'to': message['from'],
+        'thoughts': 'An error occurred',
+        'action': 'error',
+        'args': {
+          'original_message': message,
+          'error': f"\"{message['action']}\" not found"
+        }
+      })
+
     # send to all, setting the 'to' field to the recipient's id
     util.debug(f"*Routing to {[recipient.id() for recipient in recipients]}", message)
     for recipient in recipients:

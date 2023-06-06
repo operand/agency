@@ -1,7 +1,6 @@
 from abc import abstractmethod
 import inspect
 import re
-import traceback
 from everything.things.operator import Operator
 from everything.things.schema import ActionSchema, MessageSchema
 import everything.things.util as util
@@ -91,11 +90,11 @@ class Channel():
         # the application will exit.
         self._send({
           "to": message['from'],
-          "thoughts": "An error occurred while processing your action",
+          "thoughts": "An error occurred",
           "action": "error",
           "args": {
             "original_message": message,
-            "error": f"{e}\n{traceback.format_exc()}",
+            "error": f"{e}",
           },
         })
 
@@ -222,8 +221,6 @@ class Channel():
     return hasattr(self, f"{ACTION_METHOD_PREFIX}{action_name}")
 
   # Override any of the following methods as needed to implement your channel
-  # If you define any custom _action__* methods, then you must also implement
-  # _request_permission
 
   @access_policy(ACCESS_PERMITTED)
   def _action__help(self, action_name: str = None) -> list:
@@ -259,10 +256,10 @@ class Channel():
     self._receive({
       "from": original_message['to'],
       "to": self.id(),
-      "thoughts": "An error occurred while committing your action",
+      "thoughts": "An error occurred",
       "action": "say",
       "args": {
-        "content": f"ERROR: {error}\n{traceback}",
+        "content": f"ERROR: {error}",
       },
     })
 

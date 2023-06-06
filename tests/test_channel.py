@@ -94,13 +94,12 @@ def test_send_undefined_action():
     wait_for_message(webchannel)
 
     # We assert the error message content first with a regex then the rest of the message
-    assert webchannel.received_messages[0].pop('args')['content'].startswith(
-      "ERROR: \"Chatty.ChattyChannel.say\" not found\nTraceback (most recent call last):")
     assert webchannel.received_messages == [{
       'from': 'Chatty.ChattyChannel',
       'to': 'Webster.WebsterChannel',
-      'thoughts': 'An error occurred while committing your action',
+      'thoughts': 'An error occurred',
       'action': 'say',
+      'args': {'content': 'ERROR: \"Chatty.ChattyChannel.say\" not found'}
     }]
 
 
@@ -140,13 +139,12 @@ def test_send_unpermitted_action():
     wait_for_message(webchannel)
 
     # We assert the error message content first with a regex then the rest of the message
-    assert webchannel.received_messages[0].pop('args')['content'].startswith(
-      "ERROR: \"Chatty.ChattyChannel.say\" not permitted\nTraceback (most recent call last):")
     assert webchannel.received_messages == [{
       'from': 'Chatty.ChattyChannel',
       'to': 'Webster.WebsterChannel',
-      'thoughts': 'An error occurred while committing your action',
+      'thoughts': 'An error occurred',
       'action': 'say',
+      'args': {'content': 'ERROR: \"Chatty.ChattyChannel.say\" not permitted'}
     }]
 
 
@@ -247,13 +245,14 @@ def test_send_request_rejected_action():
     wait_for_message(webchannel)
 
     # We assert the error message content first with a regex then the rest of the message
-    assert webchannel.received_messages[0].pop('args')['content'].startswith(
-      "ERROR: \"Chatty.ChattyChannel.say\" not permitted\nTraceback (most recent call last):")
     assert webchannel.received_messages == [{
       'from': 'Chatty.ChattyChannel',
       'to': 'Webster.WebsterChannel',
-      'thoughts': 'An error occurred while committing your action',
+      'thoughts': 'An error occurred',
       'action': 'say',
+      'args': {
+        'content': 'ERROR: \"Chatty.ChattyChannel.say\" not permitted'
+      }
     }]
 
 
