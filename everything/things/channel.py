@@ -154,8 +154,8 @@ class Channel():
     [
       {
         "operator.channel": "<operator_name>.<channel_name>",
-        "action": "<action_name>",
-        "thoughts": "<docstring_of_method>",
+        "thoughts": "<docstring_of_action_method>",
+        "action": "<action_method_name>",
         "args": {
           "arg_name": "<arg_type>",
           ...
@@ -189,6 +189,8 @@ class Channel():
           'args': get_arguments(method),
         }
         for name, method in methods.items()
+        if method.access_policy != ACCESS_DENIED \
+          and re.search(r'^_action__(help|return|error)$', name) is None
       ]
     if action_name:
       return self.__cached__get_action_help[action_name]

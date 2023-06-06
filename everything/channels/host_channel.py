@@ -1,6 +1,7 @@
 import os
 import re
 import subprocess
+from colorama import Fore, Style
 from everything.things.channel import ACCESS_REQUESTED, Channel, access_policy
 
 
@@ -66,7 +67,7 @@ class HostChannel(Channel):
 
   def _request_permission(self, proposed_message: dict) -> bool:
     """Asks for permission on the command line"""
-    print(f"Permission requested to execute:\n{proposed_message}\n")
-    permission_response = input("Allow? (y/n)")
+    print(f"{Fore.RED}Permission requested to execute:\n{Fore.YELLOW + proposed_message + Style.RESET_ALL}\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+    permission_response = input("Allow? (y/n) ")
     return re.search(r"^y(es)?$", permission_response)
   

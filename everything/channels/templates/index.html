@@ -185,7 +185,7 @@
               {
                 this.state.messages.map((message, index) => (
                   <div key={index}>
-                    {message.from ? `${message.from.split('.')[0]}: ` : ''}
+                    {message.from ? `${message.from}: ` : ''}
                     {this.messageToText(message)}
                   </div>
                 ))

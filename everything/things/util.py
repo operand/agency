@@ -37,7 +37,6 @@ def get_arg_names_and_types(method):
 
 # returns the first substring surrounded by {} that doesn't contain a stop
 # string
-# TODO: make this an lm function?
 def extract_json_string(input_string, stopping_strings):
   pattern = r"\{(?:[^{}]*|(?R))*\}"
   matches = regex.findall(pattern, input_string, re.DOTALL)
@@ -66,7 +65,7 @@ def breakpoint():
 
 # enables debug messages for the listed keys
 DEBUG_KEYS = {
-  "*", # special key, uncomment to force enable all debug messages
+  # "*", # special key, uncomment to force enable all debug messages
   # "-", # special key, uncomment to force disable all debug messages
 
   # you can also list keys to watch directly below:
@@ -185,7 +184,7 @@ def parse_slash_syntax_action(action_text) -> dict:
 
   for part in parts[1:]:
     key, *val = part.split(":", 1)
-    val = val[0] if val else True
+    val = val[0] if val else 'true'
     try:
       args[key] = json.loads(val.strip('\'"'))
     except json.JSONDecodeError:
