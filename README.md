@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://i.ibb.co/p1Y41QX/logo-3.png" alt="logo-3" border="0" width=128>
-</p>
- 
 # `everything`
 
 A fast and minimal foundation for unifying human, AI, and other computing
@@ -412,3 +408,8 @@ artificial, and other computing systems together, with the following priorities.
 - Consider cross-compilation to C or other languages
 - Add a docker file to encourage using it
 - [_feel free to make suggestions_](https://github.com/operand/everything/issues)
+
+
+<p align="center">
+  <img src="https://i.ibb.co/p1Y41QX/logo-3.png" alt="logo-3" border="0" width=128>
+</p>
