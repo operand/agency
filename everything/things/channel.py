@@ -88,7 +88,7 @@ class Channel():
         # access denial, by reporting the error back to the sender. If an error
         # occurs here, indicating that basic _send() functionality is broken,
         # the application will exit.
-        util.debug(f"*[{self.id()}] error processing: {e}", traceback.format_exc())
+        util.debug(f"[{self.id()}] error processing: {e}", traceback.format_exc())
         self._send({
           "to": message['from'],
           "thoughts": "An error occurred",
