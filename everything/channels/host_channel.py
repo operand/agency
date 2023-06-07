@@ -2,21 +2,9 @@ import json
 import os
 import re
 import subprocess
-import textwrap
 from colorama import Fore, Style
 from everything.things.channel import ACCESS_REQUESTED, Channel, access_policy
 
-
-# TODO
-# def _pre_prompt(self, actor, timestamp=util.get_current_timestamp()):
-#   actor_name = type(actor).__name__
-#   return f"{ANSI_STYLES[actor_name]}[{timestamp}] {actor_name}:{Style.RESET_ALL} "
-
-# print(
-#   f"{Back.RED + Fore.BLACK}---Permission Requested---{Style.RESET_ALL}\naction: {json.dumps(message['action'])}\n--------------------------")
-# permission_response = input(
-#   f"Permission requested to execute \"{message['action']}\"? (y/n)")
-# return re.search(r"^y(es)?$", permission_response)
 
 
 class HostChannel(Channel):
@@ -26,9 +14,9 @@ class HostChannel(Channel):
 
   @access_policy(ACCESS_REQUESTED)
   def _action__shell_command(self, command: str):
-    """Execute a shell command within the System's environment. Always use with
-    caution. Commands are executed from the application root directory (/app)
-    within a bash shell."""
+    """Execute a shell command within the applications host environment.
+    Commands are executed from the application root directory (/app) within a
+    bash shell. Always use with caution."""
     script_directory = os.path.dirname(os.path.abspath(__file__) + "/../")
     command = f"bash -l -c '{command}'"
     result = subprocess.run(
