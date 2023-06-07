@@ -1,6 +1,5 @@
 from everything.things.channel import Channel
 from everything.things.schema import MessageSchema
-import asyncio
 import threading
 
 
@@ -16,50 +15,33 @@ class Space(Channel):
   def __init__(self, channels):
     super().__init__(None)
     self.channels = channels
+    self.threads = []
     self.created = threading.Event() # set when the space is fully created
-    self.destructing = threading.Event() # set when the space is being destroyed
+    self.destructing = threading.Event()  # set when the space is being destroyed
     for channel in self.channels:
       channel.space = self
 
   def id(self) -> str:
     return self.__class__.__name__
 
-  async def __start_channel(self, channel):
-    while not self.destructing.is_set():
-      await channel._process()
-      await asyncio.sleep(0.01)
-
-  async def __start_channels(self):
-    """
-    Starts all channels and runs them concurrently"""
-    channel_processes = [
-      asyncio.create_task(self.__start_channel(channel))
-      for channel in self.channels + [self]
-    ]
-    await asyncio.gather(*channel_processes)
-
   def create(self):
     """
     Starts the space and all channels"""
-    # start channels thread
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    future = asyncio.run_coroutine_threadsafe(self.__start_channels(), loop)
-    thread = threading.Thread(target=loop.run_forever)
-    thread.start()
+    for channel in self.channels + [self]:
+      thread = threading.Thread(target=channel._run)
+      self.threads.append(thread)
+      thread.start()
     print("A small pop...")
     self.created.set()
-    try:
-      # wait for the future to complete
-      future.result()
-    finally:
-      # stop the event loop
-      loop.call_soon_threadsafe(loop.stop)
-      thread.join()
-      loop.close()
+    while not self.destructing.is_set():
+      self.destructing.wait(0.1)
 
   def destroy(self):
     self.destructing.set()
+    for channel in self.channels + [self]:
+      channel._stop()
+    for thread in self.threads:
+      thread.join()
 
   def _route(self, message: MessageSchema):
     """

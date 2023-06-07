@@ -70,7 +70,7 @@ class ChattyLMChannel(Channel):
       self.__prompt_head() + \
       self._message_log_to_list() + \
       self._pre_prompt(self.id())
-    util.debug(f"Sending full_prompt to LM:", full_prompt)
+    util.debug(f"[{self.id()}] prompt:", full_prompt)
     input_ids = self.tokenizer.encode(full_prompt, return_tensors="pt")
     output = self.model.generate(
       input_ids,

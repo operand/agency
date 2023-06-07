@@ -1,11 +1,11 @@
 from abc import abstractmethod
-import inspect
-import re
-import traceback
 from everything.things.operator import Operator
 from everything.things.schema import ActionSchema, MessageSchema
 import everything.things.util as util
+import inspect
 import queue
+import re
+import traceback
 
 
 # access keys
@@ -33,6 +33,7 @@ class Channel():
   def __init__(self, operator: Operator, **kwargs) -> None:
     self.operator = operator
     self.kwargs = kwargs
+    self._stopping = False
     self.__message_queue = queue.Queue()
     self.__cached__get_action_help = None
 
@@ -66,38 +67,45 @@ class Channel():
     self._message_log.append(message)
     self.__message_queue.put(message)
 
-  async def _process(self) -> str:
+  def _run(self) -> str:
     """
-    Called periodically to process queued messages/actions
+    Continually processes queued messages/actions
     """
-    while not self.__message_queue.empty():
-      message = self.__message_queue.get()
-      util.debug(f"[{self.id()}] processing:", message)
+    while not self._stopping:
       try:
+        message = self.__message_queue.get(timeout=0.01)
+        util.debug(f"*[{self.id()}] processing:", message)
         try:
-          self.__commit_action(message)
-        except PermissionError as e:
-          # prompt for permission and requeue or raise new permission error
-          if self._request_permission(message):
-            self.__message_queue.put(message)
-          else:
-            raise PermissionError(
-              f"Access denied by '{self.operator.id()}' for: {message}")
-      except Exception as e:
-        # Here we handle errors that occur while handling an action including
-        # access denial, by reporting the error back to the sender. If an error
-        # occurs here, indicating that basic _send() functionality is broken,
-        # the application will exit.
-        util.debug(f"*[{self.id()}] error processing: {e}", traceback.format_exc())
-        self._send({
-          "to": message['from'],
-          "thoughts": "An error occurred",
-          "action": "error",
-          "args": {
-            "original_message": message,
-            "error": f"{e}",
-          },
-        })
+          try:
+            self.__commit_action(message)
+          except PermissionError as e:
+            # prompt for permission and requeue or raise new permission error
+            if self._request_permission(message):
+              self.__message_queue.put(message)
+            else:
+              raise PermissionError(
+                f"Access denied by '{self.operator.id()}' for: {message}")
+        except Exception as e:
+          # Here we handle errors that occur while handling an action including
+          # access denial, by reporting the error back to the sender. If an error
+          # occurs here, indicating that basic _send() functionality is broken,
+          # the application will exit.
+          util.debug(f"[{self.id()}] error processing: {e}",
+                     traceback.format_exc())
+          self._send({
+            "to": message['from'],
+            "thoughts": "An error occurred",
+            "action": "error",
+            "args": {
+              "original_message": message,
+              "error": f"{e}",
+            },
+          })
+      except queue.Empty:
+        continue
+
+  def _stop(self):
+    self._stopping = True
 
   def __commit_action(self, message: MessageSchema):
     """
