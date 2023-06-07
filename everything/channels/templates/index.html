@@ -98,7 +98,7 @@
         let action_name = parts[0].substring(1);
         let args = this.parseArguments(parts);
 
-        // pull out the "to" and "thoughts" arguments if it exists
+        // pull out the "to" and "thoughts" args if they exist
         let to = args['to']
         delete args['to']
         let thoughts = args['thoughts']

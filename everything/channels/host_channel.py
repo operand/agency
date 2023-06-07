@@ -64,4 +64,3 @@ class HostChannel(Channel):
     print(text)
     permission_response = input("Allow? (y/n) ")
     return re.search(r"^y(es)?$", permission_response)
-  

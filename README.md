@@ -401,7 +401,7 @@ artificial, and other computing systems together, with the following priorities.
   - model training example
   - multimodal model example
 - Add message broker/networking support
-- Add integration with [mlc-llm]()
+- Add integration with [mlc-llm](https://github.com/mlc-ai/mlc-llm)
 - Add integration with [gorilla](https://github.com/ShishirPatil/gorilla)
 - Consider storage API
 - Consider prior work on distributed access control
