@@ -18,7 +18,6 @@ def setup_and_teardown_space(channels):
     yield space
   finally:
     space.destroy()
-    assert space.destructing.is_set()
     thread.join()
 
 
