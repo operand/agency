@@ -405,6 +405,7 @@ artificial, and other computing systems together, with the following priorities.
 - Add integration with [gorilla](https://github.com/ShishirPatil/gorilla)
 - Consider storage API
 - Consider prior work on distributed access control
+- Consider integrations with LangChain et.al
 - Consider cross-compilation to C or other languages
 - Add a docker file to encourage using it
 - [_feel free to make suggestions_](https://github.com/operand/everything/issues)

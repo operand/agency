@@ -1,8 +1,9 @@
+from everything.things.channel import ACCESS_PERMITTED, Channel, access_policy
+from everything.things.prompt_methods import PromptMethods
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import everything.things.util as util
 import os
 import textwrap
-from everything.things.channel import ACCESS_PERMITTED, Channel, access_policy
-import everything.things.util as util
-from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
@@ -12,9 +13,9 @@ os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 # a prompt using the message log and sends it to a backend language model.
 
 
-class ChattyLMChannel(Channel):
+class TransformersChannel(Channel, PromptMethods):
   """
-  Encapsulates a chatting AI backed by a language model
+  Encapsulates a transformers 
   Currently uses transformers library as a backend provider
   """
 
@@ -24,13 +25,6 @@ class ChattyLMChannel(Channel):
     self.tokenizer = AutoTokenizer.from_pretrained(kwargs['model'])
     self.tokenizer.pad_token = self.tokenizer.eos_token
     self.model = AutoModelForCausalLM.from_pretrained(kwargs['model'])
-
-  def _message_log_to_list(self, indent=None):
-    """Convert an array of message_log entries to a prompt ready list"""
-    promptable_list = ""
-    for message in self._message_log:
-      promptable_list += self._message_line(message, indent)
-    return promptable_list
 
   def _message_line(self, message, indent=None):
     """
@@ -54,7 +48,8 @@ class ChattyLMChannel(Channel):
     return textwrap.dedent(f"""
     Below is a conversation between "ChattyAI", an awesome AI that follows
     instructions and a human who they serve.
-    """)
+    """) + \
+        self._message_log_to_list()
 
   def _pre_prompt(self, channel_id, timestamp=util.to_timestamp()):
     return f"\n### {channel_id.split('.')[0]}: "
@@ -68,7 +63,6 @@ class ChattyLMChannel(Channel):
     # context
     full_prompt = \
       self.__prompt_head() + \
-      self._message_log_to_list() + \
       self._pre_prompt(self.id())
     util.debug(f"[{self.id()}] prompt:", full_prompt)
     input_ids = self.tokenizer.encode(full_prompt, return_tensors="pt")

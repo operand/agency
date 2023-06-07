@@ -8,8 +8,6 @@ class Space(Channel):
   A Space is itself a channel and is responsible for:
   - starting and running itself and its member channels
   - routing all sent messages
-  
-  Space's could potentially be nested but this hasn't been tested
   """
 
   def __init__(self, channels):
