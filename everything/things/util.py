@@ -1,5 +1,4 @@
 import datetime
-from ctypes import ArgumentError
 from datetime import datetime
 import inspect
 import re
@@ -35,20 +34,20 @@ def get_arg_names_and_types(method):
   return args_dict
 
 
-# returns the first substring surrounded by {} that doesn't contain a stop
-# string
-def extract_json_string(input_string, stopping_strings):
-  pattern = r"\{(?:[^{}]*|(?R))*\}"
-  matches = regex.findall(pattern, input_string, re.DOTALL)
-  valid_matches = [
-    match for match in matches if not any(
-      stop_string in match for stop_string in stopping_strings
-    )
-  ]
-  if len(valid_matches) == 0:
-    raise ArgumentError(f"Couldn't find valid JSON in {input_string}")
-  return valid_matches[0]
+def extract_json(input: str, stopping_strings: list = []):
+    stopping_string = next((s for s in stopping_strings if s in input), '')
+    split_string = input.split(stopping_string, 1)[
+        0] if stopping_string else input
+    start_position = split_string.find('{')
+    end_position = split_string.rfind('}') + 1
 
+    if start_position == -1 or end_position == -1 or start_position > end_position:
+        raise ValueError(f"Couldn't find valid JSON in \"{input}\"")
+
+    try:
+        return json.loads(split_string[start_position:end_position])
+    except json.JSONDecodeError:
+        raise ValueError(f"Couldn't parse JSON in \"{input}\"")
 
 # Example usage:
 # colored_string = "\033[31mHello, \033[32mWorld!\033[0m"
@@ -102,6 +101,7 @@ class CustomEncoder(json.JSONEncoder):
       return super().default(obj)
     except TypeError:
       return str(obj)
+
 
 def debug_text(name, object=None):
   """

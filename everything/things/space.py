@@ -1,12 +1,7 @@
-from dotenv import load_dotenv
 from everything.things.channel import Channel
-from everything.things import util
-from everything.things.schema import ActionSchema, MessageSchema
+from everything.things.schema import MessageSchema
 import asyncio
 import threading
-
-
-load_dotenv()
 
 
 class Space(Channel):
