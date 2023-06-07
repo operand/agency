@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://i.ibb.co/p1Y41QX/logo-3.png" alt="logo-3" border="0" width=128>
+</p>
+ 
 # `everything`
 
 A fast and minimal foundation for unifying human, AI, and other computing
