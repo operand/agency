@@ -53,7 +53,6 @@ class WebChannel(Channel):
       """
       Handles incoming actions from the web user interface
       """
-      util.debug(f"*Received action from ui: ", action)
       self._send(action)
 
     @self.socketio.on('permission_response')

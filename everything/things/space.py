@@ -90,8 +90,9 @@ class Space(Channel):
 
     # no recipients means the action is not supported
     if len(recipients) == 0:
-      # enqueue an error message to the sender
-      self._receive({
+      # route an error message to the original sender
+      # TODO: protect against infinite loops here
+      self._route({
         'from': self.id(),
         'to': message['from'],
         'thoughts': 'An error occurred',
@@ -101,14 +102,13 @@ class Space(Channel):
           'error': f"\"{message['action']}\" not found"
         }
       })
-
-    # send to all, setting the 'to' field to the recipient's id
-    util.debug(f"*Routing to {[recipient.id() for recipient in recipients]}", message)
-    for recipient in recipients:
-      recipient._receive({
-        **message,
-        'to': recipient.id(),
-      })
+    else:
+      # send to recipients, setting the 'to' field to their id
+      for recipient in recipients:
+        recipient._receive({
+          **message,
+          'to': recipient.id(),
+        })
 
   def _get_help__sync(self, action_name: str = None) -> list:
     """

@@ -99,7 +99,7 @@ def test_send_undefined_action():
       'to': 'Webster.WebsterChannel',
       'thoughts': 'An error occurred',
       'action': 'say',
-      'args': {'content': 'ERROR: \"Chatty.ChattyChannel.say\" not found'}
+      'args': {'content': 'ERROR: \"say\" not found'}
     }]
 
 
