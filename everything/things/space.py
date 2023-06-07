@@ -1,6 +1,5 @@
 from everything.things.channel import Channel
 from everything.things.schema import MessageSchema
-import asyncio
 import threading
 
 
@@ -18,6 +17,7 @@ class Space(Channel):
     self.channels = channels
     self.threads = []
     self.created = threading.Event() # set when the space is fully created
+    self.destructing = threading.Event()  # set when the space is being destroyed
     for channel in self.channels:
       channel.space = self
 
@@ -33,9 +33,11 @@ class Space(Channel):
       thread.start()
     print("A small pop...")
     self.created.set()
+    while not self.destructing.is_set():
+      self.destructing.wait(0.1)
 
   def destroy(self):
-    print("shutting down...")
+    self.destructing.set()
     for channel in self.channels + [self]:
       channel._stop()
     for thread in self.threads:
