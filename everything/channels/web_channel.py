@@ -1,11 +1,14 @@
+import json
 import eventlet
 import logging
 from eventlet import wsgi
+from everything.things import util
+from everything.things.operator import Operator
+from everything.things.schema import MessageSchema
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
-from everything.things.util import parse_slash_syntax_action
-from everything.channels.channel import ACCESS_PERMITTED, Channel, access_policy
+from everything.things.channel import ACCESS_PERMITTED, Channel, access_policy
 
 
 class WebChannel(Channel):
@@ -14,7 +17,7 @@ class WebChannel(Channel):
   Currently implemented using Flask
   """
 
-  def __init__(self, operator, **kwargs):
+  def __init__(self, operator: Operator, **kwargs):
     """
     Run Flask server in a separate thread
     """
@@ -46,14 +49,10 @@ class WebChannel(Channel):
       self.connected_sid = request.sid
 
     @self.socketio.on('message')
-    def handle_message(message_text):
+    def handle_action(action):
       """
-      Handles incoming messages from the user interface
+      Handles incoming actions from the web user interface
       """
-      action = {
-        "thoughts": "",
-      }
-      action.update(**parse_slash_syntax_action(message_text))
       self._send(action)
 
     @self.socketio.on('permission_response')
@@ -69,7 +68,7 @@ class WebChannel(Channel):
         ('', int(self.kwargs['port']))), app, log=eventlet_logger)
     eventlet.spawn(run_server)
 
-  def _request_permission(self, proposed_message: dict) -> bool:
+  def _request_permission(self, proposed_message: MessageSchema) -> bool:
     """
     Raises an alert in the users browser and returns true if the user
     approves the action"""
@@ -77,7 +76,7 @@ class WebChannel(Channel):
 
   # We use the _after_action__ method to pass through all messages to the
   # socketio web client
-  def _after_action___(self, original_message, return_value, error):
+  def _after_action___(self, original_message: MessageSchema, return_value: str, error: str):
     self.socketio.server.emit(
       'message', original_message, room=self.connected_sid)
 
@@ -88,10 +87,10 @@ class WebChannel(Channel):
 
   # Allow return values to be passed through
   @access_policy(ACCESS_PERMITTED)
-  def _action__return(self, original_message, return_value):
+  def _action__return(self, original_message: MessageSchema, return_value: str):
     pass
 
   # Allow errors to be passed through
   @access_policy(ACCESS_PERMITTED)
-  def _action__error(self, original_message: dict, error: str):
+  def _action__error(self, original_message: MessageSchema, error: str):
     pass

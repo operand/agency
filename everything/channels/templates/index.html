@@ -60,22 +60,23 @@
           input: ''
         };
         this.socket = io.connect('http://localhost:8080');
-      }
-
-      removeQuotes(string) {
-        withoutQuotes = string.replace(/(^')|('$)|(^")|("$)/g, "");
-        return withoutQuotes;
+        this.chatbox = React.createRef()
       }
 
       parseArguments(parts) {
         let args = {};
 
         for (let i = 1; i < parts.length; i++) {
-          let [key, ...val] = parts[i].split(":", 1);
-          val = val.length > 0 ? val[0] : true;
+          let splitIndex = parts[i].indexOf(":");
+          let key = parts[i].substring(0, splitIndex);
+          let val = parts[i].substring(splitIndex + 1);
+
+          if (val.startsWith('"') && val.endsWith('"')) {
+            val = val.slice(1, -1);
+          }
 
           try {
-            args[key] = JSON.parse(this.removeQuotes(val));
+            args[key] = JSON.parse(val);
           } catch (e) {
             args[key] = val;
           }
@@ -97,13 +98,20 @@
         let action_name = parts[0].substring(1);
         let args = this.parseArguments(parts);
 
-        return {
-          "from": window.__everything_channel_id,
-          "to": args['to'] || "Space",
-          "thoughts": "",
+        // pull out the "to" and "thoughts" args if they exist
+        let to = args['to']
+        delete args['to']
+        let thoughts = args['thoughts']
+        delete args['thoughts']
+
+        let action = {
+          "to": to || "Space",
+          "thoughts": thoughts || "",
           "action": action_name,
           "args": args
         };
+        console.log("sending action: ", action)
+        return action;
       }
 
       componentDidMount() {
@@ -123,6 +131,10 @@
           const answer = window.confirm(`Do you permit the following?\n${proposed_msg}`);
           this.socket.emit('permission_response')
         });
+      }
+
+      componentDidUpdate() {
+        this.chatbox.current.scrollTop = this.chatbox.current.scrollHeight;
       }
 
       handleInputChange = (event) => {
@@ -160,8 +172,8 @@
             ],
             input: ''
           }));
-          // send it to the server
-          this.socket.emit('message', content);
+          // send action
+          this.socket.emit('message', action);
         }
       }
 
@@ -181,11 +193,11 @@
       render() {
         return (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <div id="chatbox">
+            <div id="chatbox" ref={this.chatbox}>
               {
                 this.state.messages.map((message, index) => (
                   <div key={index}>
-                    {message.from ? `${message.from.split('.')[0]}: ` : ''}
+                    {message.from ? `${message.from}: ` : ''}
                     {this.messageToText(message)}
                   </div>
                 ))

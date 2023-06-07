@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://ibb.co/10FR0M2" alt=".*" width="100">
+</p>
+
 # `everything`
 
 A fast and minimal foundation for unifying human, AI, and other computing
@@ -373,13 +377,11 @@ artificial, and other computing systems together, with the following priorities.
 ## Priorities
 - **Speed**:
   Performance is always a concern. If it's not performant, it's not practical.
-  There is a clear opportunity to use established messaging/queueing solutions
-  so that will be at least one direction for R&D.
 - **Access Control and Safety**:
-  Designing a safe and effective access policy solution within a
-  "multi-operator" system is a fundamental problem to solve in order to ensure
-  safety for AI interactions. I believe I've included a sane first attempt at
-  such a pattern, but further exploration will be a focus of this project.
+  Designing an effective access control solution for AI integrated systems is a
+  fundamental problem to solve in order to ensure safety. I believe I've
+  included a sane first attempt at such a pattern, but further exploration will
+  be a focus of this project.
 - **Compatibility and Usability**:
   In general, I believe this is a fair start in defining a set of patterns for
   creating AI integrated systems. I intend to continually improve the API,
@@ -402,8 +404,10 @@ artificial, and other computing systems together, with the following priorities.
     - video
   - model training example
   - multimodal model example
-- Add integration example with mlc-llm
-- Consider generalizing queuing/storage API
+- Add message broker/networking support
+- Add integration with [mlc-llm](https://github.com/mlc-ai/mlc-llm)
+- Add integration with [gorilla](https://github.com/ShishirPatil/gorilla)
+- Consider storage API
 - Consider prior work on distributed access control
 - Consider cross-compilation to C or other languages
 - Add a docker file to encourage using it

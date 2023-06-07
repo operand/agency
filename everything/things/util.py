@@ -37,7 +37,6 @@ def get_arg_names_and_types(method):
 
 # returns the first substring surrounded by {} that doesn't contain a stop
 # string
-# TODO: make this an lm function?
 def extract_json_string(input_string, stopping_strings):
   pattern = r"\{(?:[^{}]*|(?R))*\}"
   matches = regex.findall(pattern, input_string, re.DOTALL)
@@ -66,7 +65,7 @@ def breakpoint():
 
 # enables debug messages for the listed keys
 DEBUG_KEYS = {
-  "*", # special key, uncomment to force enable all debug messages
+  # "*", # special key, uncomment to force enable all debug messages
   # "-", # special key, uncomment to force disable all debug messages
 
   # you can also list keys to watch directly below:
@@ -138,61 +137,3 @@ def parse_json_response(response_text, stopping_string) -> dict:
     return message_json
   except Exception as e:
     raise f"{e}: Could not parse command from: \"{response_text}\""
-
-
-def parse_slash_syntax_action(action_text) -> dict:
-  """
-  Parses commands of the following syntax:
-
-  /actionname arg1:val1 arg2:val2 arg3:
-
-  into an object like this:
-
-  {
-    "action": "actionname",
-    "args": {
-      "arg1": "val1",
-      "arg2": "val2",
-      "arg3": True
-    }
-  }
-
-  With the following rules:
-
-  - A command starts with a slash and must be the first word.
-  - If a slash does not begin the string, assume the /say command, and the
-    entire string is the "content" arg.
-  - The command name is always the first word after the slash.
-  - The arguments are key:value pairs, separated by spaces.
-  - The value can be a string, a number, a boolean, or a json object.
-  - The value can be quoted with single or double quotes.
-  - A string value must be quoted if it contains spaces.
-  - The value can be omitted, in which case it is assumed to be "True" as in the
-    arg3 example above.
-
-  This method does NOT validate the action object, it only parses it.
-  """
-  # Handle /say command case
-  if not action_text.startswith("/"):
-    return {
-      "action": "say",
-      "args": {"content": action_text}
-    }
-
-  parts = action_text.split()
-  command = parts[0][1:]
-  args = {}
-
-  for part in parts[1:]:
-    key, *val = part.split(":", 1)
-    val = val[0] if val else True
-    try:
-      args[key] = json.loads(val.strip('\'"'))
-    except json.JSONDecodeError:
-      args[key] = val
-
-  action = {
-    "action": command,
-    "args": args,
-  }
-  return action

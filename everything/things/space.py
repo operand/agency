@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
-from everything.channels.channel import Channel
+from everything.things.channel import Channel
 from everything.things import util
-from everything.things.schema import MessageSchema
+from everything.things.schema import ActionSchema, MessageSchema
 import asyncio
 import threading
 
@@ -35,7 +35,8 @@ class Space(Channel):
       await asyncio.sleep(0.01)
 
   async def __start_channels(self):
-    # start and run all channels concurrently
+    """
+    Starts all channels and runs them concurrently"""
     channel_processes = [
       asyncio.create_task(self.__start_channel(channel))
       for channel in self.channels + [self]
@@ -43,6 +44,8 @@ class Space(Channel):
     await asyncio.gather(*channel_processes)
 
   def create(self):
+    """
+    Starts the space and all channels"""
     # start channels thread
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -68,33 +71,51 @@ class Space(Channel):
     Enqueues the action on intended recipient(s)
     """
     recipients = []
-    if 'to' in message and message['to'] is not None:
+    if 'to' in message and message['to'] not in [None, self.id()]:
       # if receiver is specified send to only that channel
+      # if the channel supports the action
       recipients = [
         channel for channel in self.channels
         if channel.id() == message['to']
+        and channel._action_exists(message['action'])
       ]
     else:
-      # if it isn't broadcast to all _but_ the sender
+      # if 'to' is not specified broadcast to all _but_ the sender
+      # if the channel supports the action
       recipients = [
         channel for channel in self.channels
         if channel.id() != message['from']
+        and channel._action_exists(message['action'])
       ]
-    
-    # send to all, setting the 'to' field to the recipient's id
-    util.debug(f"Routing to {[recipient.id() for recipient in recipients]}", message)
-    for recipient in recipients:
-      recipient._receive({
-        **message,
-        'to': recipient.id(),
-      })
 
-  def _get_help__sync(self, action=None) -> list:
+    # no recipients means the action is not supported
+    if len(recipients) == 0:
+      # route an error message to the original sender
+      # TODO: protect against infinite loops here
+      self._route({
+        'from': self.id(),
+        'to': message['from'],
+        'thoughts': 'An error occurred',
+        'action': 'error',
+        'args': {
+          'original_message': message,
+          'error': f"\"{message['action']}\" not found"
+        }
+      })
+    else:
+      # send to recipients, setting the 'to' field to their id
+      for recipient in recipients:
+        recipient._receive({
+          **message,
+          'to': recipient.id(),
+        })
+
+  def _get_help__sync(self, action_name: str = None) -> list:
     """
     Returns an action list immediately without forwarding messages
     """
     help = [
-      channel._get_help(action)
+      channel._get_help(action_name)
       for channel in [self] + self.channels
     ]
     return help
