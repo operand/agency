@@ -1,5 +1,4 @@
 import datetime
-from ctypes import ArgumentError
 from datetime import datetime
 import inspect
 import re
@@ -35,19 +34,20 @@ def get_arg_names_and_types(method):
   return args_dict
 
 
-# returns the first substring surrounded by {} that doesn't contain a stop
-# string
-def extract_json_string(input_string, stopping_strings):
+def extract_json(input: str, stopping_strings: list = []):
+  """
+  Returns the first substring surrounded by {} that doesn't contain a stopping
+  string"""
   pattern = r"\{(?:[^{}]*|(?R))*\}"
-  matches = regex.findall(pattern, input_string, re.DOTALL)
+  matches = regex.findall(pattern, input, regex.DOTALL)
   valid_matches = [
     match for match in matches if not any(
       stop_string in match for stop_string in stopping_strings
     )
   ]
   if len(valid_matches) == 0:
-    raise ArgumentError(f"Couldn't find valid JSON in {input_string}")
-  return valid_matches[0]
+    raise ValueError(f"Couldn't find valid JSON in \"{input}\"")
+  return json.loads(valid_matches[0])
 
 
 # Example usage:
@@ -102,6 +102,7 @@ class CustomEncoder(json.JSONEncoder):
       return super().default(obj)
     except TypeError:
       return str(obj)
+
 
 def debug_text(name, object=None):
   """
