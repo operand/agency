@@ -18,7 +18,6 @@ setup(
     "asyncio>=3.4",
     "colorama>=0.4",
     "pydantic>=1.8",
-    "python-dotenv>=0.19",
 
     # Required by ChattyLMChannel example
     "transformers>=4.29",
