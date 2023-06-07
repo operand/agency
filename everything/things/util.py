@@ -35,20 +35,19 @@ def get_arg_names_and_types(method):
 
 
 def extract_json(input: str, stopping_strings: list = []):
-  """
-  Returns the first substring surrounded by {} that doesn't contain a stopping
-  string"""
-  pattern = r"\{(?:[^{}]*|(?R))*\}"
-  matches = regex.findall(pattern, input, regex.DOTALL)
-  valid_matches = [
-    match for match in matches if not any(
-      stop_string in match for stop_string in stopping_strings
-    )
-  ]
-  if len(valid_matches) == 0:
-    raise ValueError(f"Couldn't find valid JSON in \"{input}\"")
-  return json.loads(valid_matches[0])
+    stopping_string = next((s for s in stopping_strings if s in input), '')
+    split_string = input.split(stopping_string, 1)[
+        0] if stopping_string else input
+    start_position = split_string.find('{')
+    end_position = split_string.rfind('}') + 1
 
+    if start_position == -1 or end_position == -1 or start_position > end_position:
+        raise ValueError(f"Couldn't find valid JSON in \"{input}\"")
+
+    try:
+        return json.loads(split_string[start_position:end_position])
+    except json.JSONDecodeError:
+        raise ValueError(f"Couldn't parse JSON in \"{input}\"")
 
 # Example usage:
 # colored_string = "\033[31mHello, \033[32mWorld!\033[0m"

@@ -1,7 +1,11 @@
+import os
 import textwrap
 from everything.things.channel import ACCESS_PERMITTED, Channel, access_policy
 import everything.things.util as util
 from transformers import AutoTokenizer, AutoModelForCausalLM
+
+
+os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 
 
 # This class is an example of how you can create a channel that constructs
@@ -47,7 +51,6 @@ class ChattyLMChannel(Channel):
     """
     Returns the head portion of the prompt containing context/instructions
     """
-
     return textwrap.dedent(f"""
     Below is a conversation between "ChattyAI", an awesome AI that follows
     instructions and a human who they serve.

@@ -1,6 +1,7 @@
 from abc import abstractmethod
 import inspect
 import re
+import traceback
 from everything.things.operator import Operator
 from everything.things.schema import ActionSchema, MessageSchema
 import everything.things.util as util
@@ -87,6 +88,7 @@ class Channel():
         # access denial, by reporting the error back to the sender. If an error
         # occurs here, indicating that basic _send() functionality is broken,
         # the application will exit.
+        util.debug(f"*[{self.id()}] error processing: {e}", traceback.format_exc())
         self._send({
           "to": message['from'],
           "thoughts": "An error occurred",
