@@ -28,11 +28,14 @@ class ChattyLMChannel(Channel, PromptMethods):
     self.tokenizer.pad_token = self.tokenizer.eos_token
     self.model = AutoModelForCausalLM.from_pretrained(kwargs['model'])
 
+  def _prompt_head(self) -> str:
+    return textwrap.dedent(f"""
+    Below is a conversation between "ChattyAI", an awesome AI that follows
+    instructions and a human who they serve.
+    """) + \
+        self._message_log_to_list()
+
   def _message_line(self, message: MessageSchema, indent: int = None) -> str:
-    """
-    Returns a single line appropriate for a prompt that represents a previous
-    message
-    """
     pre_prompt = self._pre_prompt(message['from'].split('.')[0])
     # Here we format what a previous message looks like in the prompt
     # For "say" actions, we just present the content as a line of text
@@ -42,16 +45,6 @@ class ChattyLMChannel(Channel, PromptMethods):
     # is more useful for Agents, but is here just as a demonstration.
     # A chatting AI would probably only deal with "say" actions.
     return f"\n{pre_prompt} {message}"
-
-  def __prompt_head(self) -> str:
-    """
-    Returns the head portion of the prompt containing context/instructions
-    """
-    return textwrap.dedent(f"""
-    Below is a conversation between "ChattyAI", an awesome AI that follows
-    instructions and a human who they serve.
-    """) + \
-        self._message_log_to_list()
 
   def _pre_prompt(self, channel_id: str, timestamp=util.to_timestamp()) -> str:
     return f"\n### {channel_id.split('.')[0]}: "
@@ -63,9 +56,7 @@ class ChattyLMChannel(Channel, PromptMethods):
     """
     # Here we demonstrate constructing a full prompt using previous messages for
     # context
-    full_prompt = \
-      self.__prompt_head() + \
-      self._pre_prompt(self.id())
+    full_prompt = self._full_prompt()
     util.debug(f"[{self.id()}] prompt:", full_prompt)
     input_ids = self.tokenizer.encode(full_prompt, return_tensors="pt")
     output = self.model.generate(
