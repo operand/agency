@@ -17,12 +17,11 @@ class HostChannel(Channel):
     """Execute a shell command within the applications host environment.
     Commands are executed from the application root directory (/app) within a
     bash shell. Always use with caution."""
-    script_directory = os.path.dirname(os.path.abspath(__file__) + "/../")
     command = f"bash -l -c '{command}'"
     result = subprocess.run(
       command,
       stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE, text=True, cwd=script_directory
+      stderr=subprocess.PIPE, text=True, cwd="/app" # TODO: make configurable
     )
     output = result.stdout + result.stderr
     if result.returncode != 0:

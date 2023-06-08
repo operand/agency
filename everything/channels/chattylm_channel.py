@@ -1,5 +1,7 @@
 from everything.things.channel import ACCESS_PERMITTED, Channel, access_policy
+from everything.things.operator import Operator
 from everything.things.prompt_methods import PromptMethods
+from everything.things.schema import MessageSchema
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import everything.things.util as util
 import os
@@ -19,14 +21,14 @@ class ChattyLMChannel(Channel, PromptMethods):
   Currently uses transformers library as a backend provider
   """
 
-  def __init__(self, operator, **kwargs):
+  def __init__(self, operator: Operator, **kwargs):
     super().__init__(operator, **kwargs)
     # initialize transformers model
     self.tokenizer = AutoTokenizer.from_pretrained(kwargs['model'])
     self.tokenizer.pad_token = self.tokenizer.eos_token
     self.model = AutoModelForCausalLM.from_pretrained(kwargs['model'])
 
-  def _message_line(self, message, indent=None):
+  def _message_line(self, message: MessageSchema, indent: int = None) -> str:
     """
     Returns a single line appropriate for a prompt that represents a previous
     message
@@ -41,7 +43,7 @@ class ChattyLMChannel(Channel, PromptMethods):
     # A chatting AI would probably only deal with "say" actions.
     return f"\n{pre_prompt} {message}"
 
-  def __prompt_head(self):
+  def __prompt_head(self) -> str:
     """
     Returns the head portion of the prompt containing context/instructions
     """
@@ -51,7 +53,7 @@ class ChattyLMChannel(Channel, PromptMethods):
     """) + \
         self._message_log_to_list()
 
-  def _pre_prompt(self, channel_id, timestamp=util.to_timestamp()):
+  def _pre_prompt(self, channel_id: str, timestamp=util.to_timestamp()) -> str:
     return f"\n### {channel_id.split('.')[0]}: "
 
   @access_policy(ACCESS_PERMITTED)
