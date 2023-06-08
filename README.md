@@ -349,9 +349,15 @@ If you have questions, suggestions, or problems, please open an
 
 ## Development Installation
 
-You can install development dependencies with:
+Stable development dependencies are maintained in `requirements-dev.in`. You can
+install the development dependencies with:
 ```bash
 pip install -r requirements-dev.txt
+```
+
+To add a dependency, add it to the `requirements.in` file and run:
+```bash
+pip-compile requirements-dev.in
 ```
 
 ## Test Suite
@@ -391,7 +397,7 @@ artificial, and other computing systems together, with the following priorities.
 
 
 ## Planned Work
-- Add test driven examples
+- Add examples
   - Agent using JSON actions and discovery
   - simple function channel
   - web i/o
@@ -400,12 +406,12 @@ artificial, and other computing systems together, with the following priorities.
     - video
   - model training example
   - multimodal model example
-- Add message broker/networking support
+- Add message broker/networking support (rabbitmq)
 - Add integration with [mlc-llm](https://github.com/mlc-ai/mlc-llm)
 - Add integration with [gorilla](https://github.com/ShishirPatil/gorilla)
+- Add integration with LangChain
 - Consider storage API
 - Consider prior work on distributed access control
-- Consider integrations with LangChain et.al
 - Consider cross-compilation to C or other languages
 - Add a docker file to encourage using it
 - [_feel free to make suggestions_](https://github.com/operand/everything/issues)
