@@ -13,9 +13,9 @@ os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 # a prompt using the message log and sends it to a backend language model.
 
 
-class TransformersChannel(Channel, PromptMethods):
+class ChattyLMChannel(Channel, PromptMethods):
   """
-  Encapsulates a transformers 
+  Encapsulates a chatting AI backed by a language model
   Currently uses transformers library as a backend provider
   """
 
