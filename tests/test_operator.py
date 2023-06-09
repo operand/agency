@@ -22,7 +22,7 @@ class Webster(Operator):
 
 class TestWebApp(Space):
   """
-  The fake webapp space that Webster is an operator within"""
+  A fake webapp space that Webster is an operator within"""
   def __init__(self):
     super().__init__("Webapp", [
       Webster()
@@ -87,7 +87,7 @@ def test_send_and_receive():
 def test_send_undefined_action():
   """
   Tests sending an undefined action and receiving an error response."""
-  webapp = Webapp()
+  webapp = TestWebApp()
   chatty = Chatty()
 
   # In this test we skip defining a _say action on chatty in order to test the
@@ -121,7 +121,7 @@ def test_send_undefined_action():
 def test_send_unpermitted_action():
   """
   Tests sending an unpermitted action and receiving an error response."""
-  webapp = Webapp()
+  webapp = TestWebApp()
   chatty = Chatty()
 
   # We use callable class to dynamically define the _say action for chatty
@@ -166,7 +166,7 @@ def test_send_unpermitted_action():
 def test_send_request_permitted_action():
   """
   Tests sending an action, granting permission, and returning response"""
-  webapp = Webapp()
+  webapp = TestWebApp()
   chatty = Chatty()
 
   # We use callable classes to dynamically define _action__say and
@@ -220,7 +220,7 @@ def test_send_request_permitted_action():
 def test_send_request_rejected_action():
   """
   Tests sending an action, rejecting permission, and returning error"""
-  webapp = Webapp()
+  webapp = TestWebApp()
   chatty = Chatty()
 
   # We use callable classes to dynamically define _action__say and

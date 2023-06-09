@@ -26,8 +26,7 @@ ACTION_METHOD_PREFIX = "_action__"
 
 class Operator():
   """
-  An Actor that may represent a human, AI, or other system. Operators may interact
-  with eachother in a space via messages.
+  An Actor that may represent a human, AI, or other system.
   """
 
   def __init__(self, id: str) -> None:

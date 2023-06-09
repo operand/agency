@@ -1,6 +1,6 @@
 from everything.things.operator import ACCESS_PERMITTED, access_policy
 from everything.things.operator import Operator
-from everything.things.prompt_methods import PromptMethods
+from everything.operators.prompt_methods import PromptMethods
 from everything.things.schema import MessageSchema
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import everything.things.util as util
