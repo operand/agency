@@ -69,6 +69,7 @@ class Operator():
     """
     Validates and enqueues an incoming action to be processed
     """
+    util.debug(f"*[{self.id()}] receiving:", message)
     message = MessageSchema(**message).dict(by_alias=True)
     # Record message and place on queue
     self._message_log.append(message)

@@ -3,12 +3,14 @@ from everything.things.operator import Operator
 from everything.things.schema import MessageSchema
 import threading
 
+from numpy import broadcast
+
 
 class Space(Operator):
   """
   A Space is itself an Operator and is responsible for:
   - starting itself and its member operators
-  - routing all messages sent by its member operators
+  - routing all messages sent to/from member operators
   """
 
   def __init__(self, id, operators):
@@ -16,7 +18,6 @@ class Space(Operator):
     self.operators = operators
     for operator in self.operators:
       operator._space = self
-
     self.threads = []
     self.created = threading.Event()  # set when the space is fully created
     self.destructing = threading.Event()  # set when the space is being destroyed
@@ -40,51 +41,53 @@ class Space(Operator):
     for thread in self.threads:
       thread.join()
 
-  # TODO: cache and invalidate when operators are added/removed
-  def __gather_ids(self):
+  def _operator_ids(self, recursive: bool = True):
     """
-    Returns a list of all operator ids in this and child spaces
+    Returns a list of all operator ids in this space not including itself.
+    If recursive is True (default) it includes operator ids in child spaces.
     """
     ids = []
     for _operator in self.operators:
-      if isinstance(_operator, Space):
-        ids.extend(_operator.__gather_ids())
+      if recursive and isinstance(_operator, Space):
+        ids.extend(_operator._operator_ids())
       else:
         ids.append(_operator.id())
-    ids.append(self.id())
     return ids
 
   def _route(self, message: MessageSchema):
     """
     Enqueues the action on intended recipient(s)
     """
-    operator_ids = self.__gather_ids()
-    util.debug(f"*[{self.id()}] operators:", operator_ids)
+    broadcast = False
+    if 'to' not in message or message['to'] in [None, ""]:
+      broadcast = True
 
     recipients = []
-    if 'to' in message and message['to'] not in [None]:
-      # if 'to' is specified send to only that operator
-      recipients = [
-        operator
-        for operator in self.operators + [self]
-        if operator.id() == message['to']
-      ]
-    else:
-      # if 'to' is not specified broadcast to all _but_ the sender
-      recipients = [
-        operator
-        for operator in self.operators + [self]
-        if operator.id() != message['from']
-      ]
+    for operator in self.operators:
+      if broadcast and operator.id() != message['from']:
+        # broadcast routing
+        # NOTE this only broadcasts to direct member operators of the space
+        recipients.append(operator)
 
-    util.debug(
-      f"*[{self.id()}] Routing to {len(recipients)} recipients")
+      elif not broadcast:
+        # point to point routing
+        if operator.id() == message['to']:
+          recipients.append(operator)
+        elif isinstance(operator, Space) and message['to'] in operator._operator_ids():
+          # pass to child space for routing and return
+          util.debug(f"*[{self.id()}] routing down to:", operator.id())
+          operator._route(message)
+          return
+
     if len(recipients) == 0:
       # no recipient operator id matched
-      if hasattr(self, '_space'):
+      if self._space is not None:
         # pass to the parent space for routing
+        util.debug(f"*[{self.id()}] routing up to:", self._space.id())
         self._space._route(message)
       else:
+        util.debug(f"*[{self.id()}] no recipient for message:", message)
+        exit(1)  # temporary
         # route an error message back to the original sender
         # TODO: protect against infinite loops here
         self._route({
@@ -100,6 +103,7 @@ class Space(Operator):
     else:
       # send to recipients, setting the 'to' field to their id
       for recipient in recipients:
+        util.debug(f"*[{self.id()}] receiving on:", recipient.id())
         recipient._receive({
           **message,
           'to': recipient.id(),

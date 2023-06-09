@@ -109,10 +109,8 @@ def debug_text(name, object=None):
   """
   START_STYLE = Style.RESET_ALL + Fore.YELLOW
   END_STYLE = Style.RESET_ALL
-  debug_name = f"{name}"
   debug_value = ""
   if object != None:
-    debug_name = f"{type(object).__name__}:{name}"
     debug_object_value = object
     try:
       # since this is always for a human we hardcode 2 space indentation
@@ -120,9 +118,8 @@ def debug_text(name, object=None):
     except Exception as e:
       print(f"debug_text: {e}")
       pass
-    debug_value = f"{debug_object_value}\n{END_STYLE}{'_'*5} {debug_name} {'_'*5}"
-
-  return f"\n{START_STYLE}{'>'*5} {debug_name} {'<'*5}{Style.RESET_ALL}\n{debug_value}{Style.RESET_ALL}".replace("\\n", "\n")
+    debug_value = f"{debug_object_value}\n{END_STYLE}{'_'*5} {name} {'_'*5}"
+  return f"\n{START_STYLE}{'>'*5} {name} {'<'*5}{Style.RESET_ALL}\n{debug_value}{Style.RESET_ALL}".replace("\\n", "\n")
 
 
 def parse_json_response(response_text, stopping_string) -> dict:
