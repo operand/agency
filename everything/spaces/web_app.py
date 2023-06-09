@@ -11,86 +11,86 @@ import logging
 
 
 class WebServer(Space):
-  """
-  Encapsulates a simple web application "space" which can be used to connect
-  multiple users (presumably human) to another space. Currently implemented
-  using Flask.
-  """
-
-  def __init__(self, operator: Operator, **kwargs):
     """
-    Run Flask server in a separate thread
+    Encapsulates a simple web application "space" which can be used to connect
+    multiple users (presumably human) to another space. Currently implemented
+    using Flask.
     """
-    super().__init__(operator, **kwargs)
-    app = Flask(__name__)
 
-    # six lines to disable logging...
-    app.logger.removeHandler(default_handler)
-    app.logger.setLevel(logging.ERROR)
-    werkzeug_log = logging.getLogger('werkzeug')
-    werkzeug_log.setLevel(logging.ERROR)
-    eventlet_logger = logging.getLogger('eventlet.wsgi.server')
-    eventlet_logger.setLevel(logging.ERROR)
+    def __init__(self, operator: Operator, **kwargs):
+        """
+        Run Flask server in a separate thread
+        """
+        super().__init__(operator, **kwargs)
+        app = Flask(__name__)
 
-    app.config['SECRET_KEY'] = 'secret!'
-    # app.config['DEBUG'] = True
-    self.socketio = SocketIO(app, async_mode='eventlet',
-                             logger=False, engineio_logger=False)  # seven!
+        # six lines to disable logging...
+        app.logger.removeHandler(default_handler)
+        app.logger.setLevel(logging.ERROR)
+        werkzeug_log = logging.getLogger('werkzeug')
+        werkzeug_log.setLevel(logging.ERROR)
+        eventlet_logger = logging.getLogger('eventlet.wsgi.server')
+        eventlet_logger.setLevel(logging.ERROR)
 
-    # Define routes
-    @app.route('/')
-    def index():
-      return render_template('index.html', operator_id=self.id())
+        app.config['SECRET_KEY'] = 'secret!'
+        # app.config['DEBUG'] = True
+        self.socketio = SocketIO(app, async_mode='eventlet',
+                                 logger=False, engineio_logger=False)  # seven!
 
-    @self.socketio.on('connect')
-    def handle_connect():
-      # When a client connects, store the session ID
-      # TODO: allow for multiple clients
-      self.connected_sid = request.sid
+        # Define routes
+        @app.route('/')
+        def index():
+            return render_template('index.html', operator_id=self.id())
 
-    @self.socketio.on('message')
-    def handle_action(action):
-      """
-      Handles incoming actions from the web user interface
-      """
-      self._send(action)
+        @self.socketio.on('connect')
+        def handle_connect():
+            # When a client connects, store the session ID
+            # TODO: allow for multiple clients
+            self.connected_sid = request.sid
 
-    @self.socketio.on('permission_response')
-    def handle_alert_response(allowed: bool):
-      """
-      Handles incoming alert responses
-      """
-      raise NotImplementedError
+        @self.socketio.on('message')
+        def handle_action(action):
+            """
+            Handles incoming actions from the web user interface
+            """
+            self._send(action)
 
-    # Wrap the Flask application with wsgi middleware and start
-    def run_server():
-      wsgi.server(eventlet.listen(
-        ('', int(self.__kwargs['port']))), app, log=eventlet_logger)
-    eventlet.spawn(run_server)
+        @self.socketio.on('permission_response')
+        def handle_alert_response(allowed: bool):
+            """
+            Handles incoming alert responses
+            """
+            raise NotImplementedError
 
-  def _request_permission(self, proposed_message: MessageSchema) -> bool:
-    """
-    Raises an alert in the users browser and returns true if the user
-    approves the action"""
-    self.socketio.server.emit('permission_request', proposed_message)
+        # Wrap the Flask application with wsgi middleware and start
+        def run_server():
+            wsgi.server(eventlet.listen(
+              ('', int(self.__kwargs['port']))), app, log=eventlet_logger)
+        eventlet.spawn(run_server)
 
-  # We use the _after_action__ method to pass through all messages to the
-  # socketio web client
-  def _after_action___(self, original_message: MessageSchema, return_value: str, error: str):
-    self.socketio.server.emit(
-      'message', original_message, room=self.connected_sid)
+    def _request_permission(self, proposed_message: MessageSchema) -> bool:
+        """
+        Raises an alert in the users browser and returns true if the user
+        approves the action"""
+        self.socketio.server.emit('permission_request', proposed_message)
 
-  # And define pass through methods to whitelist the actions we allow
-  @access_policy(ACCESS_PERMITTED)
-  def _action__say(self, content: str):
-    pass
+    # We use the _after_action__ method to pass through all messages to the
+    # socketio web client
+    def _after_action___(self, original_message: MessageSchema, return_value: str, error: str):
+        self.socketio.server.emit(
+          'message', original_message, room=self.connected_sid)
 
-  # Allow return values to be passed through
-  @access_policy(ACCESS_PERMITTED)
-  def _action__return(self, original_message: MessageSchema, return_value: str):
-    pass
+    # And define pass through methods to whitelist the actions we allow
+    @access_policy(ACCESS_PERMITTED)
+    def _action__say(self, content: str):
+        pass
 
-  # Allow errors to be passed through
-  @access_policy(ACCESS_PERMITTED)
-  def _action__error(self, original_message: MessageSchema, error: str):
-    pass
+    # Allow return values to be passed through
+    @access_policy(ACCESS_PERMITTED)
+    def _action__return(self, original_message: MessageSchema, return_value: str):
+        pass
+
+    # Allow errors to be passed through
+    @access_policy(ACCESS_PERMITTED)
+    def _action__error(self, original_message: MessageSchema, error: str):
+        pass
