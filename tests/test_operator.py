@@ -31,11 +31,11 @@ def webster_and_chatty():
 
 
 def wait_for_messages(operator, count=2):
-    max_time = 2        # seconds
+    max_time = 2 # seconds
     start_time = time.time()
     while (
-      (time.time() - start_time) < max_time
-      and operator._message_log.__len__() < count
+        (time.time() - start_time) < max_time
+        and operator._message_log.__len__() < count
     ):
         time.sleep(0.1)
 
@@ -57,7 +57,7 @@ def test_send_and_receive():
 
     # We add the webapp space and chatty, into the root space
     with space_context([webster._space, chatty]):
-        # Send the first action from Webster
+        # Send and wait for response
         first_action = {
             'action': 'say',
             'to': chatty.id(),
@@ -66,34 +66,22 @@ def test_send_and_receive():
                 'content': 'Hello, Chatty!'
             }
         }
-        first_message = {
-            'from': 'Webster.TestWebApp.TestSpace',
-            **first_action,
-        }
-
         webster._send(first_action)
 
         wait_for_messages(webster)
 
+        first_message = {
+            'from': 'Webster.TestWebApp.TestSpace',
+            **first_action,
+        }
         assert webster._message_log == [
-            {
-                'from': 'Webster.TestWebApp.TestSpace',
-                **first_action
-            },
+            first_message,
             {
                 "to": "Webster.TestWebApp.TestSpace",
                 "thoughts": "A value was returned for your action",
                 "action": "return",
                 "args": {
-                            "original_message": {
-                                "to": "Chatty.TestSpace",
-                                "thoughts": "I wonder how Chatty is doing.",
-                                "action": "say",
-                                "args": {
-                                    "content": "Hello, Chatty!"
-                                },
-                                "from": "Webster.TestWebApp.TestSpace"
-                            },
+                    "original_message": first_message,
                     "return_value": "Hello, Webster!"
                 },
                 "from": "Chatty.TestSpace"
@@ -104,41 +92,48 @@ def test_send_and_receive():
 def test_send_undefined_action():
     """
     Tests sending an undefined action and receiving an error response."""
-    webapp = TestWebApp()
-    chatty = Chatty()
+    webster, chatty = webster_and_chatty()
 
     # In this test we skip defining a _say action on chatty in order to test the
     # error response
 
     # Use the context manager to handle setup/teardown of the space
-    with space_context([webapp, chatty]):
-        # Send the first message
-        webapp._send({
+    with space_context([webster._space, chatty]):
+        # Send and wait for response
+        first_action = {
             'action': 'say',
             'to': chatty.id(),
             'thoughts': 'I wonder how Chatty is doing.',
             'args': {
                 'content': 'Hello, Chatty!'
             }
-        })
+        }
+        webster._send(first_action)
+        wait_for_messages(webster)
 
-        wait_for_messages(webapp)
-
-        # We assert the error message content first with a regex then the rest of the message
-        assert webapp._message_log == [{
-            'from': 'Chatty.Chatty',
-            'to': 'Webster.Webapp',
-            'thoughts': 'An error occurred',
-            'action': 'say',
-            'args': {'content': 'ERROR: \"say\" not found'}
-        }]
+        first_message = {
+            'from': 'Webster.TestWebApp.TestSpace',
+            **first_action,
+        }
+        assert webster._message_log == [
+            first_message,
+            {
+                "to": "Webster.TestWebApp.TestSpace",
+                "thoughts": "An error occurred",
+                "action": "error",
+                "args": {
+                    "original_message": first_message,
+                    "error": "\"say\" not found"
+                },
+                "from": "Chatty.TestSpace"
+            }
+        ]
 
 
 def test_send_unpermitted_action():
     """
     Tests sending an unpermitted action and receiving an error response."""
-    webapp = TestWebApp()
-    chatty = Chatty()
+    webster, chatty = webster_and_chatty()
 
     # We use callable class to dynamically define the _say action for chatty
     class ChattySay():
@@ -154,9 +149,9 @@ def test_send_unpermitted_action():
     chatty._action__say = ChattySay(chatty)
 
     # Use the context manager to handle setup/teardown of the space
-    with space_context([webapp, chatty]):
+    with space_context([webster._space, chatty]):
         # Send the first message
-        webapp._send({
+        webster._send({
             'action': 'say',
             'to': chatty.id(),
             'thoughts': 'I wonder how Chatty is doing.',
@@ -165,10 +160,10 @@ def test_send_unpermitted_action():
             }
         })
 
-        wait_for_messages(webapp)
+        wait_for_messages(webster)
 
         # We assert the error message content first with a regex then the rest of the message
-        assert webapp._message_log == [{
+        assert webster._message_log == [{
             'from': 'Chatty',
             'to': 'Webster.Webapp',
             'thoughts': 'An error occurred',
@@ -180,8 +175,7 @@ def test_send_unpermitted_action():
 def test_send_request_permitted_action():
     """
     Tests sending an action, granting permission, and returning response"""
-    webapp = TestWebApp()
-    chatty = Chatty()
+    webster, chatty = webster_and_chatty()
 
     # We use callable classes to dynamically define _action__say and
     # _request_permission
@@ -202,9 +196,9 @@ def test_send_request_permitted_action():
     chatty._request_permission = ChattyAsk()
 
     # Use the context manager to handle setup/teardown of the space
-    with space_context([webapp, chatty]):
+    with space_context([webster._space, chatty]):
         # Send the first message
-        webapp._send({
+        webster._send({
             'action': 'say',
             'to': chatty.id(),
             'thoughts': 'hmmmm',
@@ -213,9 +207,9 @@ def test_send_request_permitted_action():
             }
         })
 
-        wait_for_messages(webapp)
+        wait_for_messages(webster)
 
-        assert webapp._message_log == [{
+        assert webster._message_log == [{
             'from': 'Chatty',
             'to': 'Webster.Webapp',
             'thoughts': 'A value was returned for your action',
@@ -230,8 +224,7 @@ def test_send_request_permitted_action():
 def test_send_request_rejected_action():
     """
     Tests sending an action, rejecting permission, and returning error"""
-    webapp = TestWebApp()
-    chatty = Chatty()
+    webster, chatty = webster_and_chatty()
 
     # We use callable classes to dynamically define _action__say and
     # _request_permission
@@ -252,9 +245,9 @@ def test_send_request_rejected_action():
     chatty._request_permission = ChattyAsk()
 
     # Use the context manager to handle setup/teardown of the space
-    with space_context([webapp, chatty]):
+    with space_context([webster._space, chatty]):
         # Send the first message
-        webapp._send({
+        webster._send({
             'action': 'say',
             'to': chatty.id(),
             'thoughts': 'hmmmm',
@@ -263,16 +256,16 @@ def test_send_request_rejected_action():
             }
         })
 
-        wait_for_messages(webapp)
+        wait_for_messages(webster)
 
         # We assert the error message content first with a regex then the rest of the message
-        assert webapp._message_log == [{
+        assert webster._message_log == [{
             'from': 'Chatty',
             'to': 'Webster.Webapp',
             'thoughts': 'An error occurred',
             'action': 'say',
             'args': {
-                    'content': 'ERROR: \"Chatty.say\" not permitted'
+                'content': 'ERROR: \"Chatty.say\" not permitted'
             }
         }]
 
