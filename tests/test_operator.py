@@ -36,11 +36,12 @@ def test_send_and_receive():
 
   # We use callable class to dynamically define the _say action for chatty
   class ChattySay():
-    def __init__(self, channel) -> None:
+    def __init__(self, operator) -> None:
+      self.operator = operator
       self.access_policy = ACCESS_PERMITTED
 
     def __call__(self, content):
-      print(f"Chatty({self}) received: {self._current_message}")
+      print(f"Chatty({self}) received: {self.operator._current_message}")
       return 'Hello, Webster!'
 
   chatty._action__say = ChattySay(chatty)
@@ -60,8 +61,8 @@ def test_send_and_receive():
     wait_for_message(webserver)
 
     assert webserver.received_messages == [{
-      'from': 'Chatty.ChattyChannel',
-      'to': 'Webster.WebsterChannel',
+      'from': 'Chatty',
+      'to': 'Webster.Webserver',
       'thoughts': 'A value was returned for your action',
       'action': 'say',
       'args': {'content': 'Hello, Webster!'}
@@ -71,31 +72,31 @@ def test_send_and_receive():
 def test_send_undefined_action():
   """
   Tests sending an undefined action and receiving an error response."""
-  webchannel = Webserver()
-  chattychannel = Chatty()
+  server = Webserver()
+  chatty = Chatty()
 
   # In this test we skip defining a _say action on chatty in order to test the
   # error response
 
   # Use the context manager to handle setup/teardown of the space
-  with space_context([webchannel, chattychannel]):
+  with space_context([server, chatty]):
     # Send the first message
     print(f"Webster sending...")
-    webchannel._send({
+    server._send({
       'action': 'say',
-      'to': chattychannel.id(),
+      'to': chatty.id(),
       'thoughts': 'I wonder how Chatty is doing.',
       'args': {
         'content': 'Hello, Chatty!'
       }
     })
 
-    wait_for_message(webchannel)
+    wait_for_message(server)
 
     # We assert the error message content first with a regex then the rest of the message
-    assert webchannel.received_messages == [{
-      'from': 'Chatty.ChattyChannel',
-      'to': 'Webster.WebsterChannel',
+    assert server.received_messages == [{
+      'from': 'Chatty.Chatty',
+      'to': 'Webster.Webserver',
       'thoughts': 'An error occurred',
       'action': 'say',
       'args': {'content': 'ERROR: \"say\" not found'}
@@ -105,66 +106,66 @@ def test_send_undefined_action():
 def test_send_unpermitted_action():
   """
   Tests sending an unpermitted action and receiving an error response."""
-  webchannel = Webserver()
-  chattychannel = Chatty()
+  webserver = Webserver()
+  chatty = Chatty()
 
   # We use callable class to dynamically define the _say action for chatty
   class ChattySay():
-    def __init__(self, channel) -> None:
-      self.channel = channel
+    def __init__(self, operator) -> None:
+      self.operator = operator
       self.access_policy = ACCESS_DENIED
 
     def __call__(self, content):
-      print(f"Chatty({self}) received: {self.channel._current_message}")
+      print(f"Chatty({self}) received: {self.operator._current_message}")
       # Note that we are also testing the default "return" impl which converts a
       # returned value into an incoming "say" action, by returning a string here.
       return 'Hello, Webster!'
 
-  chattychannel._action__say = ChattySay(chattychannel)
+  chatty._action__say = ChattySay(chatty)
 
   # Use the context manager to handle setup/teardown of the space
-  with space_context([webchannel, chattychannel]):
+  with space_context([webserver, chatty]):
     # Send the first message
     print(f"Webster sending...")
-    webchannel._send({
+    webserver._send({
       'action': 'say',
-      'to': chattychannel.id(),
+      'to': chatty.id(),
       'thoughts': 'I wonder how Chatty is doing.',
       'args': {
         'content': 'Hello, Chatty!'
       }
     })
 
-    wait_for_message(webchannel)
+    wait_for_message(webserver)
 
     # We assert the error message content first with a regex then the rest of the message
-    assert webchannel.received_messages == [{
-      'from': 'Chatty.ChattyChannel',
-      'to': 'Webster.WebsterChannel',
+    assert webserver.received_messages == [{
+      'from': 'Chatty',
+      'to': 'Webster.Webserver',
       'thoughts': 'An error occurred',
       'action': 'say',
-      'args': {'content': 'ERROR: \"Chatty.ChattyChannel.say\" not permitted'}
+      'args': {'content': 'ERROR: \"Chatty.say\" not permitted'}
     }]
 
 
 def test_send_request_permitted_action():
   """
   Tests sending an action, granting permission, and returning response"""
-  webchannel = Webserver()
-  chattychannel = Chatty()
+  webserver = Webserver()
+  chatty = Chatty()
 
   # We use callable classes to dynamically define _action__say and
   # _request_permission
   class ChattySay():
-    def __init__(self, channel) -> None:
-      self.channel = channel
+    def __init__(self, operator) -> None:
+      self.operator = operator
       self.access_policy = ACCESS_REQUESTED
 
     def __call__(self, content):
-      print(f"Chatty({self}) received: {self.channel._current_message}")
+      print(f"Chatty({self}) received: {self.operator._current_message}")
       return '42'
 
-  chattychannel._action__say = ChattySay(chattychannel)
+  chatty._action__say = ChattySay(chatty)
 
   class ChattyAsk():
     def __call__(self, proposed_message):
@@ -172,26 +173,26 @@ def test_send_request_permitted_action():
         f"Chatty({self}) received permission request for: {proposed_message}")
       return True
 
-  chattychannel._request_permission = ChattyAsk()
+  chatty._request_permission = ChattyAsk()
 
   # Use the context manager to handle setup/teardown of the space
-  with space_context([webchannel, chattychannel]):
+  with space_context([webserver, chatty]):
     # Send the first message
     print(f"Webster sending...")
-    webchannel._send({
+    webserver._send({
       'action': 'say',
-      'to': chattychannel.id(),
+      'to': chatty.id(),
       'thoughts': 'hmmmm',
       'args': {
         'content': 'Chatty, what is the answer to life, the universe, and everything?'
       }
     })
 
-    wait_for_message(webchannel)
+    wait_for_message(webserver)
 
-    assert webchannel.received_messages == [{
-      'from': 'Chatty.ChattyChannel',
-      'to': 'Webster.WebsterChannel',
+    assert webserver.received_messages == [{
+      'from': 'Chatty',
+      'to': 'Webster.Webserver',
       'thoughts': 'A value was returned for your action',
       'action': 'say',
       'args': {
@@ -204,21 +205,21 @@ def test_send_request_permitted_action():
 def test_send_request_rejected_action():
   """
   Tests sending an action, rejecting permission, and returning error"""
-  webchannel = Webserver()
-  chattychannel = Chatty()
+  webserver = Webserver()
+  chatty = Chatty()
 
   # We use callable classes to dynamically define _action__say and
   # _request_permission
   class ChattySay():
-    def __init__(self, channel) -> None:
-      self.channel = channel
+    def __init__(self, operator) -> None:
+      self.operator = operator
       self.access_policy = ACCESS_REQUESTED
 
     def __call__(self, content):
-      print(f"Chatty({self}) received: {self.channel._current_message}")
+      print(f"Chatty({self}) received: {self.operator._current_message}")
       return '42'
 
-  chattychannel._action__say = ChattySay(chattychannel)
+  chatty._action__say = ChattySay(chatty)
 
   class ChattyAsk():
     def __call__(self, proposed_message):
@@ -226,31 +227,31 @@ def test_send_request_rejected_action():
         f"Chatty({self}) received permission request for: {proposed_message}")
       return False
 
-  chattychannel._request_permission = ChattyAsk()
+  chatty._request_permission = ChattyAsk()
 
   # Use the context manager to handle setup/teardown of the space
-  with space_context([webchannel, chattychannel]):
+  with space_context([webserver, chatty]):
     # Send the first message
     print(f"Webster sending...")
-    webchannel._send({
+    webserver._send({
       'action': 'say',
-      'to': chattychannel.id(),
+      'to': chatty.id(),
       'thoughts': 'hmmmm',
       'args': {
         'content': 'Chatty, what is the answer to life, the universe, and everything?'
       }
     })
 
-    wait_for_message(webchannel)
+    wait_for_message(webserver)
 
     # We assert the error message content first with a regex then the rest of the message
-    assert webchannel.received_messages == [{
-      'from': 'Chatty.ChattyChannel',
-      'to': 'Webster.WebsterChannel',
+    assert webserver.received_messages == [{
+      'from': 'Chatty',
+      'to': 'Webster.Webserver',
       'thoughts': 'An error occurred',
       'action': 'say',
       'args': {
-        'content': 'ERROR: \"Chatty.ChattyChannel.say\" not permitted'
+        'content': 'ERROR: \"Chatty.say\" not permitted'
       }
     }]
 
