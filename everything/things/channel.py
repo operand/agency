@@ -37,9 +37,6 @@ class Channel():
     self.__message_queue = queue.Queue()
     self.__cached__get_action_help = None
 
-    # A basic approach to storing messages
-    self._message_log = []
-
   def id(self) -> str:
     return f"{self.operator.id()}.{self.__class__.__name__}"
 
@@ -54,7 +51,7 @@ class Channel():
     }).dict(by_alias=True)
 
     # Record message and route it
-    self._message_log.append(message)
+    self.operator._message_log.append(message)
     self.space._route(message)
 
   def _receive(self, message: MessageSchema):
@@ -64,7 +61,7 @@ class Channel():
     message = MessageSchema(**message).dict(by_alias=True)
 
     # Record message and place on queue
-    self._message_log.append(message)
+    self.operator._message_log.append(message)
     self.__message_queue.put(message)
 
   def _run(self) -> str:
