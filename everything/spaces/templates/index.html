@@ -45,7 +45,7 @@
 <body>
   <div id="root"></div>
   <script>
-    this.window.__everything_channel_id = "{{ channel_id }}";
+    this.window.__operator_id = "{{ operator_id }}";
   </script>
 
   {% raw %}
@@ -160,7 +160,7 @@
         if (content.trim() !== '') {
           const action = this.parseSlashSyntaxAction(content);
           const newMessage = {
-            from: window.__everything_channel_id,
+            from: window.__operator_id,
             to: "Space",
             thoughts: "",
             ...action

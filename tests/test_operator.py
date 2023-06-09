@@ -1,14 +1,14 @@
-from everything.things.channel import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, Channel
+from everything.things.operator import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED
 from everything.things.operator import Operator
-import pytest
+from everything.things.space import Space
+from tests.conftest import space_context
 import time
 import unittest
-from tests.conftest import space_context
 
 
-class WebsterChannel(Channel):
+class Webserver(Space):
   def __init__(self):
-    super().__init__(Operator("Webster"))
+    # super().__init__(Operator("Webster"))
     self.received_messages = []
 
   def _action__say(self, content):
@@ -17,50 +17,49 @@ class WebsterChannel(Channel):
   _action__say.access_policy = ACCESS_PERMITTED
 
 
-class ChattyChannel(Channel):
+class Chatty(Operator):
   def __init__(self):
-    super().__init__(Operator("Chatty"))
+    super().__init__(id="Chatty")
 
 
-def wait_for_message(channel):
+def wait_for_message(operator):
   start_time = time.time()
-  while time.time() - start_time < 1 and channel.received_messages.__len__() == 0:
+  while time.time() - start_time < 1 and operator.received_messages.__len__() == 0:
     time.sleep(0.1)
 
 
 def test_send_and_receive():
   """
-  Tests sending a basic "say" message receiving a "return"ed reply."""
-  webchannel = WebsterChannel()
-  chattychannel = ChattyChannel()
+  Tests sending a basic "say" message receiving a "return"ed reply"""
+  webserver = Webserver()
+  chatty = Chatty()
 
   # We use callable class to dynamically define the _say action for chatty
   class ChattySay():
     def __init__(self, channel) -> None:
-      self.channel = channel
       self.access_policy = ACCESS_PERMITTED
 
     def __call__(self, content):
-      print(f"Chatty({self}) received: {self.channel._current_message}")
+      print(f"Chatty({self}) received: {self._current_message}")
       return 'Hello, Webster!'
 
-  chattychannel._action__say = ChattySay(chattychannel)
+  chatty._action__say = ChattySay(chatty)
 
   # The context manager handles setup/teardown of the space
-  with space_context([webchannel, chattychannel]):
+  with space_context([webserver, chatty]):
     # Send the first message from Webster
-    webchannel._send({
+    webserver._send({
       'action': 'say',
-      'to': chattychannel.id(),
+      'to': chatty.id(),
       'thoughts': '',
       'args': {
         'content': 'Hello, Chatty!'
       }
     })
 
-    wait_for_message(webchannel)
+    wait_for_message(webserver)
 
-    assert webchannel.received_messages == [{
+    assert webserver.received_messages == [{
       'from': 'Chatty.ChattyChannel',
       'to': 'Webster.WebsterChannel',
       'thoughts': 'A value was returned for your action',
@@ -72,8 +71,8 @@ def test_send_and_receive():
 def test_send_undefined_action():
   """
   Tests sending an undefined action and receiving an error response."""
-  webchannel = WebsterChannel()
-  chattychannel = ChattyChannel()
+  webchannel = Webserver()
+  chattychannel = Chatty()
 
   # In this test we skip defining a _say action on chatty in order to test the
   # error response
@@ -106,8 +105,8 @@ def test_send_undefined_action():
 def test_send_unpermitted_action():
   """
   Tests sending an unpermitted action and receiving an error response."""
-  webchannel = WebsterChannel()
-  chattychannel = ChattyChannel()
+  webchannel = Webserver()
+  chattychannel = Chatty()
 
   # We use callable class to dynamically define the _say action for chatty
   class ChattySay():
@@ -151,8 +150,8 @@ def test_send_unpermitted_action():
 def test_send_request_permitted_action():
   """
   Tests sending an action, granting permission, and returning response"""
-  webchannel = WebsterChannel()
-  chattychannel = ChattyChannel()
+  webchannel = Webserver()
+  chattychannel = Chatty()
 
   # We use callable classes to dynamically define _action__say and
   # _request_permission
@@ -205,8 +204,8 @@ def test_send_request_permitted_action():
 def test_send_request_rejected_action():
   """
   Tests sending an action, rejecting permission, and returning error"""
-  webchannel = WebsterChannel()
-  chattychannel = ChattyChannel()
+  webchannel = Webserver()
+  chattychannel = Chatty()
 
   # We use callable classes to dynamically define _action__say and
   # _request_permission

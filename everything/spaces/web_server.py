@@ -1,20 +1,19 @@
-import json
-import eventlet
-import logging
 from eventlet import wsgi
-from everything.things import util
+from everything.things.operator import ACCESS_PERMITTED, access_policy
 from everything.things.operator import Operator
 from everything.things.schema import MessageSchema
+from everything.things.space import Space
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
-from everything.things.channel import ACCESS_PERMITTED, Channel, access_policy
+import eventlet
+import logging
 
 
-class WebChannel(Channel):
+class WebServer(Space):
   """
-  Encapsulates a simple web-based channel
-  Currently implemented using Flask
+  Encapsulates a simple web application "space" which can be used to connect
+  human users to the space. Currently implemented using Flask.
   """
 
   def __init__(self, operator: Operator, **kwargs):
@@ -40,7 +39,7 @@ class WebChannel(Channel):
     # Define routes
     @app.route('/')
     def index():
-      return render_template('index.html', channel_id=self.id())
+      return render_template('index.html', operator_id=self.id())
 
     @self.socketio.on('connect')
     def handle_connect():
@@ -65,7 +64,7 @@ class WebChannel(Channel):
     # Wrap the Flask application with wsgi middleware and start
     def run_server():
       wsgi.server(eventlet.listen(
-        ('', int(self.kwargs['port']))), app, log=eventlet_logger)
+        ('', int(self.__kwargs['port']))), app, log=eventlet_logger)
     eventlet.spawn(run_server)
 
   def _request_permission(self, proposed_message: MessageSchema) -> bool:

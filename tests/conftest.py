@@ -1,11 +1,11 @@
 from contextlib import contextmanager
+from everything.things.space import Space
 import threading
 import time
-from everything.things.space import Space
 
 
-def setup_and_teardown_space(channels):
-  space = Space(channels)
+def setup_and_teardown_space(operators):
+  space = Space("TestSpace", operators)
   thread = threading.Thread(target=space.create, daemon=True)
   thread.start()
 
@@ -23,5 +23,5 @@ def setup_and_teardown_space(channels):
 
 # Use a context manager instead of a fixture to handle setup/teardown
 @contextmanager
-def space_context(channels):
-  yield from setup_and_teardown_space(channels)
+def space_context(operators):
+  yield from setup_and_teardown_space(operators)

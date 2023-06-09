@@ -19,11 +19,11 @@ setup(
     "colorama>=0.4",
     "pydantic>=1.8",
 
-    # Required by ChattyLMChannel example
+    # Required by ChattyLM example
     "transformers>=4.29",
     "torch>=2.0",
 
-    # Required by WebChannel example
+    # Required by WebServer example
     "Flask-SocketIO>=5.3",
     "eventlet>=0.33",
   ],

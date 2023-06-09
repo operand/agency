@@ -5,11 +5,11 @@ from pydantic import BaseModel, Field
 class ActionSchema(BaseModel):
   """
   Schema for validation when "sending" an action. This format is expected by the
-  "_send" method of the Channel class.
+  "_send" method of the Operator class.
   """
 
-  # the receiving channel
-  # if not specified the action is sent to all channels _but_ the sender
+  # fully qualified name of the receiving operator.
+  # if not specified the action is sent to all operators _but_ the sender
   to: Optional[str] = Field(None)
 
   # natural language explanation for the action
@@ -25,7 +25,7 @@ class ActionSchema(BaseModel):
 class MessageSchema(ActionSchema):
   """
   Schema for validation of a received message. This format is expected by the
-  "_receive" method of the Channel class.
+  "_receive" method of the Operator class.
   """
-  # the sending channel
+  # the sending operator
   from_field: str = Field(..., alias='from')

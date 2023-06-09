@@ -1,15 +1,14 @@
+from colorama import Fore, Style
+from everything.things.operator import ACCESS_REQUESTED, Operator, access_policy
 import json
 import os
 import re
 import subprocess
-from colorama import Fore, Style
-from everything.things.channel import ACCESS_REQUESTED, Channel, access_policy
 
 
-
-class HostChannel(Channel):
+class Host(Operator):
   """
-  Channel to the host system of the running application
+  Represents the host system of the running application
   """
 
   @access_policy(ACCESS_REQUESTED)
@@ -21,7 +20,7 @@ class HostChannel(Channel):
     result = subprocess.run(
       command,
       stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE, text=True, cwd="/app" # TODO: make configurable
+      stderr=subprocess.PIPE, text=True, cwd="/app"  # TODO: make configurable
     )
     output = result.stdout + result.stderr
     if result.returncode != 0:
@@ -57,9 +56,9 @@ class HostChannel(Channel):
   def _request_permission(self, proposed_message: dict) -> bool:
     """Asks for permission on the command line"""
     text = \
-    f"{Fore.RED}***** Permission requested to execute: *****{Style.RESET_ALL}\n" + \
-    json.dumps(proposed_message, indent=2) + \
-    f"\n{Fore.RED}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{Style.RESET_ALL}\n"
+        f"{Fore.RED}***** Permission requested to execute: *****{Style.RESET_ALL}\n" + \
+        json.dumps(proposed_message, indent=2) + \
+        f"\n{Fore.RED}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{Style.RESET_ALL}\n"
     print(text)
     permission_response = input("Allow? (y/n) ")
     return re.search(r"^y(es)?$", permission_response)

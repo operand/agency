@@ -1,4 +1,4 @@
-from everything.things.channel import ACCESS_PERMITTED, Channel, access_policy
+from everything.things.operator import ACCESS_PERMITTED, access_policy
 from everything.things.operator import Operator
 from everything.things.prompt_methods import PromptMethods
 from everything.things.schema import MessageSchema
@@ -11,14 +11,10 @@ import textwrap
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 
 
-# This class is an example of how you can create a channel that constructs
-# a prompt using the message log and sends it to a backend language model.
-
-
-class ChattyLMChannel(Channel, PromptMethods):
+class ChattyLM(Operator, PromptMethods):
   """
-  Encapsulates a chatting AI backed by a language model
-  Currently uses transformers library as a backend provider
+  Encapsulates a simple chatting AI backed by a language model.
+  Currently uses transformers library as a backend provider.
   """
 
   def __init__(self, operator: Operator, **kwargs):
@@ -46,8 +42,8 @@ class ChattyLMChannel(Channel, PromptMethods):
     # A chatting AI would probably only deal with "say" actions.
     return f"\n{pre_prompt} {message}"
 
-  def _pre_prompt(self, channel_id: str, timestamp=util.to_timestamp()) -> str:
-    return f"\n### {channel_id.split('.')[0]}: "
+  def _pre_prompt(self, operator_id: str, timestamp=util.to_timestamp()) -> str:
+    return f"\n### {operator_id.split('.')[0]}: "
 
   @access_policy(ACCESS_PERMITTED)
   def _action__say(self, content: str) -> bool:
