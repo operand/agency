@@ -167,15 +167,14 @@ def test_send_unpermitted_action():
                 "action": "error",
                 "args": {
                     "original_message": first_message,
-                    "error": "\"Chatty.TestSpace.say\" not permitted"
+                    "error": "\"Chatty.TestSpace.say\" not permitted",
                 }
             }
         ]
 
 
 def test_send_request_permitted_action():
-    """
-    Tests sending an action, granting permission, and returning response"""
+    """Tests sending an action, granting permission, and returning response"""
     webster, chatty = webster_and_chatty()
 
     # We use callable classes to dynamically define _action__say and
@@ -197,26 +196,34 @@ def test_send_request_permitted_action():
     chatty._request_permission = ChattyAsk()
 
     with space_context([webster._space, chatty]):
-        webster._send({
+        first_action = {
             'action': 'say',
             'to': chatty.id(),
             'thoughts': 'hmmmm',
             'args': {
                 'content': 'Chatty, what is the answer to life, the universe, and everything?'
             }
-        })
-
+        }
+        webster._send(first_action)
         wait_for_messages(webster)
 
-        assert webster._message_log == [{
-            'from': 'Chatty',
-            'to': 'Webster.Webapp',
-            'thoughts': 'A value was returned for your action',
-            'action': 'say',
-            'args': {
-                    'content': '42'
+        first_message = {
+            'from': 'Webster.TestWebApp.TestSpace',
+            **first_action,
+        }
+        assert webster._message_log == [
+            first_message,
+            {
+                "to": "Webster.TestWebApp.TestSpace",
+                "thoughts": "A value was returned for your action",
+                "action": "return",
+                "args": {
+                    "original_message": first_message,
+                    "return_value": "42"
+                },
+                "from": "Chatty.TestSpace"
             }
-        }]
+        ]
 
 
 # send action -> reject -> return permission error
