@@ -5,6 +5,10 @@ import time
 
 
 def setup_and_teardown_space(operators):
+  """
+  Creates a Space and waits for it to fully start before yielding it to the
+  test. The Space is torn down after the context is complete.
+  """
   space = Space("TestSpace", operators)
   thread = threading.Thread(target=space.create, daemon=True)
   thread.start()

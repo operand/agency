@@ -13,7 +13,8 @@ import logging
 class WebServer(Space):
   """
   Encapsulates a simple web application "space" which can be used to connect
-  human users to the space. Currently implemented using Flask.
+  multiple users (presumably human) to another space. Currently implemented
+  using Flask.
   """
 
   def __init__(self, operator: Operator, **kwargs):

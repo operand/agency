@@ -31,12 +31,22 @@ class Operator():
   """
 
   def __init__(self, id: str) -> None:
-    self.id = id
+    self.__id = id
     self.__stopping = False
     self.__message_queue = queue.Queue()
     self.__cached__get_action_help = None
+
     # A basic approach to storing messages
     self._message_log = []
+
+  def id(self) -> str:
+    """
+    Returns the fully qualified id of this operator
+    """
+    if self.space is None:
+      return f"{self.__id}"
+    else:
+      return f"{self.__id}.{self.space.id()}"
 
   def _send(self, action: ActionSchema):
     """
