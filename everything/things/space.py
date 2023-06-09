@@ -40,7 +40,7 @@ class Space(Operator):
     for thread in self.threads:
       thread.join()
 
-  # TODO: cache this list and invalidate it when operators are added/removed
+  # TODO: cache and invalidate when operators are added/removed
   def __gather_ids(self):
     """
     Returns a list of all operator ids in this and child spaces
@@ -81,18 +81,22 @@ class Space(Operator):
       f"*[{self.id()}] Routing to {len(recipients)} recipients")
     if len(recipients) == 0:
       # no recipient operator id matched
-      # route an error message back to the original sender
-      # TODO: protect against infinite loops here
-      self._route({
-        'from': self.id(),
-        'to': message['from'],
-        'thoughts': 'An error occurred',
-        'action': 'error',
-        'args': {
-          'original_message': message,
-          'error': f"\"{message['to']}\" operator not found"
-        }
-      })
+      if hasattr(self, '_space'):
+        # pass to the parent space for routing
+        self._space._route(message)
+      else:
+        # route an error message back to the original sender
+        # TODO: protect against infinite loops here
+        self._route({
+          'from': self.id(),
+          'to': message['from'],
+          'thoughts': 'An error occurred',
+          'action': 'error',
+          'args': {
+            'original_message': message,
+            'error': f"\"{message['to']}\" operator not found"
+          }
+        })
     else:
       # send to recipients, setting the 'to' field to their id
       for recipient in recipients:

@@ -112,7 +112,7 @@ def debug_text(name, object=None):
   debug_name = f"{name}"
   debug_value = ""
   if object != None:
-    debug_name = f"{type(object)}:{name}"
+    debug_name = f"{type(object).__name__}:{name}"
     debug_object_value = object
     try:
       # since this is always for a human we hardcode 2 space indentation
