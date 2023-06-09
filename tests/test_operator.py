@@ -228,8 +228,7 @@ def test_send_request_permitted_action():
 
 # send action -> reject -> return permission error
 def test_send_request_rejected_action():
-    """
-    Tests sending an action, rejecting permission, and returning error"""
+    """Tests sending an action, rejecting permission, and returning error"""
     webster, chatty = webster_and_chatty()
 
     # We use callable classes to dynamically define _action__say and
@@ -250,30 +249,35 @@ def test_send_request_rejected_action():
 
     chatty._request_permission = ChattyAsk()
 
-    # Use the context manager to handle setup/teardown of the space
     with space_context([webster._space, chatty]):
-        # Send the first message
-        webster._send({
+        first_action = {
             'action': 'say',
             'to': chatty.id(),
             'thoughts': 'hmmmm',
             'args': {
                 'content': 'Chatty, what is the answer to life, the universe, and everything?'
             }
-        })
-
+        }
+        webster._send(first_action)
         wait_for_messages(webster)
 
-        # We assert the error message content first with a regex then the rest of the message
-        assert webster._message_log == [{
-            'from': 'Chatty',
-            'to': 'Webster.Webapp',
-            'thoughts': 'An error occurred',
-            'action': 'say',
-            'args': {
-                'content': 'ERROR: \"Chatty.say\" not permitted'
+        first_message = {
+            'from': 'Webster.TestWebApp.TestSpace',
+            **first_action,
+        }
+        assert webster._message_log == [
+            first_message,
+            {
+                "to": "Webster.TestWebApp.TestSpace",
+                "thoughts": "An error occurred",
+                "action": "error",
+                "args": {
+                    "original_message": first_message,
+                    "error": "\"Chatty.TestSpace.say\" not permitted"
+                },
+                "from": "Chatty.TestSpace"
             }
-        }]
+        ]
 
 
 # TODO: test broadcasting
