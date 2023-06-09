@@ -35,6 +35,9 @@ class Operator():
     self.__message_queue = queue.Queue()
     self.__cached__get_action_help = None
 
+    # set by parent Space initializer
+    self._space = None
+
     # A basic approach to storing messages
     self._message_log = []
 
@@ -42,31 +45,31 @@ class Operator():
     """
     Returns the fully qualified id of this operator
     """
-    if self.space is None:
-      return f"{self.__id}"
-    else:
-      return f"{self.__id}.{self.space.id()}"
+    _id = self.__id
+    if self._space is not None:
+      _id = f"{self.__id}.{self._space.id()}"
+    util.debug(f"Operator.id() returning: {_id}")
+    return _id
 
   def _send(self, action: ActionSchema):
     """
     Validates and sends (out) an action
     """
+    util.debug(f"*[{self.id()}] sending:", action)
     # define message, validate, and route it
     message = MessageSchema(**{
       "from": self.id(),
       **action,
     }).dict(by_alias=True)
-
     # Record message and route it
     self._message_log.append(message)
-    self.space._route(message)
+    self._space._route(message)
 
   def _receive(self, message: MessageSchema):
     """
     Validates and enqueues an incoming action to be processed
     """
     message = MessageSchema(**message).dict(by_alias=True)
-
     # Record message and place on queue
     self._message_log.append(message)
     self.__message_queue.put(message)

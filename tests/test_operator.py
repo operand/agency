@@ -10,8 +10,8 @@ class Webster(Operator):
   """
   A fake human operator that sits behind a webapp "space"
   """
-  def __init__(self):
-    super().__init__(id="Webster")
+  def __init__(self, id):
+    super().__init__(id)
     self.received_messages = []
 
   def _action__say(self, content):
@@ -23,18 +23,23 @@ class Webster(Operator):
 class TestWebApp(Space):
   """
   A fake webapp space that Webster is an operator within"""
-  def __init__(self):
-    super().__init__("Webapp", [
-      Webster()
-    ])
+  def __init__(self, id, operators):
+    super().__init__(id, operators)
     self.received_messages = []
 
 
 class Chatty(Operator):
   """
   A fake AI operator"""
-  def __init__(self):
-    super().__init__(id="Chatty")
+  pass
+
+
+def webster_and_chatty():
+  chatty = Chatty("Chatty")
+  webster = Webster("Webster")
+  # Note that webster is an operator in the webapp space
+  TestWebApp("TestWebApp", [webster])
+  return webster, chatty
 
 
 def wait_for_message(operator):
@@ -46,8 +51,7 @@ def wait_for_message(operator):
 def test_send_and_receive():
   """
   Tests sending a basic "say" message receiving a "return"ed reply"""
-  webapp = TestWebApp()
-  chatty = Chatty()
+  webster, chatty = webster_and_chatty()
 
   # We use callable class to dynamically define the _say action for chatty
   class ChattySay():
@@ -61,10 +65,10 @@ def test_send_and_receive():
 
   chatty._action__say = ChattySay(chatty)
 
-  # The context manager handles setup/teardown of the space
-  with space_context([webapp, chatty]):
+  # We add the webapp space and chatty, into the root space
+  with space_context([webster._space, chatty]):
     # Send the first message from Webster
-    webapp._send({
+    webster._send({
       'action': 'say',
       'to': chatty.id(),
       'thoughts': '',
@@ -73,9 +77,9 @@ def test_send_and_receive():
       }
     })
 
-    wait_for_message(webapp)
+    wait_for_message(webster)
 
-    assert webapp.received_messages == [{
+    assert webster.received_messages == [{
       'from': 'Chatty',
       'to': 'Webster.Webapp',
       'thoughts': 'A value was returned for your action',
