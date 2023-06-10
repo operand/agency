@@ -14,7 +14,7 @@ def setup_and_teardown_space(operators):
     thread.start()
 
     # wait for the space to fully start
-    while not space.created.is_set():
+    while not space.running.is_set():
         time.sleep(0.1)
 
     # Tear down logic is handled by a context manager to ensure it runs after the test

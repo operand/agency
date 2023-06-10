@@ -1,4 +1,5 @@
 from abc import abstractmethod
+import threading
 from everything.things.schema import ActionSchema, MessageSchema
 import everything.things.util as util
 import inspect
@@ -31,13 +32,14 @@ class Operator():
 
     def __init__(self, id: str) -> None:
         self.__id = id
-        self.__stopping = False
         self.__message_queue = queue.Queue()
         self.__cached__get_action_help = None
-
-        # set by parent Space initializer
+        # threading related
+        self.thread = None
+        self.running = threading.Event()
+        self.stopping = threading.Event()
+        # set by parent Space when added
         self._space = None
-
         # A basic approach to storing messages
         self._message_log = []
 
@@ -49,6 +51,19 @@ class Operator():
         if self._space is not None:
             _id = f"{self.__id}.{self._space.id()}"
         return _id
+
+    def run(self):
+        """Starts the operator in a thread"""
+        if not self.running.is_set():
+            thread = threading.Thread(target=self.__process)
+            self.threads.append(thread)
+            thread.start()
+            self.running.set()
+
+    def stop(self):
+        """Stops the operator thread"""
+        self.stopping.set()
+        self.thread.join()
 
     def _send(self, action: ActionSchema):
         """
@@ -74,11 +89,11 @@ class Operator():
         self._message_log.append(message)
         self.__message_queue.put(message)
 
-    def _run(self) -> str:
+    def __process(self) -> str:
         """
         Continually processes queued messages/actions
         """
-        while not self.__stopping:
+        while not self.stopping.is_set():
             try:
                 message = self.__message_queue.get(timeout=0.01)
                 util.debug(f"*[{self.id()}] processing:", message)
@@ -110,9 +125,6 @@ class Operator():
                     })
             except queue.Empty:
                 continue
-
-    def _stop(self):
-        self.__stopping = True
 
     def __commit_action(self, message: MessageSchema):
         """

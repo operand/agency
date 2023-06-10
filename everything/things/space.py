@@ -1,46 +1,35 @@
 from everything.things.operator import Operator
 from everything.things.schema import MessageSchema
-import threading
 
 
 class Space(Operator):
     """
     A Space is itself an Operator and is responsible for:
-    - starting itself and its member operators
-    - routing all messages sent to/from member operators
+    - starting/stopping itself and its member operators
+    - routing all messages for its member operators
     """
 
-    def __init__(self, id, operators=[]):
+    def __init__(self, id):
+        """Creates and starts the Space"""
         super().__init__(id=id)
         self.operators = []
-        for operator in operators:
-            self.add(operator)
-        self.threads = []
-        self.created = threading.Event()    # set when the space is created
-        self.destructing = threading.Event()    # set when the space is being destroyed
 
-    def create(self):
-        """Starts the Space and all member Operators"""
-        for operator in self.operators + [self]:
-            thread = threading.Thread(target=operator._run)
-            self.threads.append(thread)
-            thread.start()
-        self.created.set()
-        print("A small pop...")
-        while not self.destructing.is_set():
-            self.destructing.wait(0.1)
+        # keep running until the space is set to be destroyed
+        while not self.stopping.is_set():
+            self.stopping.wait(0.1)
 
     def add(self, operator: Operator):
-        """Adds an operator to the space"""
+        """Adds and starts an operator to the space"""
         self.operators.append(operator)
         operator._space = self
+        if self.running.is_set():
+            operator.run()
 
-    def destroy(self):
-        self.destructing.set()
-        for operator in self.operators + [self]:
-            operator._stop()
-        for thread in self.threads:
-            thread.join()
+    def run(self):
+        """Runs the operator in a thread"""
+        super().run()
+        for operator in self.operators:
+            operator.run()
 
     def _operator_ids(self, recursive: bool = True):
         """
