@@ -78,7 +78,7 @@ def test_send_and_receive():
 
         first_message = {
             'from': 'Webster.TestWebApp.TestSpace',
-            **first_action,
+            **first_action
         }
         assert webster._message_log == [
             first_message,
@@ -90,7 +90,8 @@ def test_send_and_receive():
                     "original_message": first_message,
                     "return_value": "Hello, Webster!"
                 },
-                "from": "Chatty.TestSpace"},
+                "from": "Chatty.TestSpace"
+            },
             {
                 "to": "Webster.TestWebApp.TestSpace",
                 "thoughts": "A value was returned for your action",
@@ -98,18 +99,18 @@ def test_send_and_receive():
                 "args": {
                     "content": "Hello, Webster!"
                 },
-                "from": "Chatty.TestSpace"},
+                "from": "Chatty.TestSpace"
+            },
         ]
 
 
 def test_send_undefined_action():
     """Tests sending an undefined action and receiving an error response"""
-    webster, chatty = webster_and_chatty()
+    with space_with_webster_and_chatty() as (webster, chatty):
 
-    # In this test we skip defining a _say action on chatty in order to test the
-    # error response
+        # In this test we skip defining a _say action on chatty in order to test the
+        # error response
 
-    with space_context():
         first_action = {
             'action': 'say',
             'to': chatty.id(),
@@ -133,7 +134,16 @@ def test_send_undefined_action():
                 "action": "error",
                 "args": {
                     "original_message": first_message,
-                    "error": "\"say\" not found"
+                    "error": "\"say\" action not found"
+                },
+                "from": "Chatty.TestSpace"
+            },
+            {
+                "to": "Webster.TestWebApp.TestSpace",
+                "thoughts": "An error occurred",
+                "action": "say",
+                "args": {
+                    "content": "ERROR: \"say\" action not found"
                 },
                 "from": "Chatty.TestSpace"
             }
@@ -142,21 +152,20 @@ def test_send_undefined_action():
 
 def test_send_unpermitted_action():
     """Tests sending an unpermitted action and receiving an error response"""
-    webster, chatty = webster_and_chatty()
+    with space_with_webster_and_chatty() as (webster, chatty):
 
-    class ChattySay():
-        def __init__(self, operator) -> None:
-            self.operator = operator
-            self.access_policy = ACCESS_DENIED
+        class ChattySay():
+            def __init__(self, operator) -> None:
+                self.operator = operator
+                self.access_policy = ACCESS_DENIED
 
-        def __call__(self, content):
-            # Note that we are also testing the default "return" impl which converts a
-            # returned value into an incoming "say" action, by returning a string here.
-            return 'Hello, Webster!'
+            def __call__(self, content):
+                # Note that we are also testing the default "return" impl which converts a
+                # returned value into an incoming "say" action, by returning a string here.
+                return 'Hello, Webster!'
 
-    chatty._action__say = ChattySay(chatty)
+        chatty._action__say = ChattySay(chatty)
 
-    with space_context():
         first_action = {
             'action': 'say',
             'to': chatty.id(),
@@ -183,33 +192,41 @@ def test_send_unpermitted_action():
                     "original_message": first_message,
                     "error": "\"Chatty.TestSpace.say\" not permitted",
                 }
+            },
+            {
+                "to": "Webster.TestWebApp.TestSpace",
+                "thoughts": "An error occurred",
+                "action": "say",
+                "args": {
+                    "content": "ERROR: \"Chatty.TestSpace.say\" not permitted"
+                },
+                "from": "Chatty.TestSpace"
             }
         ]
 
 
 def test_send_request_permitted_action():
     """Tests sending an action, granting permission, and returning response"""
-    webster, chatty = webster_and_chatty()
+    with space_with_webster_and_chatty() as (webster, chatty):
 
-    # We use callable classes to dynamically define _action__say and
-    # _request_permission
-    class ChattySay():
-        def __init__(self, operator) -> None:
-            self.operator = operator
-            self.access_policy = ACCESS_REQUESTED
+        # We use callable classes to dynamically define _action__say and
+        # _request_permission
+        class ChattySay():
+            def __init__(self, operator) -> None:
+                self.operator = operator
+                self.access_policy = ACCESS_REQUESTED
 
-        def __call__(self, content):
-            return '42'
+            def __call__(self, content):
+                return '42'
 
-    chatty._action__say = ChattySay(chatty)
+        chatty._action__say = ChattySay(chatty)
 
-    class ChattyAsk():
-        def __call__(self, proposed_message):
-            return True
+        class ChattyAsk():
+            def __call__(self, proposed_message):
+                return True
 
-    chatty._request_permission = ChattyAsk()
+        chatty._request_permission = ChattyAsk()
 
-    with space_context():
         first_action = {
             'action': 'say',
             'to': chatty.id(),
@@ -236,6 +253,15 @@ def test_send_request_permitted_action():
                     "return_value": "42"
                 },
                 "from": "Chatty.TestSpace"
+            },
+            {
+                "to": "Webster.TestWebApp.TestSpace",
+                "thoughts": "A value was returned for your action",
+                "action": "say",
+                "args": {
+                    "content": "42"
+                },
+                "from": "Chatty.TestSpace"
             }
         ]
 
@@ -243,27 +269,26 @@ def test_send_request_permitted_action():
 # send action -> reject -> return permission error
 def test_send_request_rejected_action():
     """Tests sending an action, rejecting permission, and returning error"""
-    webster, chatty = webster_and_chatty()
+    with space_with_webster_and_chatty() as (webster, chatty):
 
-    # We use callable classes to dynamically define _action__say and
-    # _request_permission
-    class ChattySay():
-        def __init__(self, operator) -> None:
-            self.operator = operator
-            self.access_policy = ACCESS_REQUESTED
+        # We use callable classes to dynamically define _action__say and
+        # _request_permission
+        class ChattySay():
+            def __init__(self, operator) -> None:
+                self.operator = operator
+                self.access_policy = ACCESS_REQUESTED
 
-        def __call__(self, content):
-            return '42'
+            def __call__(self, content):
+                return '42'
 
-    chatty._action__say = ChattySay(chatty)
+        chatty._action__say = ChattySay(chatty)
 
-    class ChattyAsk():
-        def __call__(self, proposed_message):
-            return False
+        class ChattyAsk():
+            def __call__(self, proposed_message):
+                return False
 
-    chatty._request_permission = ChattyAsk()
+        chatty._request_permission = ChattyAsk()
 
-    with space_context():
         first_action = {
             'action': 'say',
             'to': chatty.id(),
@@ -288,6 +313,15 @@ def test_send_request_rejected_action():
                 "args": {
                     "original_message": first_message,
                     "error": "\"Chatty.TestSpace.say\" not permitted"
+                },
+                "from": "Chatty.TestSpace"
+            },
+            {
+                "to": "Webster.TestWebApp.TestSpace",
+                "thoughts": "An error occurred",
+                "action": "say",
+                "args": {
+                    "content": "ERROR: \"Chatty.TestSpace.say\" not permitted"
                 },
                 "from": "Chatty.TestSpace"
             }

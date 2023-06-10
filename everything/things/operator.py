@@ -132,11 +132,13 @@ class Operator():
         # Check if the action exists
         action_method = None
         try:
+            util.debug(f"*[{self.id()}] committing action: {message['action']}")
             action_method = getattr(
               self, f"{ACTION_METHOD_PREFIX}{message['action']}")
         except AttributeError as e:
             # if it was point to point, raise an error. this means that
             # broadcasts will not raise an error if the action is not found
+            util.debug(f"*[{self.id()}] action not found for:", message)
             if message['to'] == self.id():
                 raise AttributeError(
                 f"\"{message['action']}\" action not found")
@@ -259,10 +261,6 @@ class Operator():
         is passed.
         """
         return self._get_help(action_name)
-
-    @access_policy(ACCESS_PERMITTED)
-    def _action__say(self, content: str):
-        pass
 
     @access_policy(ACCESS_PERMITTED)
     def _action__return(self, original_message: MessageSchema, return_value: str):
