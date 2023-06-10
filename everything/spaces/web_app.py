@@ -18,13 +18,13 @@ class WebAppUser(Operator):
         Raises an alert in the users browser and returns true if the user
         approves the action
         """
-        self._space.socketio.server.emit(
+        self.space.socketio.server.emit(
             'permission_request', proposed_message)
 
     # We use the _after_action__ method to pass through all messages to the
     # socketio web client
     def _after_action___(self, original_message: MessageSchema, return_value: str, error: str):
-        self._space.socketio.server.emit(
+        self.space.socketio.server.emit(
           'message', original_message, room=self.connected_sid)
 
     # We define pass through methods to whitelist the actions we allow

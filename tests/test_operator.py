@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from everything.things.operator import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, access_policy
 from everything.things.operator import Operator
 from everything.things.space import Space
@@ -22,15 +23,6 @@ class Chatty(Operator):
     """A fake AI operator"""
 
 
-def webster_and_chatty():
-    chatty = Chatty("Chatty")
-    webster = Webster("Webster")
-    # NOTE that webster is nested in the webapp space
-    webapp = FakeWebApp("TestWebApp")
-    webapp.add(webster)
-    return webster, chatty
-
-
 def wait_for_messages(operator, count=2):
     max_time = 2 # seconds
     start_time = time.time()
@@ -41,23 +33,39 @@ def wait_for_messages(operator, count=2):
         time.sleep(0.1)
 
 
+
+@contextmanager
+def space_with_webster_and_chatty():
+    """Returns a Space with a Webster operator"""
+    with space_context() as space:
+        chatty = Chatty("Chatty")
+        # NOTE that webster is nested in the webapp space
+        webster = Webster("Webster")
+        webapp = FakeWebApp("TestWebApp")
+        webapp.add(webster)
+
+        space.add(webapp)
+        space.add(chatty)
+
+        yield webster, chatty
+
+
 def test_send_and_receive():
     """Tests sending a basic "say" message receiving a "return"ed reply"""
-    webster, chatty = webster_and_chatty()
+    with space_with_webster_and_chatty() as (webster, chatty):
 
-    # We use callable class to dynamically define the _say action for chatty
-    class ChattySay():
-        def __init__(self, operator) -> None:
-            self.operator = operator
-            self.access_policy = ACCESS_PERMITTED
+        # We use callable class to dynamically define the _say action for chatty
+        class ChattySay():
+            def __init__(self, operator) -> None:
+                self.operator = operator
+                self.access_policy = ACCESS_PERMITTED
 
-        def __call__(self, content):
-            return 'Hello, Webster!'
+            def __call__(self, content):
+                return 'Hello, Webster!'
 
-    chatty._action__say = ChattySay(chatty)
+        chatty._action__say = ChattySay(chatty)
 
-    # We add the webapp space and chatty into the root space
-    with space_context():
+        # Send the first message and wait for a response
         first_action = {
             'action': 'say',
             'to': chatty.id(),
@@ -67,7 +75,6 @@ def test_send_and_receive():
             }
         }
         webster._send(first_action)
-
         wait_for_messages(webster)
 
         first_message = {

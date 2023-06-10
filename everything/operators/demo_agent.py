@@ -51,8 +51,8 @@ class DemoAgent(Operator, PromptMethods):
                 "action": "help",
                 "args": {},
             }, indent=2) + \
-            self._pre_prompt(operator_id=self._space.id()) + \
-            json.dumps(self._space._get_help__sync()) + \
+            self._pre_prompt(operator_id=self.space.id()) + \
+            json.dumps(self.space._get_help__sync()) + \
             self._message_log_to_list()
 
     def _pre_prompt(self, operator_id, timestamp=util.to_timestamp(datetime.now())):

@@ -4,10 +4,11 @@ import threading
 import time
 
 
-def setup_and_teardown_space():
+@contextmanager
+def space_context():
     """
-    Creates a Space and waits for it to fully start before yielding it to the
-    test. The Space is torn down after the context is complete.
+    Creates a Space and waits for it to fully start before yielding it. The
+    Space is torn down after the context completes.
     """
     space = Space("TestSpace")
     thread = threading.Thread(target=space.run, daemon=True)
@@ -23,9 +24,3 @@ def setup_and_teardown_space():
     finally:
         space.stop()
         thread.join()
-
-
-# Use a context manager to handle setup/teardown
-@contextmanager
-def space_context():
-    yield from setup_and_teardown_space()

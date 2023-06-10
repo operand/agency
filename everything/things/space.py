@@ -19,7 +19,7 @@ class Space(Operator):
         """Adds and starts an operator to the space"""
         util.debug(f"*[{self.id()}] adding {operator.id()}")
         self.operators.append(operator)
-        operator._space = self
+        operator.space = self
         if self.running.is_set():
             operator.run()
 
@@ -46,6 +46,7 @@ class Space(Operator):
         """
         Enqueues the action on intended recipient(s)
         """
+        util.debug(f"*[{self.id()}] routing", message)
         broadcast = False
         if 'to' not in message or message['to'] in [None, ""]:
             broadcast = True
@@ -68,9 +69,9 @@ class Space(Operator):
 
         if len(recipients) == 0:
             # no recipient operator id matched
-            if self._space is not None:
+            if self.space is not None:
                 # pass to the parent space for routing
-                self._space._route(message)
+                self.space._route(message)
             else:
                 # route an error back to the sender
                 self._route({

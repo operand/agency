@@ -35,11 +35,11 @@ class Operator():
         self.__message_queue = queue.Queue()
         self.__cached__get_action_help = None
         # threading related
-        self.thread = None
+        self.__thread = None
         self.running = threading.Event()
         self.stopping = threading.Event()
         # set by parent Space when added
-        self._space = None
+        self.space = None
         # A basic approach to storing messages
         self._message_log = []
 
@@ -48,28 +48,28 @@ class Operator():
         Returns the fully qualified id of this operator
         """
         _id = self.__id
-        if self._space is not None:
-            _id = f"{self.__id}.{self._space.id()}"
+        if self.space is not None:
+            _id = f"{self.__id}.{self.space.id()}"
         return _id
 
     def run(self):
         """Starts the operator in a thread"""
         if not self.running.is_set():
             util.debug(f"*[{self.id()}] starting...")
-            self.thread = threading.Thread(target=self.__process)
-            self.thread.start()
+            self.__thread = threading.Thread(target=self.__process)
+            self.__thread.start()
             self.running.set()
 
     def stop(self):
         """Stops the operator thread"""
         self.stopping.set()
-        self.thread.join()
+        self.__thread.join()
 
     def _send(self, action: ActionSchema):
         """
         Validates and sends (out) an action
         """
-        util.debug(f"[{self.id()}] sending:", action)
+        util.debug(f"*[{self.id()}] sending:", action)
         # define message, validate, and route it
         message = MessageSchema(**{
           **action,
@@ -77,7 +77,7 @@ class Operator():
         }).dict(by_alias=True)
         # Record message and route it
         self._message_log.append(message)
-        self._space._route(message)
+        self.space._route(message)
 
     def _receive(self, message: MessageSchema):
         """
