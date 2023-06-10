@@ -1,4 +1,5 @@
 from eventlet import wsgi
+from everything.things import util
 from everything.things.operator import ACCESS_PERMITTED, Operator, access_policy
 from everything.things.schema import MessageSchema
 from everything.things.space import Space
@@ -17,11 +18,13 @@ class WebAppUser(Operator):
         Raises an alert in the users browser and returns true if the user
         approves the action
         """
-        self._space.socketio.server.emit('permission_request', proposed_message)
+        self._space.socketio.server.emit(
+            'permission_request', proposed_message)
 
     # We use the _after_action__ method to pass through all messages to the
     # socketio web client
     def _after_action___(self, original_message: MessageSchema, return_value: str, error: str):
+        util.debug(f"*[{self.id()}]._after_action___:", original_message)
         self._space.socketio.server.emit(
           'message', original_message, room=self.connected_sid)
 
@@ -43,9 +46,8 @@ class WebAppUser(Operator):
 
 class WebApp(Space):
     """
-    Encapsulates a simple web application "space" which can be used to connect
-    multiple users (presumably human) to another space. Currently implemented
-    using Flask.
+    Encapsulates a simple Flask web application "space" which can be used to
+    connect multiple users to a space.
     """
 
     def __init__(self, id, operators=[], **kwargs):
@@ -55,6 +57,7 @@ class WebApp(Space):
         super().__init__(id, operators)
         self.__kwargs = kwargs
         app = Flask(__name__)
+        app.config['SECRET_KEY'] = 'secret!'
 
         # six lines to disable logging...
         app.logger.removeHandler(default_handler)
@@ -64,10 +67,9 @@ class WebApp(Space):
         eventlet_logger = logging.getLogger('eventlet.wsgi.server')
         eventlet_logger.setLevel(logging.ERROR)
 
-        app.config['SECRET_KEY'] = 'secret!'
-        # app.config['DEBUG'] = True
+        # start socketio server
         self.socketio = SocketIO(app, async_mode='eventlet',
-                                 logger=False, engineio_logger=False)  # seven!
+                                 logger=False, engineio_logger=False)
 
         # NOTE: We're simplifying here by hardcoding a single operator named
         # "Dan" representing a user of the WebApp. In a real application this
@@ -104,7 +106,7 @@ class WebApp(Space):
             wsgi.server(eventlet.listen(
               ('', int(self.__kwargs['port']))), app, log=eventlet_logger)
         eventlet.spawn(run_server)
-    
+
     def current_operator(self):
         # NOTE current_operator would normally be determined via login but
         # for now we hardcode it to the first operator. (see above)

@@ -87,30 +87,33 @@
 
       // The equivalent of the python method in util.py
       parseSlashSyntaxAction(action_text) {
+        let action = {};
         if (!action_text.startsWith("/")) {
-          return {
+          action = {
             "action": "say",
             "thoughts": "",
             "args": { "content": action_text }
           }
         }
+        else
+        {
+          let parts = action_text.split(" ");
+          let action_name = parts[0].substring(1);
+          let args = this.parseArguments(parts);
 
-        let parts = action_text.split(" ");
-        let action_name = parts[0].substring(1);
-        let args = this.parseArguments(parts);
+          // pull out the "to" and "thoughts" args if they exist
+          let to = args['to']
+          delete args['to']
+          let thoughts = args['thoughts']
+          delete args['thoughts']
 
-        // pull out the "to" and "thoughts" args if they exist
-        let to = args['to']
-        delete args['to']
-        let thoughts = args['thoughts']
-        delete args['thoughts']
-
-        let action = {
-          "to": to || "Space",
-          "thoughts": thoughts || "",
-          "action": action_name,
-          "args": args
-        };
+          action = {
+            "to": to || "Space",
+            "thoughts": thoughts || "",
+            "action": action_name,
+            "args": args
+          };
+        }
         console.log("sending action: ", action)
         return action;
       }

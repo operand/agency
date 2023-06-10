@@ -1,10 +1,6 @@
-import time
-from everything.things import util
 from everything.things.operator import Operator
 from everything.things.schema import MessageSchema
 import threading
-
-from numpy import broadcast
 
 
 class Space(Operator):
@@ -19,7 +15,6 @@ class Space(Operator):
         self.operators = []
         for operator in operators:
             self.add(operator)
-
         self.threads = []
         self.created = threading.Event()    # set when the space is created
         self.destructing = threading.Event()    # set when the space is being destroyed
@@ -27,7 +22,6 @@ class Space(Operator):
     def create(self):
         """Starts the Space and all member Operators"""
         for operator in self.operators + [self]:
-            util.debug(f"*Starting {operator.id()}")
             thread = threading.Thread(target=operator._run)
             self.threads.append(thread)
             thread.start()
@@ -38,7 +32,6 @@ class Space(Operator):
 
     def add(self, operator: Operator):
         """Adds an operator to the space"""
-        util.debug(f"*Adding {operator.id()} to {self.id()}")
         self.operators.append(operator)
         operator._space = self
 

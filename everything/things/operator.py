@@ -48,18 +48,17 @@ class Operator():
         _id = self.__id
         if self._space is not None:
             _id = f"{self.__id}.{self._space.id()}"
-        util.debug(f"Operator.id() returning: {_id}")
         return _id
 
     def _send(self, action: ActionSchema):
         """
         Validates and sends (out) an action
         """
-        util.debug(f"*[{self.id()}] sending:", action)
+        util.debug(f"[{self.id()}] sending:", action)
         # define message, validate, and route it
         message = MessageSchema(**{
-          "from": self.id(),
           **action,
+          "from": self.id(),
         }).dict(by_alias=True)
         # Record message and route it
         self._message_log.append(message)
