@@ -179,15 +179,10 @@
       }
 
       messageToText(message) {
-        if (typeof message === 'string') {
-          // this covers when we simply put "..." as a message
-          return message;
+        if (message.action === 'say') {
+          return message.args.content.toString();
         } else {
-          if (message.action === 'say') {
-            return message.args.content.toString();
-          } else {
-            return <pre>{ JSON.stringify(message, null, 2) }</pre>;
-          }
+          return <pre>{ JSON.stringify(message, null, 2) }</pre>;
         }
       }
 

@@ -1,5 +1,5 @@
 from eventlet import wsgi
-from everything.things.operator import ACCESS_PERMITTED, access_policy
+from everything.things.operator import ACCESS_PERMITTED, Operator, access_policy
 from everything.things.schema import MessageSchema
 from everything.things.space import Space
 from flask import Flask, render_template, request
@@ -7,6 +7,38 @@ from flask.logging import default_handler
 from flask_socketio import SocketIO
 import eventlet
 import logging
+
+
+class WebAppUser(Operator):
+    """Represents a user of the WebApp"""
+
+    def _request_permission(self, proposed_message: MessageSchema) -> bool:
+        """
+        Raises an alert in the users browser and returns true if the user
+        approves the action
+        """
+        self._space.socketio.server.emit('permission_request', proposed_message)
+
+    # We use the _after_action__ method to pass through all messages to the
+    # socketio web client
+    def _after_action___(self, original_message: MessageSchema, return_value: str, error: str):
+        self._space.socketio.server.emit(
+          'message', original_message, room=self.connected_sid)
+
+    # And define pass through methods to whitelist the actions we allow
+    @access_policy(ACCESS_PERMITTED)
+    def _action__say(self, content: str):
+        pass
+
+    # Allow return values to be passed through
+    @access_policy(ACCESS_PERMITTED)
+    def _action__return(self, original_message: MessageSchema, return_value: str):
+        pass
+
+    # Allow errors to be passed through
+    @access_policy(ACCESS_PERMITTED)
+    def _action__error(self, original_message: MessageSchema, error: str):
+        pass
 
 
 class WebApp(Space):
@@ -37,25 +69,28 @@ class WebApp(Space):
         self.socketio = SocketIO(app, async_mode='eventlet',
                                  logger=False, engineio_logger=False)  # seven!
 
+        # NOTE: We're simplifying here by hardcoding a single operator named
+        # "Dan" representing a user of the WebApp. In a real application this
+        # could be handled dynamically as users log on/off.
+        self.add(WebAppUser("Dan"))
+
         # Define routes
         @app.route('/')
         def index():
-            # NOTE I'm cheating here by hardcoding "Dan" as the user but in a
-            # real application this would set the user id per request.
-            return render_template('index.html', operator_id=f"Dan.{self.id()}")
+            return render_template('index.html', operator_id=f"{self.current_operator().id()}")
 
         @self.socketio.on('connect')
         def handle_connect():
-            # When a client connects, store the session ID
-            # TODO: allow for multiple clients
-            self.connected_sid = request.sid
+            # When a client connects, store the socketio session ID
+            self.current_operator().connected_sid = request.sid
 
         @self.socketio.on('message')
         def handle_action(action):
             """
             Handles incoming actions from the web user interface
             """
-            self._send(action)
+            # NOTE we must send it as the _user_, not the space
+            self.current_operator()._send(action)
 
         @self.socketio.on('permission_response')
         def handle_alert_response(allowed: bool):
@@ -69,30 +104,8 @@ class WebApp(Space):
             wsgi.server(eventlet.listen(
               ('', int(self.__kwargs['port']))), app, log=eventlet_logger)
         eventlet.spawn(run_server)
-
-    def _request_permission(self, proposed_message: MessageSchema) -> bool:
-        """
-        Raises an alert in the users browser and returns true if the user
-        approves the action"""
-        self.socketio.server.emit('permission_request', proposed_message)
-
-    # We use the _after_action__ method to pass through all messages to the
-    # socketio web client
-    def _after_action___(self, original_message: MessageSchema, return_value: str, error: str):
-        self.socketio.server.emit(
-          'message', original_message, room=self.connected_sid)
-
-    # And define pass through methods to whitelist the actions we allow
-    @access_policy(ACCESS_PERMITTED)
-    def _action__say(self, content: str):
-        pass
-
-    # Allow return values to be passed through
-    @access_policy(ACCESS_PERMITTED)
-    def _action__return(self, original_message: MessageSchema, return_value: str):
-        pass
-
-    # Allow errors to be passed through
-    @access_policy(ACCESS_PERMITTED)
-    def _action__error(self, original_message: MessageSchema, error: str):
-        pass
+    
+    def current_operator(self):
+        # NOTE current_operator would normally be determined via login but
+        # for now we hardcode it to the first operator. (see above)
+        return self.operators[0]

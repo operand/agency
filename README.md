@@ -7,61 +7,39 @@ systems, in python
 ## What is `everything`?
 
 `everything` is an implementation of the [Actor
-model](https://en.wikipedia.org/wiki/Actor_model) where an Actor that defines a
-common communication and action framework for integrating AI agents, humans, and
+model](https://en.wikipedia.org/wiki/Actor_model) that defines a common
+communication and action framework for integrating AI agents, humans, and
 traditional computing systems.
 
-Conceptually, `everything` establishes a sort of chat-room called a "space"
-where any number of humans, artificial, or other computing systems may equally
-address each other as individual "operators" that you may perform "actions" on.
+Conceptually, `everything` establishes a shared environment called a "space"
+where any number of humans, artificial, or computing systems may equally address
+each other as individual "operators" that you may perform "actions" on.
 
-`everything` handles the details of the common messaging system and allows
+`everything` handles the details of the common messaging protocol and allows
 discovering and invoking actions across all parties, automatically handling
 things such as reporting exceptions, enforcing access restrictions, and more.
 
-By defining just a single `Operator` subclass, the API allows integration of
-systems as varied as:
-- Voice assistants
+By defining custom `Operator` subclasses, the API allows integration of entities
+as varied as:
+- voice assistants
 - UI driven applications
-- Terminal environments
-- Web applications
-- Software APIs
-- People
+- terminal environments
+- web applications
+- software APIs
+- people
 - ...
-- Anything
-
-
-## How does `everything` compare to agent libraries like LangChain?
-
-Though you could entirely create a simple agent using only the primitives in
-`everything`, it is not intended to be a full-fledged agent toolset. It can be
-thought of as more of an "agent integration framework".
-
-Projects like LangChain, AutoGPT, the HF agent API, and others are exploring how
-to create purpose-built agents that solve diverse problems using tools.
-
-`everything` is concerned with creating a safe and dynamic _environment_ for
-these types of agents to work, where they can freely _discover_ and communicate
-with the tools, each other, and any humans available in their environment.
-
-`everything` provides a simple means for defining actions, callbacks, and
-access policies that you can use to monitor and ensure safety for the systems
-you expose to your agents.
-
-A central part of the design is that humans and other systems can easily
-integrate as well, using a simple common format for messages. You can even use
-`everything` to set up a basic chat room to use with friends or other systems
-and not use agents at all!
-
-An additional benefit of its general design is that `everything` may also
-simplify some agent development workflows. See the example below.
-
-So, `everything` is a simple but more general framework intended to support
-agent development and to ultimately enable agents to safely integrate with
-anything, in any way imaginable.
+- anything
 
 
 # Install
+> **WARNING:**\
+Running `everything` may result in exposing your computer to access by any
+connected `Operator` including AI agents. Please understand the risks before
+using this software and do not configure it for OS access otherwise.\
+\
+If you want to enable OS access, to allow for file I/O for example, I HIGHLY
+RECOMMEND using a Docker container to prevent direct access to your host,
+allowing you to limit the resources and directories it may access.
 
 Please note that `everything` is still under active development and is **not yet
 at a stable release**, though it is very close. I expect to have a first stable
@@ -79,40 +57,30 @@ pip install ./everything
 # API Overview
 
 In `everything`, all entities are represented as instances of the base class
-`Operator`. This includes all humans, software, and AI agents. `Operator` is a
-base class similar to `object` in python or many other object-oriented
-languages.
+`Operator`. This includes all humans, software, or AI agents.
 
-All `Operator` subclasses expose actions which may be invoked by other
-operators, by simply defining methods on the class.
+`Operator` can be thought of as a base class similar to "Object" in many
+object-oriented languages. All `Operator` subclasses may expose "actions" which
+can be invoked by others, by simply defining methods on the class.
 
-A `Space` is itself a subclass of `Operator` and is used to group `Operator`'s
-together and facilitate communication among them. As an `Operator` subclass, it
-may also be addressed and acted on directly by other operators.
-
-An `Operator` cannot communicate with other operators until it is first added to
-a `Space`.
+A `Space` is itself a subclass of `Operator` and is used to group multiple
+`Operator`'s together and facilitate the communication among them. It can be
+thought of as both a collection of `Operator`'s and "router" of their
+communication. An `Operator` cannot communicate with others until it is first
+added to a `Space`.
 
 Since `Space`'s are `Operator`'s themselves, they may be nested, allowing for
-namespacing and hierarchical organization of the `Operator`'s in your application.
+namespacing and hierarchical organization of the `Operator`'s in your
+application.
 
-So the two base classes of `Operator` and `Space` together create a simple
-API for defining complex systems that mix AI, human, and traditional
-computing systems.
+So to summarize, the two classes of `Operator` and `Space` together create a
+simple API for defining and integrating complex multimodal applications that mix
+AI, human, and traditional computing systems.
 
-Let's walk through a thorough example to see how this works in practice.
+Let's walk through a thorough example to see how this all works in practice.
 
 
 ## Walkthrough
-
-> **WARNING:**\
-Running `everything` may result in exposing your computer to access by any
-connected `Operator` including AI agents. Please understand the risks before
-using this software and do not configure it for OS access otherwise.\
-\
-If you want to enable OS access, to allow for file I/O for example, I HIGHLY
-RECOMMEND using a Docker container to prevent direct access to your host,
-allowing you to limit the resources and directories it may access.
 
 _Please note that the example classes used in this walkthrough are implemented
 for you to explore and try out, but should be considered "proof of concept"
@@ -124,28 +92,30 @@ Let's start by instantiating our demo space.
 demo_space = Space("DemoSpace")
 ```
 
-Spaces, like all `Operator`'s, must be given an `id`. So the line above,
-instantiates a single root space called `"DemoSpace"` that we can now add
+Spaces, like all `Operator`'s, must be given an `id`. So the line above
+instantiates a single space called `"DemoSpace"` that we can now add
 `Operator`'s to.
 
 Now, let's add our first `Operator` to the space, a simple transformers backed
-chatbot class named `ChattyLM`.
+chatbot class named `ChattyLM`. You can browse the source code for this class
+[here](./everything/operators/chattylm.py).
 
+```python
+demo_space.add(
+    ChattyLM(
+        "Chatty",
+        model="EleutherAI/gpt-neo-125m"))
+```
 
+The line above adds a new `ChattyLM` instance to the space, with the `id`
+`"Chatty"`. It also passes the `model` argument to the constructor, which is
+used to initialize the HuggingFace `transformers` language model.
 
+At this point "Chatty" now has a fully qualified `id` of `"Chatty.DemoSpace"`.
+This is because `ChattyLM` is a member of the `DemoSpace` space. As you can see,
+spaces establish a namespace for their members which as we'll see later is used
+to address them.
 
-
-
-Each operator takes a string `id` as their first argument. This is their
-identifier. It does not need to be unique. Duplicate `id`'s within a space will
-result in both operator's receiving duplicated messages.
-
-Let's discuss each `Operator` class in turn:
-
-## `ChattyLM`
-
-`ChattyLM` is a simple chatting AI agent that uses the HuggingFace
-`transformers` library to host a language model for inference.
 
 It exposes a single action called `"say"` which takes a string as an argument.
 This action is how other operators may chat with it.
@@ -154,7 +124,7 @@ When `ChattyLM` receives a `"say"` action, it will generate a response using its
 prompt format with the language model, and return the result to the sender.
 
 
-## WebApp
+### Adding the WebApp
 
 A single chatting AI wouldn't be useful without someone to chat with it, so now
 let's add a human into the space so that they can chat with "Chatty".
@@ -402,6 +372,39 @@ is notified of the denial and reason.
 
 This is just a start, and further development of the access control mechanics is
 a priority.
+
+
+# FAQ
+
+## How does `everything` compare to agent libraries like LangChain?
+
+Though you could entirely create a simple agent using only the primitives in
+`everything` (see [`DemoAgent`](./everything/operators/demo_agent.py)), it is
+not intended to be a full-fledged agent toolset. It can be thought of as more of
+an "agent integration framework".
+
+Projects like LangChain, AutoGPT and many others are exploring how to create
+purpose-built agents that solve diverse problems using tools.
+
+`everything` is concerned with creating a safe and dynamic _environment_ for
+these types of agents to work, where they can freely discover and communicate
+with the tools, each other, and any humans available in their environment.
+
+`everything` provides a simple means for defining actions, callbacks, and
+access policies that you can use to monitor and ensure safety for the systems
+you expose to your agents.
+
+A central part of the design is that humans and other systems can easily
+integrate as well, using a simple common format for messages. You can even use
+`everything` to set up a basic chat room to use with friends or other systems
+and not use agents at all!
+
+An additional benefit of its general design is that `everything` may also
+simplify some agent development workflows. See the example below.
+
+So, `everything` is a simple but more general framework intended to support
+agent development and to ultimately enable agents to safely integrate with
+anything, in any way imaginable.
 
 
 # Contributing

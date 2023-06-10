@@ -1,3 +1,4 @@
+import time
 from everything.things import util
 from everything.things.operator import Operator
 from everything.things.schema import MessageSchema
@@ -15,28 +16,31 @@ class Space(Operator):
 
     def __init__(self, id, operators=[]):
         super().__init__(id=id)
-        self.operators = operators
-        for operator in self.operators:
-            self.add_operator(operator)
-        self.threads = []
-        self.created = threading.Event()    # set when the space is fully created
-        self.destructing = threading.Event()    # set when the space is being destroyed
+        self.operators = []
+        for operator in operators:
+            self.add(operator)
 
-    def add_operator(self, operator: Operator):
-        """Adds an operator to the space"""
-        self.operators.append(operator)
-        operator._space = self
+        self.threads = []
+        self.created = threading.Event()    # set when the space is created
+        self.destructing = threading.Event()    # set when the space is being destroyed
 
     def create(self):
         """Starts the Space and all member Operators"""
         for operator in self.operators + [self]:
+            util.debug(f"*Starting {operator.id()}")
             thread = threading.Thread(target=operator._run)
             self.threads.append(thread)
             thread.start()
-        print("A small pop...")
         self.created.set()
+        print("A small pop...")
         while not self.destructing.is_set():
             self.destructing.wait(0.1)
+
+    def add(self, operator: Operator):
+        """Adds an operator to the space"""
+        util.debug(f"*Adding {operator.id()} to {self.id()}")
+        self.operators.append(operator)
+        operator._space = self
 
     def destroy(self):
         self.destructing.set()
@@ -89,7 +93,6 @@ class Space(Operator):
                 self._space._route(message)
             else:
                 # route an error message back to the original sender
-                # TODO: protect against infinite loops here
                 self._route({
                     'from': self.id(),
                     'to': message['from'],
