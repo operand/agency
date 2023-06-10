@@ -87,6 +87,7 @@
 
       // The equivalent of the python method in util.py
       parseSlashSyntaxAction(action_text) {
+        action_text = action_text.trim();
         let action = {};
         if (!action_text.startsWith("/")) {
           action = {

@@ -135,13 +135,13 @@ class Operator():
             action_method = getattr(
               self, f"{ACTION_METHOD_PREFIX}{message['action']}")
         except AttributeError as e:
-            util.debug(f"*[{self.id()}] action not found for:", message)
-            # if it was point to point, raise an error. this means that
-            # broadcasts will not raise an error if the action is not found
+            # the action was not found
             if message['to'] == self.id():
+                # if it was point to point, raise an error
                 raise AttributeError(
                     f"\"{message['action']}\" action not found")
             else:
+                # broadcasts will not raise an error
                 return
 
         return_value = None
