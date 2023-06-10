@@ -6,21 +6,18 @@ systems, in python
 
 ## What is `everything`?
 
-`everything` is an implementation of the [Actor
-model](https://en.wikipedia.org/wiki/Actor_model) that defines a common
-communication and action framework for integrating AI agents, humans, and
-traditional computing systems.
+`everything` defines a common communication and action framework for integrating
+AI agents, humans, and traditional computing systems.
 
-Conceptually, `everything` establishes a shared environment called a "space"
-where any number of humans, artificial, or computing systems may equally address
-each other as individual "operators" that you may perform "actions" on.
+`everything` establishes a shared environment called a "space" where any number
+of humans, artificial, or computing systems may equally address each other as
+individual "operators" that you may perform "actions" on.
 
 `everything` handles the details of the common messaging protocol and allows
 discovering and invoking actions across all parties, automatically handling
 things such as reporting exceptions, enforcing access restrictions, and more.
 
-By defining custom `Operator` subclasses, the API allows integration of entities
-as varied as:
+The API equally accommodates integration of entities as varied as:
 - voice assistants
 - UI driven applications
 - terminal environments
@@ -56,37 +53,44 @@ pip install ./everything
 
 # API Overview
 
-In `everything`, all entities are represented as instances of the base class
+`everything` is an implementation of the [Actor
+model](https://en.wikipedia.org/wiki/Actor_model).
+
+In `everything`, all entities are represented as instances of the class
 `Operator`. This includes all humans, software, or AI agents.
 
 `Operator` can be thought of as a base class similar to "Object" in many
-object-oriented languages. All `Operator` subclasses may expose "actions" which
-can be invoked by others, by simply defining methods on the class.
+object-oriented languages. All `Operator`'s may expose "actions" which can be
+invoked by others, by defining instance methods on the class.
 
-A `Space` is itself a subclass of `Operator` and is used to group multiple
-`Operator`'s together and facilitate the communication among them. It can be
-thought of as both a collection of `Operator`'s and "router" of their
-communication. An `Operator` cannot communicate with others until it is first
-added to a `Space`.
+A `Space` is also a subclass of `Operator` and is used to group multiple
+`Operator`'s together and facilitate communication among them.
+
+A `Space` can be thought of as both a collection of `Operator`'s and a "router"
+for their communication. An `Operator` cannot communicate with others until it
+is first added to a `Space`.
 
 Since `Space`'s are `Operator`'s themselves, they may be nested, allowing for
 namespacing and hierarchical organization of the `Operator`'s in your
 application.
 
-So to summarize, the two classes of `Operator` and `Space` together create a
-simple API for defining and integrating complex multimodal applications that mix
-AI, human, and traditional computing systems.
+To summarize, the two classes of `Operator` and `Space` together create a simple
+API for defining and integrating complex multimodal applications that mix AI,
+human, and traditional computing systems.
 
 Let's walk through a thorough example to see how this all works in practice.
 
 
-## Walkthrough
+# Walkthrough
 
 _Please note that the example classes used in this walkthrough are implemented
 for you to explore and try out, but should be considered "proof of concept"
 quality only._
 
-Let's start by instantiating our demo space.
+
+## Creating a `Space`
+
+Let's start by instantiating a demo space.
 
 ```python
 demo_space = Space("DemoSpace")
@@ -96,48 +100,195 @@ Spaces, like all `Operator`'s, must be given an `id`. So the line above
 instantiates a single space called `"DemoSpace"` that we can now add
 `Operator`'s to.
 
+
+## Adding an `Operator` to a `Space`
+
 Now, let's add our first `Operator` to the space, a simple transformers backed
-chatbot class named `ChattyLM`. You can browse the source code for this class
+chatbot class named `ChattyLM`. You can browse the source code for `ChattyLM`
 [here](./everything/operators/chattylm.py).
 
 ```python
 demo_space.add(
-    ChattyLM(
-        "Chatty",
-        model="EleutherAI/gpt-neo-125m"))
+    ChattyLM("Chatty", model="EleutherAI/gpt-neo-125m"))
 ```
 
-The line above adds a new `ChattyLM` instance to the space, with the `id`
+The line above adds a new `ChattyLM` instance to the space, with the `id` of
 `"Chatty"`. It also passes the `model` argument to the constructor, which is
 used to initialize the HuggingFace `transformers` language model.
 
-At this point "Chatty" now has a fully qualified `id` of `"Chatty.DemoSpace"`.
-This is because `ChattyLM` is a member of the `DemoSpace` space. As you can see,
-spaces establish a namespace for their members which as we'll see later is used
+At this point "Chatty" has a fully qualified `id` of `"Chatty.DemoSpace"`.  This
+is because `ChattyLM` is a member of the `DemoSpace` space.
+
+This way, spaces establish a namespace for their members which can later be used
 to address them.
 
 
-It exposes a single action called `"say"` which takes a string as an argument.
-This action is how other operators may chat with it.
+## Defining Actions
+
+Looking at `ChattyLM`'s source code, you'll see that it is a subclass of
+`Operator`, and that it exposes a single action called `"say"`.
+
+The `"say"` action is defined as a method on the `ChattyLM` class, using
+the following signature:
+
+```python
+def _action__say(self, content: str):
+    """Use this action to say something to Chatty"""
+    ...
+```
+
+The prefix `_action__` is used to indicate that this is an action that can be
+invoked by other `Operator`'s. The suffix `say` is the name of the action.
+
+This `"say"` action takes a single string argument `content`. This action is
+intended to allow other operators to chat with Chatty, as expressed in its
+docstring.
 
 When `ChattyLM` receives a `"say"` action, it will generate a response using its
 prompt format with the language model, and return the result to the sender.
 
 
-### Adding the WebApp
+## Invoking Actions
 
-A single chatting AI wouldn't be useful without someone to chat with it, so now
+At the end of the `ChattyLM` `"say"` implementation, we see the first instance
+of `everything`'s messaging protocol. `ChattyLM` returns a response to the
+sender by calling:
+
+```python
+self._send({
+    "to": self._current_message['from'],
+    "thoughts": "",
+    "action": "say",
+    "args": {
+      "content": response_content,
+    }
+})
+```
+
+This is a very simple implementation, but it demonstrates the basic idea of how
+to invoke an "action" on another `Operator`.
+
+When an `Operator` receives a message, it invokes the action specified in the
+`action` field of the message, passing the `args` to the action as keyword
+arguments.
+
+So here we see that `ChattyLM` is invoking the `"say"` action on the sender of
+the message, passing the response as the `content` argument.
+
+
+## The Common Message Schema
+
+In the example above, we also see the format that is used when sending actions.
+
+In describing the messaging format, there are two terms that are used similarly:
+"action" and "message".
+
+Simply put, an "action" is the format you use when sending, as seen in the
+`_send()` call above. You do not specify your own `id` in the `from` field,
+because the `Space` will automatically add it for you.
+
+A "message" then, is simply an "action" with the addition of the sender's `id`
+in the `from` field.
+
+Continuing the example above, the original sender would recieve a response
+message from `ChattyLM` that would look something like this:
+
+```python
+{
+    "from": "Chatty.DemoSpace",
+    "to": "Sender.DemoSpace",
+    "thoughts": "",
+    "action": "say",
+    "args": {
+      "content": "whatever Chatty said",
+    }
+}
+```
+
+This is an example of the full format that is used for all messages in
+`everything`.
+
+This format is intended to be simple enough to be implemented in any language,
+and extensible enough to support any use case, while also being human readable.
+
+So when an `Operator` receives the above response, it in turn invokes the
+their `"say"` action.
+
+All actions are invoked in this way.
+
+
+## Access Control
+
+You may have noticed the `access_policy` decorator used on the `"say"` action in
+`ChattyLM`:
+
+```python
+@access_policy(ACCESS_PERMITTED)
+def _action__say(self, content: str):
+    """Use this action to say something to Chatty"""
+    ...
+```
+
+This is an example of an access control policy. Access control policies are used
+to control what actions can be invoked by other `Operator`'s.
+
+The access policy can currently be one of three values:
+
+- `ACCESS_PERMITTED` - which permits any operator to use that action at
+any time
+- `ACCESS_DENIED` - which prevents use
+- `ACCESS_REQUESTED` - which will prompt the receiving operator for permission
+when access is attempted. Access will await approval or denial. If denied, the
+sender is notified of the denial and reason.
+
+If `ACCESS_REQUESTED` is used, the receiving operator will be prompted at run
+time to approve the action.
+
+To implement a method for an operator to approve/disapprove access, you must
+implement the `_request_permission` method with the following signature:
+
+```python
+def _request_permission(self, proposed_message: MessageSchema) -> bool:
+    ...
+```
+
+This method is called when an operator attempts to invoke an action that has
+been marked as `ACCESS_REQUESTED`. Your method should inspect the
+`proposed_message` and return a boolean indicating whether or not to permit the
+action.
+
+You can use this approach to protect against dangerous actions being taken. For
+example if you allow shell command access, you may want to review commands
+before they are invoked.
+
+This implementation of access control is just a start, and further development
+of the mechanics is a priority for this project.
+
+
+## Adding Human Users With the `WebApp` Class
+
+A single chatting AI wouldn't be useful without someone to chat with, so now
 let's add a human into the space so that they can chat with "Chatty".
 
 To do this, we'll use the `WebApp` class, which is subclass of `Space`.
 
-Why is `WebApp` a subclass of `Space`? This is an arbitrary choice, up to the
-developer, but in this example, we use it to show how you can use a `Space` to
-group together multiple `Operator`'s and expose them under a single namespace.
+Why is `WebApp` a subclass of `Space` and not `Operator`?
 
-Since a web application likely has multiple users, we can use this approach to
-group them together under a single space, which itself connects to the root
-space.
+This is an arbitrary choice up to the developer, but the rule of thumb is:
+
+_If you want to expose multiple `Operator`'s as a group, you should create a
+`Space` subclass and implement the logic necessary to forward messages to
+individual `Operator`'s in the group._
+
+I could have implemented `WebApp` as a subclass of `Operator`, and created the
+`WebApp` in a way where I would be the only user of the web application.
+
+But since a typical web application serves multiple users, it makes more sense
+to implement it as a `Space` subclass, so that other users of the web
+application can be individually addressed within the root `Space`.
+
+
+This is 
 
 This allows for namespacing when addressing users of the web application.
 
@@ -158,63 +309,57 @@ This allows for namespacing when addressing users of the web application.
 
 
 # Hypothetical Examples
-The following are not implemented, but are examples of other things that could
-be implemented, to give you an idea of what else is possible.
+The following examples are not implemented, but are presented to give you an
+idea of other ways that this API could be used.
 
 ```python
 Space([
 
-    # Allow access to a remote server
+    # Integrate access to a remote server
     Server("Ubuntu",
         ip="192.168.1.100"),
 
-    # Add a voice assistant interface to Dan
-    VoiceAssistant("Dan")
+    # Add a voice assistant interface
+    VoiceAssistant("Sirilexa")
 
-    # "Dan" could also communicate via email
-    Email("Dan"),
+    # One could connect to a send/recieve messages via email
+    Email("Dan", address="dan@dan.com"),
 
-    # Perhaps "ChattyAI" also uses multiple channels, like one for images
-    ImageIO("ChattyAI"),
+    # AI agents can access other ML capabilities, like for images
+    DiffusionModel("ImageAI"),
 
-    # Horizontal scaling of LM backends could be achieved by duplicating channels
+    # Horizontal scaling could be achieved by simply duplicating operators
     # (notice we repeat the last one)
-    ImageIO("ChattyAI"),
+    DiffusionModel("ImageAI"),
 
     # Existing AI agent frameworks may integrate as well
-    LangChainAgentChannel(
-      Operator("MyLangChainAgent"),
-      ...
-    )
+    LangChainAgent("MyLangChainAgent"))
 
-    # Model training is also benefited. You would only need to add one new
-    # channel that reads a data set and sends it as messages to the channel
-    # class used for inference, provided the underlying LM is first switched to a
-    # training mode.
+    # Development related tasks like model training may also benefit. You would
+    # only need to add one new `Operator` that reads a data set and sends it as
+    # messages to the `Operator` class used for inference, provided the
+    # underlying model is first switched to a training mode.
     # For example:
-    LMTrainerChannel(
-      Operator("LMTrainer"),
-      trainee: "ChattyAIInTraining",
-      ...
+    LMTrainer("LMTrainer",
+      trainee: "ChattyAIInTraining"
     )
-    ChattyLMChannel(
-      Operator("ChattyAIInTraining"),
+    ChattyLM("ChattyAIInTraining",
       training_mode: True,
       ...
     )
 
-    # Network with friends and share your LMs and Agents
-    RemoteAgentChannel(
-      Operator("AgentHelperDude"),
+    # Network with friends and share the capabilities of your LMs and Agents
+    RemoteAgent("AgentHelperDude",
       url: "https://agent.helper.dude:2023",
       ...
     )
 
     # You get the idea...
     AnySystemOrPersonOrFunctionAtAllThatYouWantToShareChannel(
-      Operator("Guest"),
+      "Guest",
       ...
-  )
+    )
+
 ]).create()
 ```
 
@@ -351,27 +496,6 @@ and the minimum translation logic to interface with any new system, ignoring the
 details of how messages are carried and translated between systems, as long as
 they can translate to/from the
 [common message schema](./things/schema.py).
-
-
-## Access Control
-
-Access Control is essential for safety when exposing systems to independently
-working intelligent agents.
-
-I've included a simple but I believe sensible first step towards access control
-that requires _you_ as the developer of a channel to indicate what form of
-access control you associate with each action on the channel. The access policy
-can currently be one of three values:
-
-- `permitted` - which permits any operator in the space to use that action at
-any time
-- `denied` - which prevents use
-- `requested` - which will prompt the receiving operator for permission when
-access is attempted. Access will await approval or denial. If denied, the sender
-is notified of the denial and reason.
-
-This is just a start, and further development of the access control mechanics is
-a priority.
 
 
 # FAQ

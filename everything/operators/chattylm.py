@@ -26,9 +26,9 @@ class ChattyLM(Operator, PromptMethods):
 
     def _prompt_head(self) -> str:
         return textwrap.dedent(f"""
-    Below is a conversation between "ChattyAI", an awesome AI that follows
-    instructions and a human who they serve.
-    """) + \
+        Below is a conversation between "ChattyAI", an awesome AI that follows
+        instructions and a human who they serve.
+        """) + \
             self._message_log_to_list()
 
     def _message_line(self, message: MessageSchema, indent: int = None) -> str:
@@ -46,12 +46,10 @@ class ChattyLM(Operator, PromptMethods):
         return f"\n### {operator_id.split('.')[0]}: "
 
     @access_policy(ACCESS_PERMITTED)
-    def _action__say(self, content: str) -> bool:
+    def _action__say(self, content: str):
         """
         Use this action to say something to Chatty
         """
-        # Here we demonstrate constructing a full prompt using previous messages for
-        # context
         full_prompt = self._full_prompt()
         util.debug(f"[{self.id()}] prompt:", full_prompt)
         input_ids = self.tokenizer.encode(full_prompt, return_tensors="pt")
