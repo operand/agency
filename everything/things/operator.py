@@ -83,7 +83,6 @@ class Operator():
         """
         Validates and enqueues an incoming action to be processed
         """
-        util.debug(f"*[{self.id()}] receiving:", message)
         message = MessageSchema(**message).dict(by_alias=True)
         # Record message and place on queue
         self._message_log.append(message)
@@ -136,8 +135,11 @@ class Operator():
             action_method = getattr(
               self, f"{ACTION_METHOD_PREFIX}{message['action']}")
         except AttributeError as e:
-            raise AttributeError(
-              f"\"{message['action']}\" not found")
+            # if it was point to point, raise an error. this means that
+            # broadcasts will not raise an error if the action is not found
+            if message['to'] == self.id():
+                raise AttributeError(
+                f"\"{message['action']}\" action not found")
 
         return_value = None
         error = None
@@ -257,6 +259,10 @@ class Operator():
         is passed.
         """
         return self._get_help(action_name)
+
+    @access_policy(ACCESS_PERMITTED)
+    def _action__say(self, content: str):
+        pass
 
     @access_policy(ACCESS_PERMITTED)
     def _action__return(self, original_message: MessageSchema, return_value: str):

@@ -24,11 +24,10 @@ class WebAppUser(Operator):
     # We use the _after_action__ method to pass through all messages to the
     # socketio web client
     def _after_action___(self, original_message: MessageSchema, return_value: str, error: str):
-        util.debug(f"*[{self.id()}]._after_action___:", original_message)
         self._space.socketio.server.emit(
           'message', original_message, room=self.connected_sid)
 
-    # And define pass through methods to whitelist the actions we allow
+    # We define pass through methods to whitelist the actions we allow
     @access_policy(ACCESS_PERMITTED)
     def _action__say(self, content: str):
         pass
@@ -108,6 +107,6 @@ class WebApp(Space):
         eventlet.spawn(run_server)
 
     def current_operator(self):
-        # NOTE current_operator would normally be determined via login but
-        # for now we hardcode it to the first operator. (see above)
+        # NOTE current_operator would normally be determined via login but for
+        # now we hardcode it to the first operator, "Dan". (see above)
         return self.operators[0]

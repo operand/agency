@@ -17,7 +17,7 @@ class Space(Operator):
 
     def add(self, operator: Operator):
         """Adds and starts an operator to the space"""
-        util.debug(f"*[{self.id()}] Adding {operator.id()}")
+        util.debug(f"*[{self.id()}] adding {operator.id()}")
         self.operators.append(operator)
         operator._space = self
         if self.running.is_set():
@@ -72,7 +72,7 @@ class Space(Operator):
                 # pass to the parent space for routing
                 self._space._route(message)
             else:
-                # route an error message back to the original sender
+                # route an error back to the sender
                 self._route({
                     'from': self.id(),
                     'to': message['from'],
@@ -84,12 +84,9 @@ class Space(Operator):
                     }
                 })
         else:
-            # send to recipients, setting the 'to' field to their id
+            # enqueue message on recipients
             for recipient in recipients:
-                recipient._receive({
-                    **message,
-                    'to': recipient.id(),
-                })
+                recipient._receive(message)
 
     def _get_help__sync(self, action_name: str = None) -> list:
         """
