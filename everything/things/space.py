@@ -46,7 +46,6 @@ class Space(Operator):
         """
         Enqueues the action on intended recipient(s)
         """
-        util.debug(f"*[{self.id()}] routing", message)
         broadcast = False
         if 'to' not in message or message['to'] in [None, ""]:
             broadcast = True

@@ -55,10 +55,10 @@ class Operator():
     def run(self):
         """Starts the operator in a thread"""
         if not self.running.is_set():
-            util.debug(f"*[{self.id()}] starting...")
             self.__thread = threading.Thread(target=self.__process)
             self.__thread.start()
             self.running.set()
+            util.debug(f"*[{self.id()}] running ...")
 
     def stop(self):
         """Stops the operator thread"""
@@ -132,16 +132,17 @@ class Operator():
         # Check if the action exists
         action_method = None
         try:
-            util.debug(f"*[{self.id()}] committing action: {message['action']}")
             action_method = getattr(
               self, f"{ACTION_METHOD_PREFIX}{message['action']}")
         except AttributeError as e:
+            util.debug(f"*[{self.id()}] action not found for:", message)
             # if it was point to point, raise an error. this means that
             # broadcasts will not raise an error if the action is not found
-            util.debug(f"*[{self.id()}] action not found for:", message)
             if message['to'] == self.id():
                 raise AttributeError(
-                f"\"{message['action']}\" action not found")
+                    f"\"{message['action']}\" action not found")
+            else:
+                return
 
         return_value = None
         error = None

@@ -72,7 +72,6 @@ class DemoAgent(Operator, PromptMethods):
           temperature=0.1,
           max_tokens=500,
         )
-        util.debug(f"openai completion response:", completion)
         # parse the output
         action = util.extract_json(completion.choices[0].text, ["/END"])
         self._send(action)
