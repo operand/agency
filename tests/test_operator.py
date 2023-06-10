@@ -24,14 +24,13 @@ class Chatty(Operator):
 
 
 def wait_for_messages(operator, count=2):
-    max_time = 2 # seconds
+    max_time = 2  # seconds
     start_time = time.time()
     while (
         (time.time() - start_time) < max_time
         and operator._message_log.__len__() < count
     ):
         time.sleep(0.1)
-
 
 
 @contextmanager
@@ -91,8 +90,15 @@ def test_send_and_receive():
                     "original_message": first_message,
                     "return_value": "Hello, Webster!"
                 },
-                "from": "Chatty.TestSpace"
-            },
+                "from": "Chatty.TestSpace"},
+            {
+                "to": "Webster.TestWebApp.TestSpace",
+                "thoughts": "A value was returned for your action",
+                "action": "say",
+                "args": {
+                    "content": "Hello, Webster!"
+                },
+                "from": "Chatty.TestSpace"},
         ]
 
 
