@@ -50,11 +50,11 @@ class WebApp(Space):
     connect multiple users to a space.
     """
 
-    def __init__(self, id, operators=[], **kwargs):
+    def __init__(self, id, **kwargs):
         """
         Run Flask server in a separate thread
         """
-        super().__init__(id, operators)
+        super().__init__(id)
         self.__kwargs = kwargs
         app = Flask(__name__)
         app.config['SECRET_KEY'] = 'secret!'

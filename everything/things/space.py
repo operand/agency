@@ -1,3 +1,4 @@
+from everything.things import util
 from everything.things.operator import Operator
 from everything.things.schema import MessageSchema
 
@@ -14,12 +15,9 @@ class Space(Operator):
         super().__init__(id=id)
         self.operators = []
 
-        # keep running until the space is set to be destroyed
-        while not self.stopping.is_set():
-            self.stopping.wait(0.1)
-
     def add(self, operator: Operator):
         """Adds and starts an operator to the space"""
+        util.debug(f"*[{self.id()}] Adding {operator.id()}")
         self.operators.append(operator)
         operator._space = self
         if self.running.is_set():

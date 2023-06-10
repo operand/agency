@@ -55,9 +55,9 @@ class Operator():
     def run(self):
         """Starts the operator in a thread"""
         if not self.running.is_set():
-            thread = threading.Thread(target=self.__process)
-            self.threads.append(thread)
-            thread.start()
+            util.debug(f"*[{self.id()}] starting...")
+            self.thread = threading.Thread(target=self.__process)
+            self.thread.start()
             self.running.set()
 
     def stop(self):
