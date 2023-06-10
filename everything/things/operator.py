@@ -94,7 +94,7 @@ class Operator():
                             raise PermissionError(
                               f"Access denied by '{self.operator.id()}' for: {message}")
                 except Exception as e:
-                    # Here we handle errors that occur while handling an action including
+                    # Here we handle errors that occur while handling an action, including
                     # access denial, by reporting the error back to the sender. If an error
                     # occurs here, indicating that basic _send() functionality is broken,
                     # the application will exit.

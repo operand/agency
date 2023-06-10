@@ -1,6 +1,5 @@
 from eventlet import wsgi
 from everything.things.operator import ACCESS_PERMITTED, access_policy
-from everything.things.operator import Operator
 from everything.things.schema import MessageSchema
 from everything.things.space import Space
 from flask import Flask, render_template, request
@@ -10,18 +9,19 @@ import eventlet
 import logging
 
 
-class WebServer(Space):
+class WebApp(Space):
     """
     Encapsulates a simple web application "space" which can be used to connect
     multiple users (presumably human) to another space. Currently implemented
     using Flask.
     """
 
-    def __init__(self, operator: Operator, **kwargs):
+    def __init__(self, id, operators=[], **kwargs):
         """
         Run Flask server in a separate thread
         """
-        super().__init__(operator, **kwargs)
+        super().__init__(id, operators)
+        self.__kwargs = kwargs
         app = Flask(__name__)
 
         # six lines to disable logging...
@@ -40,7 +40,9 @@ class WebServer(Space):
         # Define routes
         @app.route('/')
         def index():
-            return render_template('index.html', operator_id=self.id())
+            # NOTE I'm cheating here by hardcoding "Dan" as the user but in a
+            # real application this would set the user id per request.
+            return render_template('index.html', operator_id=f"Dan.{self.id()}")
 
         @self.socketio.on('connect')
         def handle_connect():

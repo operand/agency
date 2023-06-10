@@ -1,6 +1,7 @@
 from everything.things.operator import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, access_policy
 from everything.things.operator import Operator
 from everything.things.space import Space
+import pytest
 from tests.conftest import space_context
 import time
 import unittest
@@ -14,7 +15,7 @@ class Webster(Operator):
         pass
 
 
-class TestWebApp(Space):
+class FakeWebApp(Space):
     """A fake webapp space that Webster is an operator within"""
 
 
@@ -26,7 +27,7 @@ def webster_and_chatty():
     chatty = Chatty("Chatty")
     webster = Webster("Webster")
     # NOTE that webster is nested in the webapp space
-    TestWebApp("TestWebApp", [webster])
+    FakeWebApp("TestWebApp", [webster])
     return webster, chatty
 
 

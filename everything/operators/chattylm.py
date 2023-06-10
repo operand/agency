@@ -17,8 +17,8 @@ class ChattyLM(Operator, PromptMethods):
     Currently uses transformers library as a backend provider.
     """
 
-    def __init__(self, operator: Operator, **kwargs):
-        super().__init__(operator, **kwargs)
+    def __init__(self, id: str, **kwargs):
+        super().__init__(id)
         # initialize transformers model
         self.tokenizer = AutoTokenizer.from_pretrained(kwargs['model'])
         self.tokenizer.pad_token = self.tokenizer.eos_token

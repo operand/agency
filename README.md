@@ -6,13 +6,10 @@ systems, in python
 
 ## What is `everything`?
 
-`everything` defines a common communication and action framework for integrating
-AI agents, humans, and traditional computing systems.
-
-It is an implementation of the
-[Actor model](https://en.wikipedia.org/wiki/Actor_model) with an additional
-abstraction of a "channel" sitting in front of each actor, serving as an
-interface to them.
+`everything` is an implementation of the [Actor
+model](https://en.wikipedia.org/wiki/Actor_model) where an Actor that defines a
+common communication and action framework for integrating AI agents, humans, and
+traditional computing systems.
 
 Conceptually, `everything` establishes a sort of chat-room called a "space"
 where any number of humans, artificial, or other computing systems may equally
@@ -22,15 +19,16 @@ address each other as individual "operators" that you may perform "actions" on.
 discovering and invoking actions across all parties, automatically handling
 things such as reporting exceptions, enforcing access restrictions, and more.
 
-By defining just a single `Channel` subclass, the API allows integration of
+By defining just a single `Operator` subclass, the API allows integration of
 systems as varied as:
-- voice assistants
+- Voice assistants
 - UI driven applications
-- terminal environments
-- software APIs
-- people
+- Terminal environments
+- Web applications
+- Software APIs
+- People
 - ...
-- anything
+- Anything
 
 
 ## How does `everything` compare to agent libraries like LangChain?
@@ -43,10 +41,10 @@ Projects like LangChain, AutoGPT, the HF agent API, and others are exploring how
 to create purpose-built agents that solve diverse problems using tools.
 
 `everything` is concerned with creating a safe and dynamic _environment_ for
-these types of agents to work, where they can _discover_ and communicate with
-the tools, each other, and any humans available in their given environment.
+these types of agents to work, where they can freely _discover_ and communicate
+with the tools, each other, and any humans available in their environment.
 
-`everything` provides a simple means for defining actions, callbacks, _and_
+`everything` provides a simple means for defining actions, callbacks, and
 access policies that you can use to monitor and ensure safety for the systems
 you expose to your agents.
 
@@ -78,7 +76,34 @@ pip install ./everything
 ```
 
 
-# Example Use
+# API Overview
+
+In `everything`, all entities are represented as instances of the base class
+`Operator`. This includes all humans, software, and AI agents. `Operator` is a
+base class similar to `object` in python or many other object-oriented
+languages.
+
+All `Operator` subclasses expose actions which may be invoked by other
+operators, by simply defining methods on the class.
+
+A `Space` is itself a subclass of `Operator` and is used to group `Operator`'s
+together and facilitate communication among them. As an `Operator` subclass, it
+may also be addressed and acted on directly by other operators.
+
+An `Operator` cannot communicate with other operators until it is first added to
+a `Space`.
+
+Since `Space`'s are `Operator`'s themselves, they may be nested, allowing for
+namespacing and hierarchical organization of the `Operator`'s in your application.
+
+So the two base classes of `Operator` and `Space` together create a simple
+API for defining complex systems that mix AI, human, and traditional
+computing systems.
+
+Let's walk through a thorough example to see how this works in practice.
+
+
+## Walkthrough
 
 > **WARNING:**\
 Running `everything` may result in exposing your computer to access by any
@@ -89,97 +114,136 @@ If you want to enable OS access, to allow for file I/O for example, I HIGHLY
 RECOMMEND using a Docker container to prevent direct access to your host,
 allowing you to limit the resources and directories it may access.
 
-In the following example, please note that the first two channel classes
-`WebChannel` and `ChattyLMChannel` are minimally implemented for you to try out.
-The rest are hypothetical but example implementations may follow.
+_Please note that the example classes used in this walkthrough are implemented
+for you to explore and try out, but should be considered "proof of concept"
+quality only._
+
+Let's start by instantiating our demo space.
 
 ```python
-# We simply pass an array of `Channel`s to the `Space` initializer.
+demo_space = Space("DemoSpace")
+```
+
+Spaces, like all `Operator`'s, must be given an `id`. So the line above,
+instantiates a single root space called `"DemoSpace"` that we can now add
+`Operator`'s to.
+
+Now, let's add our first `Operator` to the space, a simple transformers backed
+chatbot class named `ChattyLM`.
+
+
+
+
+
+
+Each operator takes a string `id` as their first argument. This is their
+identifier. It does not need to be unique. Duplicate `id`'s within a space will
+result in both operator's receiving duplicated messages.
+
+Let's discuss each `Operator` class in turn:
+
+## `ChattyLM`
+
+`ChattyLM` is a simple chatting AI agent that uses the HuggingFace
+`transformers` library to host a language model for inference.
+
+It exposes a single action called `"say"` which takes a string as an argument.
+This action is how other operators may chat with it.
+
+When `ChattyLM` receives a `"say"` action, it will generate a response using its
+prompt format with the language model, and return the result to the sender.
+
+
+## WebApp
+
+A single chatting AI wouldn't be useful without someone to chat with it, so now
+let's add a human into the space so that they can chat with "Chatty".
+
+To do this, we'll use the `WebApp` class, which is subclass of `Space`.
+
+Why is `WebApp` a subclass of `Space`? This is an arbitrary choice, up to the
+developer, but in this example, we use it to show how you can use a `Space` to
+group together multiple `Operator`'s and expose them under a single namespace.
+
+Since a web application likely has multiple users, we can use this approach to
+group them together under a single space, which itself connects to the root
+space.
+
+This allows for namespacing when addressing users of the web application.
+
+
+
+
+## Host
+## DemoAgent
+
+
+
+
+
+
+
+
+
+
+
+# Hypothetical Examples
+The following are not implemented, but are examples of other things that could
+be implemented, to give you an idea of what else is possible.
+
+```python
 Space([
 
-  # We'll start with two typical Channels. (These are implemented)
-  # Each Channel has a single named Operator, representing a user or outside
-  # system and may take additional configuration options.
+    # Allow access to a remote server
+    Server("Ubuntu",
+        ip="192.168.1.100"),
 
-  # A web UI driven by a human
-  WebChannel(
-    Operator("Dan"),
-    port: 8080,
-  ),
+    # Add a voice assistant interface to Dan
+    VoiceAssistant("Dan")
 
-  # A simple chatting AI
-  ChattyLMChannel(
-    Operator("ChattyAI"), 
-    model="chattylm/123b"
-  ),
+    # "Dan" could also communicate via email
+    Email("Dan"),
 
+    # Perhaps "ChattyAI" also uses multiple channels, like one for images
+    ImageIO("ChattyAI"),
 
-  # One could easily add many more. (the following are NOT implemented)
+    # Horizontal scaling of LM backends could be achieved by duplicating channels
+    # (notice we repeat the last one)
+    ImageIO("ChattyAI"),
 
-  # Allow access to an OS for file i/o etc.
-  OSChannel(
-    Operator("Ubuntu"), 
-    ...
-  ),
+    # Existing AI agent frameworks may integrate as well
+    LangChainAgentChannel(
+      Operator("MyLangChainAgent"),
+      ...
+    )
 
-  # Add a concurrent channel to "Dan" for speech in/out, like an Alexa
-  VoiceAssistantChannel(
-    Operator("Dan"), 
-    ...
-  )
+    # Model training is also benefited. You would only need to add one new
+    # channel that reads a data set and sends it as messages to the channel
+    # class used for inference, provided the underlying LM is first switched to a
+    # training mode.
+    # For example:
+    LMTrainerChannel(
+      Operator("LMTrainer"),
+      trainee: "ChattyAIInTraining",
+      ...
+    )
+    ChattyLMChannel(
+      Operator("ChattyAIInTraining"),
+      training_mode: True,
+      ...
+    )
 
-  # "Dan" may also communicate via email through another channel
-  EmailChannel(
-    Operator("Dan"), 
-    ...
-  )
+    # Network with friends and share your LMs and Agents
+    RemoteAgentChannel(
+      Operator("AgentHelperDude"),
+      url: "https://agent.helper.dude:2023",
+      ...
+    )
 
-  # Perhaps "ChattyAI" also uses multiple channels, like one for images
-  ImageIOChannel(
-    Operator("ChattyAI"),
-    ...
-  )
-
-  # Horizontal scaling of LM backends could be achieved by duplicating channels
-  # (notice we repeat the last one)
-  ImageIOChannel(
-    Operator("ChattyAI"),
-    ...
-  )
-
-  # Existing AI agent frameworks may integrate as well
-  LangChainAgentChannel(
-    Operator("MyLangChainAgent"),
-    ...
-  )
-
-  # Model training is also benefited. You would only need to add one new
-  # channel that reads a data set and sends it as messages to the channel
-  # class used for inference, provided the underlying LM is first switched to a
-  # training mode.
-  # For example:
-  LMTrainerChannel(
-    Operator("LMTrainer"),
-    trainee: "ChattyAIInTraining",
-    ...
-  )
-  ChattyLMChannel(
-    Operator("ChattyAIInTraining"),
-    training_mode: True,
-    ...
-  )
-
-  # Network with friends and share your LMs and Agents
-  RemoteAgentChannel(
-    Operator("AgentHelperDude"),
-    url: "https://agent.helper.dude:2023",
-    ...
-  )
-
-  # You get the idea...
-  AnySystemOrPersonOrFunctionAtAllThatYouWantToShareChannel(
-    Operator("Guest"),
-    ...
+    # You get the idea...
+    AnySystemOrPersonOrFunctionAtAllThatYouWantToShareChannel(
+      Operator("Guest"),
+      ...
   )
 ]).create()
 ```

@@ -13,18 +13,22 @@ class Space(Operator):
     - routing all messages sent to/from member operators
     """
 
-    def __init__(self, id, operators):
+    def __init__(self, id, operators=[]):
         super().__init__(id=id)
         self.operators = operators
         for operator in self.operators:
-            operator._space = self
+            self.add_operator(operator)
         self.threads = []
         self.created = threading.Event()    # set when the space is fully created
         self.destructing = threading.Event()    # set when the space is being destroyed
 
+    def add_operator(self, operator: Operator):
+        """Adds an operator to the space"""
+        self.operators.append(operator)
+        operator._space = self
+
     def create(self):
-        """
-        Starts the Space and all Operators"""
+        """Starts the Space and all member Operators"""
         for operator in self.operators + [self]:
             thread = threading.Thread(target=operator._run)
             self.threads.append(thread)
@@ -75,8 +79,6 @@ class Space(Operator):
                     recipients.append(operator)
                 elif isinstance(operator, Space) and message['to'] in operator._operator_ids():
                     # pass to child space for routing and return
-                    util.debug(
-                        f"*[{self.id()}] routing down to:", operator.id())
                     operator._route(message)
                     return
 
@@ -84,12 +86,8 @@ class Space(Operator):
             # no recipient operator id matched
             if self._space is not None:
                 # pass to the parent space for routing
-                util.debug(f"*[{self.id()}] routing up to:", self._space.id())
                 self._space._route(message)
             else:
-                util.debug(
-                    f"*[{self.id()}] no recipient for message:", message)
-                exit(1)    # temporary
                 # route an error message back to the original sender
                 # TODO: protect against infinite loops here
                 self._route({
@@ -105,7 +103,6 @@ class Space(Operator):
         else:
             # send to recipients, setting the 'to' field to their id
             for recipient in recipients:
-                util.debug(f"*[{self.id()}] receiving on:", recipient.id())
                 recipient._receive({
                     **message,
                     'to': recipient.id(),
