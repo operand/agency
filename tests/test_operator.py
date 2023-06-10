@@ -1,7 +1,6 @@
 from everything.things.operator import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, access_policy
 from everything.things.operator import Operator
 from everything.things.space import Space
-import pytest
 from tests.conftest import space_context
 import time
 import unittest
@@ -27,7 +26,8 @@ def webster_and_chatty():
     chatty = Chatty("Chatty")
     webster = Webster("Webster")
     # NOTE that webster is nested in the webapp space
-    FakeWebApp("TestWebApp", [webster])
+    webapp = FakeWebApp("TestWebApp")
+    webapp.add(webster)
     return webster, chatty
 
 
@@ -57,7 +57,7 @@ def test_send_and_receive():
     chatty._action__say = ChattySay(chatty)
 
     # We add the webapp space and chatty into the root space
-    with space_context([webster._space, chatty]):
+    with space_context():
         first_action = {
             'action': 'say',
             'to': chatty.id(),
@@ -96,7 +96,7 @@ def test_send_undefined_action():
     # In this test we skip defining a _say action on chatty in order to test the
     # error response
 
-    with space_context([webster._space, chatty]):
+    with space_context():
         first_action = {
             'action': 'say',
             'to': chatty.id(),
@@ -143,7 +143,7 @@ def test_send_unpermitted_action():
 
     chatty._action__say = ChattySay(chatty)
 
-    with space_context([webster._space, chatty]):
+    with space_context():
         first_action = {
             'action': 'say',
             'to': chatty.id(),
@@ -196,7 +196,7 @@ def test_send_request_permitted_action():
 
     chatty._request_permission = ChattyAsk()
 
-    with space_context([webster._space, chatty]):
+    with space_context():
         first_action = {
             'action': 'say',
             'to': chatty.id(),
@@ -250,7 +250,7 @@ def test_send_request_rejected_action():
 
     chatty._request_permission = ChattyAsk()
 
-    with space_context([webster._space, chatty]):
+    with space_context():
         first_action = {
             'action': 'say',
             'to': chatty.id(),
