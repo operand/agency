@@ -76,7 +76,7 @@
           }
 
           try {
-            args[key] = JSON.parse(val);
+            args[key] = JSON.parse(`"${val}"`);
           } catch (e) {
             args[key] = val;
           }
@@ -85,7 +85,6 @@
         return args;
       }
 
-      // The equivalent of the python method in util.py
       parseSlashSyntaxAction(action_text) {
         action_text = action_text.trim();
         let action = {};
@@ -96,9 +95,8 @@
             "args": { "content": action_text }
           }
         }
-        else
-        {
-          let parts = action_text.split(" ");
+        else {
+          let parts = action_text.match(/"[^"]+"|\S+/g).map(part => part.replace(/"/g, ''));
           let action_name = parts[0].substring(1);
           let args = this.parseArguments(parts);
 

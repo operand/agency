@@ -13,14 +13,15 @@ class Host(Operator):
 
     @access_policy(ACCESS_REQUESTED)
     def _action__shell_command(self, command: str):
-        """Execute a shell command within the applications host environment.
-        Commands are executed from the application root directory (/app) within a
-        bash shell. Always use with caution."""
-        command = f"bash -l -c '{command}'"
+        """Execute a shell command from the application root directory (/app) in
+        a bash shell. Always use with caution."""
+        command = ["bash", "-l", "-c", command]
         result = subprocess.run(
           command,
           stdout=subprocess.PIPE,
-          stderr=subprocess.PIPE, text=True, cwd="/app"  # TODO: make configurable
+          stderr=subprocess.PIPE,
+          text=True,
+          cwd="/app"
         )
         output = result.stdout + result.stderr
         if result.returncode != 0:
