@@ -1,6 +1,7 @@
 # `everything`
 
-A fast and minimal foundation for unifying human, AI, and other computing systems, in python
+A fast and minimal foundation for unifying human, AI, and other computing
+systems, in python
 
 
 ## What is `everything`?
@@ -561,14 +562,31 @@ If you run the above python script, after a short boot time you can visit the
 web app on the port you specify (`WEB_APP_PORT`) and you should see a simple
 chat interface.
 
-With the above implementation, `DemoAgent` will be able to handle simple tasks
-involving any of the connected systems.
+The following is a screenshot of a conversation that showcases `DemoAgent`'s
+ability to intelligently interact with the other operators in the environment,
+including running commands on the host, or chatting with "Chatty".
+
+Note that my messages are broadcasted in the below conversation, which explains
+why Chatty responds to each message also. There is an obvious difference in
+quality, of course.
+
+I also demonstrate the results of rejecting an action and asking him to use a
+different approach.
+
+Behind the scenes, Demo did message Chatty directly, and after I explained my
+rejection of the `read_file` action, Demo used the command `wc -l Dockerfile`
+which was more appropriate. And the file indeed has 75 lines.
+
+<p align="center">
+  <img src="https://i.ibb.co/f1GMb5P/Screenshot-2023-06-10-at-11-50-42-PM.png"
+       alt="Screenshot-2023-06-10-at-11-50-42-PM" border="0" width=500>
+</p>
 
 
 # Hypothetical Examples
 
 The following examples are not implemented, but are presented to give you
-additional ideas for ways that `everything` could be used.
+additional ideas for integrations that `everything` could be support.
 
 ```python
 Space([
