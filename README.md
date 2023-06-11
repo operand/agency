@@ -179,11 +179,11 @@ In the example above, we see the format that is used when sending actions.
 In describing the messaging format, there are two terms that are used similarly:
 "action" and "message".
 
-Simply put, an "action" is the format you use when sending, as seen in the
-`_send()` call above. You do not specify your own `id` in the `"from"` field, as
-it will be automatically added when routing.
+An "action" is the format you use when sending, as seen in the `_send()`
+call above. You do not specify your the `"from"` field, as it will be
+automatically added when routing.
 
-A "message" then, is simply a "received action" which includes the additional
+A "message" then, is a "received action" which includes the additional
 `"from"` field containing the sender's fully qualified `id`.
 
 Continuing the example above, the original sender would receive a response
@@ -201,7 +201,7 @@ message from Chatty that would look something like:
 }
 ```
 
-This is an example of the full common message schema that is used for all
+This is an example of the full message schema that is used for all
 messages sent between operators in `everything`.
 
 This format is intended to be simple and extensible enough to support any use
