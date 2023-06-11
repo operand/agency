@@ -723,6 +723,7 @@ artificial, and other computing systems together, with the following priorities.
 ## Priorities
 - **Speed**:
   Performance is always a concern. If it's not performant, it's not practical.
+  Currently the limitations of pythong multi-threading are a bottleneck 
 - **Access Control and Safety**:
   Designing an effective access control solution for AI integrated systems is a
   fundamental problem to solve in order to ensure safety. I believe I've
@@ -740,21 +741,19 @@ artificial, and other computing systems together, with the following priorities.
 
 
 ## Planned Work
-- Add examples
-  - simple function channel
-  - web app i/o examples
-    - image
-    - audio
-    - video
-  - model training example
-  - multimodal model example
+- Add web app i/o examples
+  - image
+  - audio
+  - video
+- Add multimodal model example
 - Add message broker/networking support (RabbitMQ)
 - Add integration example for [mlc-llm](https://github.com/mlc-ai/mlc-llm)
 - Add integration example for [gorilla](https://github.com/ShishirPatil/gorilla)
 - Add integration example for LangChain
-- Consider storage API
+- Add model training example
+- Consider alternative multiprocessing approaches
+- Consider adding a storage API
 - Consider prior work on distributed access control
-- Consider cross-compilation to C or other languages
 - Add docker assets to encourage using it
 - [_feel free to make
 suggestions_](https://github.com/operand/everything/issues)
