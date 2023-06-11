@@ -272,9 +272,8 @@ A single chatting AI wouldn't be useful without someone to chat with, so now
 let's add humans into the space so that they can chat with "Chatty". To do
 this, we'll use the `WebApp` class, which is a subclass of `Space`.
 
-Why is `WebApp` a subclass of `Space` and not `Operator`?
-
-This is an arbitrary choice up to the developer, but the guideline is:
+Why is `WebApp` a subclass of `Space` and not `Operator`? This is an
+arbitrary choice up to the developer, but the guideline is:
 
 _If you want to include multiple operators as a group, you should create a
 `Space` subclass and implement any additional logic necessary to forward
@@ -386,7 +385,7 @@ a human user of the web application.
 Once added to a space, each operator may send a `help` message to discover other
 operators and actions that are available in the space.
 
-The `WebApp` operator which hosts a simple chat UI supports a "slash" syntax
+The `WebApp` which hosts a simple chat UI supports a "slash" syntax
 summarized here:
 ```python
 /actionname arg1:val1 arg2:val2 ...
@@ -399,7 +398,7 @@ So a person using the chat UI can discover available actions with:
 ```
 This will broadcast a `help` action to all other operators, who will
 individually respond with a list of their available actions. The returned list
-of actions from the `"Host"` operator, would look something like:
+of actions from the `Host` operator, would look something like:
 
 ```python
 [
@@ -515,11 +514,11 @@ implementation will eventually hit the context window after a short time.
 
 1. I insert a fake event at the beginning of the terminal portion of the prompt,
 pretending that the agent themself executed the `help` action proactively, and
-display the resulting list actions as a slick way to insert the available
+display the resulting list as a slick way to insert the available
 actions while keeping the supposed context of the terminal, and providing a
 one-shot example to begin from.
 
-Note that ChattyAI uses a more typical prompt, showing that these techniques
+Note that `ChattyAI` uses a more typical prompt, showing that prompt techniques
 need not be shared by all agents connected to a space, but can be entirely
 unique to each agent.
 
@@ -674,20 +673,25 @@ anything, in any way imaginable.
 
 # Contributing
 
-Please do!
+Please do! Feedback is also a contribution!
+
+If you have any questions, suggestions, or problems, please open an
+[issue](https://github.com/operand/everything/issues).
+
 
 If you're looking to open a PR I'd like to keep to the following guidelines to
 start:
 
 - The core classes (`Operator` and `Space`) should be kept minimal and focused
 on common application concerns such as speed, security, and messaging.
+
 - If you'd like to add specific implementations of `Operator`'s and `Space`'s
-they should go into their respective folders.
+they should go into their respective folders. Feel free to improve the included
+examples as well!
+
 - Changes to core classes should be accompanied by tests whenever possible.
 
 
-If you have any questions, suggestions, or problems, please open an
-[issue](https://github.com/operand/everything/issues).
 
 
 ## Development Installation
