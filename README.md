@@ -61,12 +61,12 @@ operators, by simply defining instance methods on the class.
 A `Space` is a subclass of `Operator` and is used to group multiple operators
 together.
 
-A `Space` can be thought of as both a collection of `Operator`'s and a "router"
-for their communication. An `Operator` cannot communicate with others until it
-is first added to a `Space`.
+A space can be thought of as both a collection of operators and a "router"
+for their communication. An operator cannot communicate with others until it
+is first added to a space.
 
 Since `Space`'s are `Operator`'s themselves, they may be nested, allowing for
-namespacing and hierarchical organization of the `Operator`'s in your
+namespacing and hierarchical organization of the operators in your
 application.
 
 To summarize, the two classes of `Operator` and `Space` together create a simple
