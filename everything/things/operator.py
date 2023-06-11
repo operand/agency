@@ -217,8 +217,8 @@ class Operator():
             def get_arguments(method):
                 sig = inspect.signature(method)
                 return {
-                  k: str(
-                      v.annotation) if v.annotation != inspect.Parameter.empty else ""
+                  k: v.annotation.__name__
+                  if v.annotation != inspect.Parameter.empty else ""
                   for k, v in sig.parameters.items()
                   if v.default == inspect.Parameter.empty
                 }
@@ -229,7 +229,8 @@ class Operator():
             methods = {
               name: getattr(self, name)
               for name in dir(self)
-              if name.startswith(ACTION_METHOD_PREFIX) and callable(getattr(self, name))
+              if name.startswith(ACTION_METHOD_PREFIX)
+              and callable(getattr(self, name))
             }
             self.__cached__get_action_help = [
               {

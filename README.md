@@ -356,13 +356,17 @@ chat with ChattyAI, using just a single action called `"say"` that both
 Now we'll add an `Operator` class that exposes many different actions, the
 [`Host`](./everything/operators/host.py) class.
 
+```python
+demo_space.add(Host("Host"))
+```
+
 The `Host` class allows access to the host operating system where the python
 application is running. It exposes actions such as `read_file` and
 `shell_command` which allow other operators to take actions on the host.
 
 This class is a good example of one with potentially dangerous actions that need
-to be accessed with care. So, you'll notice that all the methods in the `Host`
-class have been given the access policy:
+to be accessed with care. You'll notice that all the methods in the `Host` class
+have been given the access policy:
 
 ```python
 @access_policy(ACCESS_REQUESTED)
@@ -379,15 +383,12 @@ human to review from anywhere.
 
 ## Discovering and Invoking Actions
 
-At this point, we 
+At this point, we can demonstrate how discovery works from the perspective of
+a human user of the web application.
 
-# TODO
-
-After loading the above, all the `Operator`'s are in the same `Space`, and can
-interact via messages we also call `Action`s.
-
-Each `Operator`, may send a `help` message to discover which other operators,
-channels, and actions are available in the space, and what arguments they take.
+Once added to a space, each `Operator` may send a `help` message to discover
+other operators, channels, and actions that are available in the space, and what
+arguments they take.
 
 The `WebChannel` which hosts a simple chat UI, supports a "slash" syntax
 summarized here:
@@ -398,10 +399,80 @@ _(Note that an empty argument value is considered true.)_
 
 So a person using the chat UI can discover the available actions in their space
 with:
-```python
+```
 /help
 ```
-And that will return a data structure listing the actions.
+That will broadcast a `"help"` action to all other operators, who will
+individually respond with a list of their available actions. The returned list
+of actions from the `"Host"` operator, would look something like:
+
+```python
+[
+    {
+        "to": "Host.DemoSpace",
+        "action": "delete_file",
+        "thoughts": "Delete a file",
+        "args": {
+          "filepath": "str"
+        }
+    },
+    {
+        "to": "Host.DemoSpace",
+        "action": "list_files",
+        "thoughts": "List files in a directory",
+        "args": {
+          "directory_path": "str"
+        }
+    },
+    ...
+]
+```
+
+Notice that each action lists the fully qualified `id` of the operator in the
+`"to"` field, the docstring of the action's method in the `"thoughts"` field,
+and each argument along with its type in the `"args"` field.
+
+So, a person using the web app UI can call the `list_files` action on the `Host`
+operator with the following syntax:
+
+```
+/list_files to:Host.DemoSpace directory_path:/app
+```
+
+This will send the `list_files` action to the `Host` who will (after being
+granted permission) return the results back to the web user interface. Note the
+use of the fully qualified `id` of `Host.DemoSpace` used with the `to:` field
+
+
+## Broadcast vs Point-to-Point Messaging
+
+If we omit the `to:Host.DemoSpace` portion of the command above, the message will be
+broadcast, and any `Operator`'s who implement a `list_files` action will
+respond.
+
+This is also how the `/help` command works. If you want to request help from
+just a single operator you can use something like:
+
+```
+/help to:Host.DemoSpace
+```
+
+And that will direct the help message to only the `Host` operator.
+
+
+## Adding an Environment-Aware Agent
+
+Finally we get to what we've been working towards!
+
+We'll now add an intelligent agent into this environment and see that it is
+easily able to understand and interact with any of the systems or humans we've
+connected thus far.
+
+I recommend using language models on par with GPT-3.5 or better for the best
+results.
+
+# TODO
+
 
 ---
 
@@ -426,19 +497,39 @@ This approach allows both human users _and_ AI agents or any other system to
 dynamically discover and call on each other!
 
 
-## Adding an Environment-Aware Agent
+## Complete Demo Implementation
 
-Finally we get to what we've been working towards!
+The following is a full implementation (minus imports) of the above walkthrough
+that you can try out on your own. Note that `Space.run()` starts a thread, so we
+simply keep the application alive with a while loop.
 
-We'll now add an intelligent agent into this environment and see that it is
-easily able to understand and interact with any of the systems or humans we've
-connected thus far.
+```python
+# demo.py
 
-# TODO
+if __name__ == '__main__':
 
+    space = Space("DemoSpace") 
 
+    space.add(
+        WebApp("WebApp", port=os.getenv('WEB_APP_PORT')))
 
+    space.add(
+        ChattyAI("Chatty", model="EleutherAI/gpt-neo-125m"))
 
+    space.add(
+        Host("Host"))
+
+    space.add(
+        DemoAgent("Demo",
+            model="text-davinci-003",
+            openai_api_key=os.getenv("OPENAI_API_KEY")))
+
+    space.run()
+
+    # keep alive
+    while True:
+        time.sleep(1)
+```
 
 
 
