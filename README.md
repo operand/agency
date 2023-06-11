@@ -378,7 +378,7 @@ possibility. We could have implemented, for example, a phone notification for a
 human to review from anywhere.
 
 
-## Discovering and Invoking Actions
+## Discovering Actions
 
 At this point, we can demonstrate how discovery works from the perspective of
 a human user of the web application.
