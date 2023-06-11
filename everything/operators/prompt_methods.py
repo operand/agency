@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from datetime import datetime
-from everything.things import util
-from everything.things.schema import MessageSchema
+from everything import util
+from everything.schema import MessageSchema
 
 
 class PromptMethods:

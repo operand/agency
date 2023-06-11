@@ -1,7 +1,7 @@
 from abc import abstractmethod
 import threading
-from everything.things.schema import ActionSchema, MessageSchema
-import everything.things.util as util
+from everything.schema import ActionSchema, MessageSchema
+import everything.util as util
 import inspect
 import queue
 import re

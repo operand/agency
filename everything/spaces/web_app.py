@@ -1,7 +1,7 @@
 from eventlet import wsgi
-from everything.things.operator import ACCESS_PERMITTED, Operator, access_policy
-from everything.things.schema import MessageSchema
-from everything.things.space import Space
+from everything.operator import ACCESS_PERMITTED, Operator, access_policy
+from everything.schema import MessageSchema
+from everything.space import Space
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO

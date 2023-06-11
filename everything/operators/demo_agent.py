@@ -1,7 +1,7 @@
 from datetime import datetime
-from everything.things import util
-from everything.things.operator import ACCESS_PERMITTED, access_policy
-from everything.things.operator import Operator
+from everything import util
+from everything.operator import ACCESS_PERMITTED, access_policy
+from everything.operator import Operator
 from everything.operators.prompt_methods import PromptMethods
 import json
 import openai

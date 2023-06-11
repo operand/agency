@@ -1,6 +1,6 @@
-from everything.things import util
-from everything.things.operator import Operator
-from everything.things.schema import MessageSchema
+from everything import util
+from everything.operator import Operator
+from everything.schema import MessageSchema
 
 
 class Space(Operator):

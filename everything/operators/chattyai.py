@@ -1,9 +1,9 @@
-from everything.things.operator import ACCESS_PERMITTED, access_policy
-from everything.things.operator import Operator
+from everything.operator import ACCESS_PERMITTED, access_policy
+from everything.operator import Operator
 from everything.operators.prompt_methods import PromptMethods
-from everything.things.schema import MessageSchema
+from everything.schema import MessageSchema
 from transformers import AutoTokenizer, AutoModelForCausalLM
-import everything.things.util as util
+import everything.util as util
 import os
 import textwrap
 

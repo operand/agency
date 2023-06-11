@@ -1,7 +1,7 @@
 from contextlib import contextmanager
-from everything.things.operator import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, access_policy
-from everything.things.operator import Operator
-from everything.things.space import Space
+from everything.operator import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, access_policy
+from everything.operator import Operator
+from everything.space import Space
 from tests.conftest import space_context
 import time
 import unittest

@@ -1,5 +1,5 @@
 from colorama import Fore, Style
-from everything.things.operator import ACCESS_REQUESTED, Operator, access_policy
+from everything.operator import ACCESS_REQUESTED, Operator, access_policy
 import json
 import os
 import re
