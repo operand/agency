@@ -125,9 +125,9 @@ later be used to address them.
 ## Defining Actions
 
 Looking at `ChattyAI`'s source code, you'll see that it is a subclass of
-`Operator`, and that it exposes a single action called `"say"`.
+`Operator`, and that it exposes a single action called `say`.
 
-The `"say"` action is defined as a method on the `ChattyAI` class, using
+The `say` action is defined as a method on the `ChattyAI` class, using
 the following signature:
 
 ```python
@@ -139,17 +139,17 @@ def _action__say(self, content: str):
 The prefix `_action__` is used to indicate that this is an action that can be
 invoked by other `Operator`'s. The suffix `say` is the name of the action.
 
-This `"say"` action takes a single string argument `content`. This action is
+This `say` action takes a single string argument `content`. This action is
 intended to allow other operators to chat with Chatty, as expressed in its
 docstring.
 
-When `ChattyAI` receives a `"say"` action, it will generate a response using its
+When `ChattyAI` receives a `say` action, it will generate a response using its
 prompt format with the language model, and return the result to the sender.
 
 
 ## Invoking Actions
 
-At the end of the `ChattyAI` `"say"` implementation, we see an example of using
+At the end of the `ChattyAI._action__say()` method, we see an example of using
 `everything`'s messaging protocol. `ChattyAI` returns a response to the sender
 by calling:
 
@@ -165,14 +165,14 @@ self._send({
 })
 ```
 
-This is a very simple implementation, but it demonstrates the basic idea of how
-to invoke an action on another operator.
+This is a simple implementation that demonstrates the basic idea of how to
+invoke an action on another operator.
 
 When an operator receives a message, it invokes the action method specified in
 by the `"action"` field of the message, passing the `"args"` to the action
 method as keyword arguments.
 
-So here we see that Chatty is invoking the `"say"` action on the sender of
+So here we see that Chatty is invoking the `say` action on the sender of
 the original message, passing the response as the `"content"` argument.
 
 
@@ -183,9 +183,9 @@ In the example above, we see the format that is used when sending actions.
 In describing the messaging format, there are two terms that are used similarly:
 "action" and "message".
 
-An "action" is the format you use when sending, as seen in the `_send()`
-call above. You do not specify your the `"from"` field, as it will be
-automatically added when routing.
+An "action" is the format you use when sending, as seen in the `_send()` call
+above. You do not specify the `"from"` field, as it will be automatically added
+when routing.
 
 A "message" then, is a "received action" which includes the additional
 `"from"` field containing the sender's fully qualified `id`.
@@ -205,18 +205,18 @@ message from Chatty that would look something like:
 }
 ```
 
-This is an example of the full message schema that is used for all
-messages sent between operators in `everything`.
+This is an example of the full message schema that is used for all messages sent
+between operators in `everything`.
 
 This format is intended to be simple and extensible enough to support any use
 case while remaining human readable.
 
 So when the sending operator receives the above response, it in-turn invokes
-their own `"say"` action, for them to process as they choose.
+their own `say` action, for them to process as they choose.
 
 Note that the `"thoughts"` field is defined as a distinct argument for providing
 a natural language explanation to accompany any action, but as of this writing
-`ChattyAI` does not make use of it.
+`ChattyAI` does not make use of it. `DemoAgent` discussed below, does.
 
 For more details on the common message schema see
 [schema.py](./everything/things/schema.py).
