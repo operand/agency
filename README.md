@@ -79,9 +79,9 @@ Let's walk through a thorough example to see how this works in practice.
 
 # Example Walkthrough
 
-_Please note that the example classes used in this walkthrough are implemented
+> Please note that the example classes used in this walkthrough are implemented
 for you to explore and try out, but should be considered "proof of concept"
-quality only._
+quality only.
 
 
 ## Creating a `Space`
@@ -151,6 +151,7 @@ At the end of the `ChattyAI` `"say"` implementation, we see an example of using
 by calling:
 
 ```python
+...
 self._send({
     "to": self._current_message['from'],
     "thoughts": "",
@@ -164,8 +165,8 @@ self._send({
 This is a very simple implementation, but it demonstrates the basic idea of how
 to invoke an "action" on another `Operator`.
 
-When an `Operator` receives a message, it invokes the action specified in the
-`action` field of the message, passing the `args` to the action method as
+When an `Operator` receives a message, it invokes the action method specified in
+by the `action` field of the message, passing the `args` to the action method as
 keyword arguments.
 
 So here we see that `ChattyAI` is invoking the `"say"` action on the sender of
@@ -246,7 +247,7 @@ If `ACCESS_REQUESTED` is used, the receiving operator will be prompted at run
 time to approve the action.
 
 To implement a method for an operator to approve/disapprove access, you must
-implement the `_request_permission` method with the following signature:
+implement the `_request_permission()` method with the following signature:
 
 ```python
 def _request_permission(self, proposed_message: MessageSchema) -> bool:
@@ -272,7 +273,7 @@ A single chatting AI wouldn't be useful without someone to chat with, so now
 let's add humans into the space so that they can chat with "Chatty". To do
 this, we'll use the `WebApp` class, which is a subclass of `Space`.
 
-Why is `WebApp` a subclass of `Space` and not `Operator`?
+**Why is `WebApp` a subclass of `Space` and not `Operator`?**
 
 This is an arbitrary choice up to the developer, but the rule of thumb should
 be:
@@ -281,15 +282,15 @@ _If you want to include multiple `Operator`'s as a group, you should create a
 `Space` subclass and implement any additional logic necessary to forward
 messages to individual `Operator`'s in the group._
 
-We could implement `WebApp` as a subclass of `Operator`, and created the web
-application in a way where there would only one user, perhaps running it
+We could implement `WebApp` as a subclass of `Operator`, and creat the web
+application in a way where there would only be one user, perhaps running it
 locally, or where the web application is viewed as a single operator to others
-if that fits the use case.
+in the space, if that fits the use case.
 
 But since a typical web application serves multiple users, it may make more
 sense to implement it as a `Space` subclass, so that individual users of the web
 application can be addressed by other operators using a namespace associated
-with the web application _(see below)_.
+with the web application, as we'll see below.
 
 So this is _not_ the only way this could be accomplished but is intended as a
 complex example to showcase why one might want to define a `Space` subclass to
@@ -303,7 +304,7 @@ simple `Flask` based web application that hosts a single page `React` based chat
 UI.
 
 The implementation takes some shortcuts, but in it you'll see that we actually
-define two classes, one for the web application, which extends `Space`, called
+define two classes, one for the web application which extends `Space`, called
 `WebApp`, and a second class to represent users of the web app, called
 `WebAppUser`.
 
@@ -312,8 +313,8 @@ user may expose to others.
 
 Using the `asyncio` library you'll see that we simply forward messages as-is to
 the `React` frontend, and allow the client code to handle rendering and parsing
-of messages as actions back to the `Flask` application, which forwards them to
-the root `Space`.
+of input as actions back to the `Flask` application, which in-turn forwards them
+to their intended receiver.
 
 
 ## Namespacing and Adding the Web Application
@@ -329,10 +330,10 @@ demo_space.add(
 Whenever any operator is added to a space, its fully qualified `id` becomes
 namespaced by the space's `id`.
 
-For example, the `WebApp` being an operator as well, receives and `id` of
+For example, the `WebApp` being an operator as well, receives an `id` of
 `"WebApp.DemoSpace"` after running the line above.
 
-At this point, we have the following operators listed using their fully
+At this point, we have the following list of operators using their fully
 qualified `id`'s
 
 - `"DemoSpace"` - The root space
@@ -343,12 +344,12 @@ qualified `id`'s
 Users of the web application, as they log in or out, may be added dynamically to
 the space and may use their own unique `id` namespaced under `"WebApp"`, 
 
-For example, if `"Dan"` logs in, his `id` within the environment would be:
+For example, if `"Dan"` logs in, his `id` within the environment would become:
 `"Dan.WebApp.DemoSpace"`.
 
 
 _(Please note that login/out functionality is not fully implemented as of this
-writing)_
+writing.)_
 
 
 ## Adding OS Access with the `Host` class
@@ -390,21 +391,21 @@ human to review from anywhere.
 At this point, we can demonstrate how discovery works from the perspective of
 a human user of the web application.
 
-Once added to a space, each `Operator` may send a `help` message to discover
-other operators and actions that are available in the space.
+Once added to a space, each operator may send a `help` message to discover other
+operators and actions that are available in the space.
 
-The `WebChannel` which hosts a simple chat UI, supports a "slash" syntax
+The `WebChannel` which hosts a simple chat UI supports a "slash" syntax
 summarized here:
 ```python
-/actionname arg1:val1 arg2:val2 arg3:
+/actionname arg1:val1 arg2:val2 ...
 ```
-_(Note that an empty argument value is considered true.)_
+_(Note that quotes may be used for values that contain spaces)_
 
 So a person using the chat UI can discover available actions with:
 ```
 /help
 ```
-This will broadcast a `"help"` action to all other operators, who will
+This will broadcast a `help` action to all other operators, who will
 individually respond with a list of their available actions. The returned list
 of actions from the `"Host"` operator, would look something like:
 
@@ -434,7 +435,7 @@ Notice that each action lists the fully qualified `id` of the operator in the
 `"to"` field, the docstring of the action's method in the `"thoughts"` field,
 and each argument along with its type in the `"args"` field.
 
-So, a person using the web app UI can invoke the `list_files` action on
+So a person using the web app UI can invoke the `list_files` action on
 `"Host.DemoSpace"` with the following syntax:
 
 ```
@@ -442,8 +443,8 @@ So, a person using the web app UI can invoke the `list_files` action on
 ```
 
 This will send the `list_files` action to the `Host` operator who will (after
-being granted permission) return the results back to `Dan.WebApp.DemoSpace`
-rendering them to the web user interface.
+being granted permission) return the results back to `"Dan.WebApp.DemoSpace"`
+rendering it to the web user interface.
 
 Note the use of the fully qualified `id` of `Host.DemoSpace` used with the `to:`
 field
@@ -497,7 +498,7 @@ results with agents.
 
 ### The `DemoAgent` Prompt
 
-What makes the `DemoAgent` able to intelligently discover and communicate with
+What makes the `DemoAgent` able to intelligently discover and interact with
 others is largely embodied in the `DemoAgent._prompt_head()` method. In it
 you'll notice a few things:
 
@@ -512,11 +513,11 @@ is fascinating to think about but I'll leave that for another time. :)
 about the situation, its goals, and the JSON format that it uses to communicate.
 
 1. I "pretend" that the bottom portion is a terminal application. By strongly
-signaling a change in context with the `%%%%% Terminal %%%%%` header, we help to
+signaling a change in context with the `%%%%% Terminal %%%%%` header, we help 
 make clear to the language model that this is a distinct section of content with
-it's own text patterns to continue. I do not believe that this is a necessary
-technique either but it is interesting to note, and I've had good success so far
-with it.
+its own text patterns to continue. I do not believe that this is a necessary
+technique either, but it is interesting to note, and I've had good success so
+far with it.
 
 1. I use the `_message_log_to_list()` method to dynamically insert the previous
 conversation up to the current point. See the mixin class `PromptMethods` for
@@ -524,15 +525,14 @@ the implementation. There is no summarization used, so the current
 implementation will eventually hit the context window after a short time.
 
 1. I insert a fake event at the beginning of the terminal portion of the prompt,
-pretending that the agent executed the `/help` action proactively, and display
-the resulting list of possible actions as a slick way to insert the available
-actions while keeping the supposed context of the terminal, and providing a
-one-shot example to begin from.
+pretending that the agent themself executed the `/help` action proactively, and
+display the resulting list of possible actions as a slick way to insert the
+available actions while keeping the supposed context of the terminal, and
+providing a one-shot example to begin from.
 
-
-Note that ChattyAI uses a more typical prompt, showing that this technique need
-not be shared by all agents connected to the space, but can be entirely unique
-to each agent.
+Note that ChattyAI uses a more typical prompt, showing that these techniques
+need not be shared by all agents connected to a space, but can be entirely
+unique to each agent.
 
 
 ## Complete Demo Implementation
@@ -573,9 +573,9 @@ If you run the above python script, after a short boot time you can visit the
 web app on the port you specify (`WEB_APP_PORT`) and you should see a simple
 chat interface.
 
-The following is a screenshot of a typical conversation which you may experience
-that showcases the `DemoAgent`'s ability to understand and interact fully with
-every other connected operator, including running commands on the host, or even
+The following is a screenshot of a typical conversation which you may try that
+showcases the `DemoAgent`'s ability to understand and interact fully with every
+other connected operator, including running commands on the host, or even
 chatting with `ChattyAI`.
 
 
