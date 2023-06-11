@@ -1,7 +1,6 @@
 # `everything`
 
-A fast and minimal foundation for unifying human, AI, and other computing
-systems, in python
+A fast and minimal foundation for unifying human, AI, and other computing systems, in python
 
 
 ## What is `everything`?
