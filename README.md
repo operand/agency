@@ -573,13 +573,25 @@ If you run the above python script, after a short boot time you can visit the
 web app on the port you specify (`WEB_APP_PORT`) and you should see a simple
 chat interface.
 
-The following is a screenshot of a typical conversation which you may try that
-showcases the `DemoAgent`'s ability to understand and intelligently interact
-with any other connected operator, including running commands on the host, or
-even chatting with `ChattyAI`.
+The following is a screenshot of a conversation that showcases `DemoAgent`'s
+ability to understand and intelligently interact with other connected operators,
+including running commands on the host, or even chatting with `ChattyAI`.
 
+Note that my messages are broadcasted in the below conversation, which explains
+why `"Chatty"` responds to each message as does `"Demo"`. There is an obvious
+difference in quality, of course.
 
-> TODO add screenshot
+Note how `"Demo"` is able to correctly follow each of my instructions. I also
+demonstrate the results of rejecting an action and asking him to use a different
+approach.
+
+Behind the scenes after I explained my rejection, `"Demo"` used the command `wc
+-l Dockerfile` which was more appropriate. And the file indeed has 75 lines.
+
+<p align="center">
+  <img src="https://i.ibb.co/F32HNpd/Screenshot-2023-06-10-at-11-36-12-PM.png"
+       alt="Screenshot-2023-06-10-at-11-36-12-PM" width=600>
+</p>
 
 
 # Hypothetical Examples

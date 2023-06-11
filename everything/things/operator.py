@@ -58,7 +58,6 @@ class Operator():
             self.__thread = threading.Thread(target=self.__process)
             self.__thread.start()
             self.running.set()
-            util.debug(f"*[{self.id()}] running ...")
 
     def stop(self):
         """Stops the operator thread"""
@@ -69,7 +68,6 @@ class Operator():
         """
         Validates and sends (out) an action
         """
-        util.debug(f"*[{self.id()}] sending:", action)
         # define message, validate, and route it
         message = MessageSchema(**{
           **action,
@@ -95,7 +93,6 @@ class Operator():
         while not self.stopping.is_set():
             try:
                 message = self.__message_queue.get(timeout=0.01)
-                util.debug(f"*[{self.id()}] processing:", message)
                 try:
                     try:
                         self.__commit_action(message)
@@ -111,8 +108,6 @@ class Operator():
                     # access denial, by reporting the error back to the sender. If an error
                     # occurs here, indicating that basic _send() functionality is broken,
                     # the application will exit.
-                    util.debug(f"[{self.id()}] error processing: {e}",
-                               traceback.format_exc())
                     self._send({
                       "to": message['from'],
                       "thoughts": "An error occurred",

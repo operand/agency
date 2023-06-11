@@ -8,9 +8,9 @@ setup(
   description="",
   url="",
   classifiers=[
-    "Programming Language :: Python :: 3.10",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.9",
   ],
   packages=find_packages(),
   install_requires=[
@@ -23,8 +23,11 @@ setup(
     "transformers>=4.29",
     "torch>=2.0",
 
-    # Required by WebServer example
+    # Required by WebApp example
     "Flask-SocketIO>=5.3",
     "eventlet>=0.33",
+
+    # Required by DemoAgent example
+    "openai>=0.27.8",
   ],
 )
