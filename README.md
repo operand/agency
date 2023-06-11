@@ -491,24 +491,21 @@ results with agents.
 
 What makes the `DemoAgent` able to intelligently discover and interact with
 others is largely embodied in the `DemoAgent._prompt_head()` method. In it
-you'll notice a few things:
+you'll notice a few key points:
 
 1. The prompt is written from the first person perspective as though it is the
-agent's own thoughts. This differs slightly from common practice. I do not think
-this makes a large difference but was worth mentioning. This is a personal
-preference that I believe may be a slightly more natural way to frame content in
-a prompt. There are shades of an "ego" here that is fascinating to think about
-but I'll leave that for another time. :)
+agent's own thoughts. This differs slightly from common practice, which usually
+uses the second-person perspective. I do not think this makes a large difference
+but was worth mentioning. This is more of a personal preference.
 
 1. I frame the situation clearly and accurately for the agent, telling it enough
 about who it is, its goals, and the JSON format that it uses to communicate.
 
-1. I "pretend" that the bottom portion is a terminal application. By strongly
-signaling a change in context with the `%%%%% Terminal %%%%%` header, we help 
-make clear to the language model that this is a distinct section of content with
-its own text patterns to continue. I do not believe that this is a necessary
-technique either, but it is interesting to note, and I've had good success so
-far with it.
+1. I "pretend" that the bottom portion is a terminal application. By signaling a
+change in context with the `%%%%% Terminal %%%%%` header, we help make clear to
+the language model that this is a distinct section of content with its own text
+patterns to continue. I do not believe that this is a crucial technique either,
+but it is worth noting.
 
 1. I use the `_message_log_to_list()` method to dynamically insert the previous
 conversation up to the current point. See the mixin class `PromptMethods` for
@@ -517,7 +514,7 @@ implementation will eventually hit the context window after a short time.
 
 1. I insert a fake event at the beginning of the terminal portion of the prompt,
 pretending that the agent themself executed the `help` action proactively, and
-display the resulting list as a slick way to insert the available
+display the resulting list. This is just a slick way to insert the available
 actions while keeping the supposed context of the terminal, and providing a
 one-shot example to begin from.
 
