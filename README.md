@@ -457,24 +457,42 @@ just a single operator you can use something like:
 /help to:Host.DemoSpace
 ```
 
-And that will direct the help message to only the `Host` operator.
+And that will send the `help` message to only the `Host` operator.
 
 
 ## Adding an Environment-Aware Agent
 
-Finally we get to what we've been working towards!
+Finally we get to the exciting part!
 
 We'll now add an intelligent agent into this environment and see that it is
 easily able to understand and interact with any of the systems or humans we've
 connected thus far.
 
-I recommend using language models on par with GPT-3.5 or better for the best
-results.
+To add the [`DemoAgent`](./everything/operators/demo_agent.py) class to the
+environment:
+```python
+demo_space.add(
+    DemoAgent("Demo",
+        model="text-davinci-003",
+        openai_api_key=os.getenv("OPENAI_API_KEY")))
+```
 
-# TODO
+Note that the `DemoAgent` class is implemented to use the OpenAI API as a
+language model backend.
+
+I recommend using language models on par with GPT-3.5 or better for the best
+results with agents.
+
+
+### The `DemoAgent` Prompt
+
+
+
 
 
 ---
+# TODOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+
 
 Agents may be presented with the same help information, either as part of their
 prompt or they may act directly by invoking the `/help` action themselves.
@@ -496,12 +514,14 @@ So just to illustrate, the equivalent of an agent's `/help` command in JSON coul
 This approach allows both human users _and_ AI agents or any other system to
 dynamically discover and call on each other!
 
+---
+
 
 ## Complete Demo Implementation
 
-The following is a full implementation (minus imports) of the above walkthrough
-that you can try out on your own. Note that `Space.run()` starts a thread, so we
-simply keep the application alive with a while loop.
+The following is the full implementation (minus imports) of the above
+walkthrough that you can try out on your own. Note that `Space.run()` starts a
+thread, so we simply keep the application alive with a while loop.
 
 ```python
 # demo.py
