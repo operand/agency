@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "everything"
+version = "0.1.0"
+description = "A fast and minimal foundation for unifying human, AI, and other computing systems, in python"
+authors = ["Daniel Rodriguez"]
+license = "GPL-3.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+asyncio = "^3.4"
+colorama = "^0.4"
+pydantic = "^1.8"
+transformers = "^4.29"
+torch = "^2.0"
+Flask-SocketIO = "^5.3"
+eventlet = "^0.33"
+openai = "^0.27.8"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

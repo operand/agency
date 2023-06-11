@@ -492,24 +492,21 @@ results with agents.
 
 What makes the `DemoAgent` able to intelligently discover and interact with
 others is largely embodied in the `DemoAgent._prompt_head()` method. In it
-you'll notice a few things:
+you'll notice a few key points:
 
 1. The prompt is written from the first person perspective as though it is the
-agent's own thoughts. This differs slightly from common practice. I do not think
-this makes a large difference but was worth mentioning. This is a personal
-preference that I believe may be a slightly more natural way to frame content in
-a prompt. There are shades of an "ego" here that is fascinating to think about
-but I'll leave that for another time. :)
+agent's own thoughts. This differs slightly from common practice, which usually
+uses the second-person perspective. I do not think this makes a large difference
+but was worth mentioning. This is more of a personal preference.
 
 1. I frame the situation clearly and accurately for the agent, telling it enough
 about who it is, its goals, and the JSON format that it uses to communicate.
 
-1. I "pretend" that the bottom portion is a terminal application. By strongly
-signaling a change in context with the `%%%%% Terminal %%%%%` header, we help 
-make clear to the language model that this is a distinct section of content with
-its own text patterns to continue. I do not believe that this is a necessary
-technique either, but it is interesting to note, and I've had good success so
-far with it.
+1. I "pretend" that the bottom portion is a terminal application. By signaling a
+change in context with the `%%%%% Terminal %%%%%` header, we help make clear to
+the language model that this is a distinct section of content with its own text
+patterns to continue. I do not believe that this is a crucial technique either,
+but it is worth noting.
 
 1. I use the `_message_log_to_list()` method to dynamically insert the previous
 conversation up to the current point. See the mixin class `PromptMethods` for
@@ -518,7 +515,7 @@ implementation will eventually hit the context window after a short time.
 
 1. I insert a fake event at the beginning of the terminal portion of the prompt,
 pretending that the agent themself executed the `help` action proactively, and
-display the resulting list as a slick way to insert the available
+display the resulting list. This is just a slick way to insert the available
 actions while keeping the supposed context of the terminal, and providing a
 one-shot example to begin from.
 
@@ -566,16 +563,15 @@ web app on the port you specify (`WEB_APP_PORT`) and you should see a simple
 chat interface.
 
 The following is a screenshot of a conversation that showcases `DemoAgent`'s
-ability to understand and intelligently interact with other operators, including
-running commands on the host, or even chatting with "Chatty".
+ability to intelligently interact with the other operators in the environment,
+including running commands on the host, or chatting with "Chatty".
 
 Note that my messages are broadcasted in the below conversation, which explains
-why Chatty responds to each message as does Demo. There is an obvious difference
-in quality, of course.
+why Chatty responds to each message also. There is an obvious difference in
+quality, of course.
 
-Note how Demo is able to correctly follow each of my instructions. I also
-demonstrate the results of rejecting an action and asking him to use a different
-approach.
+I also demonstrate the results of rejecting an action and asking him to use a
+different approach.
 
 Behind the scenes, Demo did message Chatty directly, and after I explained my
 rejection of the `read_file` action, Demo used the command `wc -l Dockerfile`
@@ -590,7 +586,7 @@ which was more appropriate. And the file indeed has 75 lines.
 # Hypothetical Examples
 
 The following examples are not implemented, but are presented to give you
-additional ideas for ways that `everything` could be used.
+additional ideas for integrations that `everything` could be support.
 
 ```python
 Space([
@@ -652,7 +648,7 @@ Though you could entirely create a simple agent using only the primitives in
 not intended to be a full-fledged agent toolset. It can be thought of as more of
 an "agent integration framework".
 
-Projects like LangChain, AutoGPT and many others are exploring how to create
+Projects like LangChain, AutoGPT and others are exploring how to create
 purpose-built agents that solve diverse problems using tools.
 
 `everything` is concerned with creating a safe and dynamic _environment_ for
@@ -671,47 +667,26 @@ and not use agents at all!
 An additional benefit of its general design is that `everything` may also
 simplify some agent development workflows. See the hypothetical examples above.
 
-So, `everything` is a simple but more general framework intended to support
-agent development and to ultimately enable agents to safely integrate with
-anything, in any way imaginable.
+So, `everything` is a more general framework intended to support agent
+development and to ultimately enable agents to safely integrate with anything,
+in any way imaginable.
 
 
 # Contributing
 
-Please feel free! Feedback is also appreciated!
+Please feel free to open PRs!
 
 If you have any questions, suggestions, or problems, please open an
 [issue](https://github.com/operand/everything/issues).
 
 
-If you're looking to open a PR I'd like to keep to the following guidelines to
-start:
-
-- The core classes (`Operator` and `Space`) should be kept minimal and focused
-on common application concerns such as speed, security, and messaging.
-
-- If you'd like to add specific implementations of `Operator`'s and `Space`'s
-they should go into their respective folders. Feel free to improve the included
-examples if you'd like.
-
-- Changes to core classes should be accompanied by tests whenever possible.
-
-
-
-
 ## Development Installation
 
-Stable development dependencies are maintained in `requirements-dev.in`. You can
-install the development dependencies with:
 ```bash
-pip install -r requirements-dev.txt
+git clone git@github.com:operand/everything.git
+cd everything
+poetry install
 ```
-
-To add a dependency, add it to the `requirements.in` file and run:
-```bash
-pip-compile requirements-dev.in
-```
-And make sure to commit your changes.
 
 
 ## Test Suite
@@ -726,8 +701,9 @@ The test suite is currently set up to run on pull requests to the `main` branch.
 
 # Roadmap
 
-My goal is to maintain a minimal, natural, and practical API for bringing human,
-artificial, and other computing systems together, with the following priorities.
+The goal is to maintain a minimal, natural, and practical API for bringing
+human, artificial, and other computing systems together, with the following
+priorities.
 
 
 ## Priorities
