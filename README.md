@@ -68,13 +68,16 @@ A space can be thought of as both a collection of operators and a "router"
 for their communication. An operator cannot communicate with others until it
 is first added to a space.
 
-Since `Space`'s are `Operator`'s themselves, they may be nested, allowing for
-namespacing and hierarchical organization of the operators in your
-application.
+Spaces may be nested, allowing for namespacing and hierarchical organization of
+the operators in your application.
+
+All operators may define public "actions" that other operators can discover and
+invoke at run time. Actions also specify an access policy, allowing you to
+control access and ensure safety.
 
 To summarize, the two classes of `Operator` and `Space` together create a simple
-API for defining and integrating complex applications that may mix AI, human,
-and traditional computing systems.
+API for defining applications that may mix AI, human, and traditional computing
+systems, in a way that is intended for all to equally understand and use.
 
 
 Let's walk through a thorough example to see how this works in practice.

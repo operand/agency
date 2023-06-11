@@ -20,9 +20,9 @@ class WebAppUser(Operator):
         self.space.socketio.server.emit(
             'permission_request', proposed_message)
 
-    # We use the _after_action__ method to pass through all messages to the
+    # We use the _after_action method to pass through all messages to the
     # socketio web client
-    def _after_action__(self, original_message: MessageSchema, return_value: str, error: str):
+    def _after_action(self, original_message: MessageSchema, return_value: str, error: str):
         self.space.socketio.server.emit(
           'message', original_message, room=self.connected_sid)
 

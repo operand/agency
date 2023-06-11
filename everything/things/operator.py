@@ -164,8 +164,8 @@ class Operator():
             error = e
             raise Exception(e)
         finally:
-            # Always call _after_action__
-            self._after_action__(message, return_value, error)
+            # Always call _after_action
+            self._after_action(message, return_value, error)
 
     def __permitted(self, message) -> bool:
         """
@@ -284,7 +284,7 @@ class Operator():
           },
         })
 
-    def _after_action__(self, original_message: MessageSchema, return_value: str, error: str):
+    def _after_action(self, original_message: MessageSchema, return_value: str, error: str):
         """
         Called after every action. Override and use this method for logging or other
         situations where you may want to pass through all actions.
