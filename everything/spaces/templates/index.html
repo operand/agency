@@ -45,7 +45,7 @@
 <body>
   <div id="root"></div>
   <script>
-    this.window.__everything_channel_id = "{{ channel_id }}";
+    this.window.__operator_id = "{{ operator_id }}";
   </script>
 
   {% raw %}
@@ -76,7 +76,7 @@
           }
 
           try {
-            args[key] = JSON.parse(val);
+            args[key] = JSON.parse(`"${val}"`);
           } catch (e) {
             args[key] = val;
           }
@@ -85,32 +85,36 @@
         return args;
       }
 
-      // The equivalent of the python method in util.py
       parseSlashSyntaxAction(action_text) {
+        action_text = action_text.trim();
+        let action = {};
         if (!action_text.startsWith("/")) {
-          return {
+          action = {
             "action": "say",
             "thoughts": "",
             "args": { "content": action_text }
           }
         }
+        else {
+          let parts = action_text
+              .match(/"[^"]+"|\S+/g)
+              .map(part => part.replace(/"/g, ''));
+          let action_name = parts[0].substring(1);
+          let args = this.parseArguments(parts);
 
-        let parts = action_text.split(" ");
-        let action_name = parts[0].substring(1);
-        let args = this.parseArguments(parts);
+          // pull out the "to" and "thoughts" args if they exist
+          let to = args['to']
+          delete args['to']
+          let thoughts = args['thoughts']
+          delete args['thoughts']
 
-        // pull out the "to" and "thoughts" args if they exist
-        let to = args['to']
-        delete args['to']
-        let thoughts = args['thoughts']
-        delete args['thoughts']
-
-        let action = {
-          "to": to || "Space",
-          "thoughts": thoughts || "",
-          "action": action_name,
-          "args": args
-        };
+          action = {
+            "to": to,
+            "thoughts": thoughts || "",
+            "action": action_name,
+            "args": args
+          };
+        }
         console.log("sending action: ", action)
         return action;
       }
@@ -160,7 +164,7 @@
         if (content.trim() !== '') {
           const action = this.parseSlashSyntaxAction(content);
           const newMessage = {
-            from: window.__everything_channel_id,
+            from: window.__operator_id,
             to: "Space",
             thoughts: "",
             ...action
@@ -179,15 +183,10 @@
       }
 
       messageToText(message) {
-        if (typeof message === 'string') {
-          // this covers when we simply put "..." as a message
-          return message;
+        if (message.action === 'say') {
+          return message.args.content.toString();
         } else {
-          if (message.action === 'say') {
-            return message.args.content.toString();
-          } else {
-            return <pre>{ JSON.stringify(message, null, 2) }</pre>;
-          }
+          return <pre>{ JSON.stringify(message, null, 2) }</pre>;
         }
       }
 
@@ -198,7 +197,7 @@
               {
                 this.state.messages.map((message, index) => (
                   <div key={index}>
-                    {message.from ? `${message.from}: ` : ''}
+                    {message.from ? `${message.from.split(".")[0]}: ` : ''}
                     {this.messageToText(message)}
                   </div>
                 ))
