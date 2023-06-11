@@ -386,7 +386,7 @@ a human user of the web application.
 Once added to a space, each operator may send a `help` message to discover other
 operators and actions that are available in the space.
 
-The `WebChannel` which hosts a simple chat UI supports a "slash" syntax
+The `WebApp` operator which hosts a simple chat UI supports a "slash" syntax
 summarized here:
 ```python
 /actionname arg1:val1 arg2:val2 ...
