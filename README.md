@@ -40,6 +40,9 @@ RECOMMEND running your project within a Docker container to prevent direct
 access to your host, allowing you to limit the resources and directories that
 may be accessed.
 
+**Please note that `everything` is not yet at a stable release or published
+to pip but will be soon.**
+
 ```sh
 git clone git@github.com:operand/everything.git
 pip install ./everything
