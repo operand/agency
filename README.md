@@ -525,10 +525,10 @@ the implementation. There is no summarization used, so the current
 implementation will eventually hit the context window after a short time.
 
 1. I insert a fake event at the beginning of the terminal portion of the prompt,
-pretending that the agent themself executed the `/help` action proactively, and
-display the resulting list of possible actions as a slick way to insert the
-available actions while keeping the supposed context of the terminal, and
-providing a one-shot example to begin from.
+pretending that the agent themself executed the `help` action proactively, and
+display the resulting list actions as a slick way to insert the available
+actions while keeping the supposed context of the terminal, and providing a
+one-shot example to begin from.
 
 Note that ChattyAI uses a more typical prompt, showing that these techniques
 need not be shared by all agents connected to a space, but can be entirely
@@ -574,9 +574,9 @@ web app on the port you specify (`WEB_APP_PORT`) and you should see a simple
 chat interface.
 
 The following is a screenshot of a typical conversation which you may try that
-showcases the `DemoAgent`'s ability to understand and interact fully with every
-other connected operator, including running commands on the host, or even
-chatting with `ChattyAI`.
+showcases the `DemoAgent`'s ability to understand and intelligently interact
+with any other connected operator, including running commands on the host, or
+even chatting with `ChattyAI`.
 
 
 > TODO add screenshot
@@ -585,7 +585,7 @@ chatting with `ChattyAI`.
 # Hypothetical Examples
 
 The following examples are not implemented, but are presented to give you
-additional ideas of ways that this API could be used.
+additional ideas of ways that `everything` could be used.
 
 ```python
 Space([
@@ -600,7 +600,7 @@ Space([
     # Use email to send/receive messages from others
     Email("Dan", address="dan@dan.com"),
 
-    # AI agents can access other ML services, like for images
+    # Integrate other ML services, like for images
     DiffusionModel("ImageAI"),
 
     # Horizontal scaling could be achieved by simply duplicating operators
@@ -680,9 +680,9 @@ start:
 
 - The core classes (`Operator` and `Space`) should be kept minimal and focused
 on common application concerns such as speed, security, and messaging.
-- If you'd like to add specific implementations of `Operator`'s and `Spaces`
-they can go into their respective folders.
-- Changes to core classes should be accompanied by tests if applicable.
+- If you'd like to add specific implementations of `Operator`'s and `Space`'s
+they should go into their respective folders.
+- Changes to core classes should be accompanied by tests whenever possible.
 
 
 If you have any questions, suggestions, or problems, please open an
