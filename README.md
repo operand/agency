@@ -281,16 +281,17 @@ _If you want to include multiple `Operator`'s as a group, you should create a
 `Space` subclass and implement any additional logic necessary to forward
 messages to individual `Operator`'s in the group._
 
-I could have implemented `WebApp` as a subclass of `Operator`, and created the
-web application in a way where I would be the only user, perhaps running it
-locally.
+We could implement `WebApp` as a subclass of `Operator`, and created the web
+application in a way where there would only one user, perhaps running it
+locally, or where the web application is viewed as a single operator to others
+if that fits the use case.
 
 But since a typical web application serves multiple users, it may make more
 sense to implement it as a `Space` subclass, so that individual users of the web
 application can be addressed by other operators using a namespace associated
 with the web application _(see below)_.
 
-This is _not_ the only way this could be accomplished but is intended as a
+So this is _not_ the only way this could be accomplished but is intended as a
 complex example to showcase why one might want to define a `Space` subclass to
 group operators when it makes sense.
 
@@ -310,9 +311,9 @@ The `WebAppUser` class is where we define the actions that an individual web app
 user may expose to others.
 
 Using the `asyncio` library you'll see that we simply forward messages as-is to
-the `React` frontend, and allow the client code to handle rendering.
-
-_Please see the source for more detail._
+the `React` frontend, and allow the client code to handle rendering and parsing
+of messages as actions back to the `Flask` application, which forwards them to
+the root `Space`.
 
 
 ## Namespacing and Adding the Web Application
@@ -325,22 +326,24 @@ demo_space.add(
     WebApp("WebApp", port=os.getenv('WEB_APP_PORT')))
 ```
 
-Whenever an operator is added to a space, its fully qualified `id` becomes
+Whenever any operator is added to a space, its fully qualified `id` becomes
 namespaced by the space's `id`.
 
-For example, the `WebApp`, being an operator as well, receives and `id` of
+For example, the `WebApp` being an operator as well, receives and `id` of
 `"WebApp.DemoSpace"` after running the line above.
 
-At this point, we have the following operators listed using their fully qualified `id`'s
+At this point, we have the following operators listed using their fully
+qualified `id`'s
+
 - `"DemoSpace"` - The root space
 - `"ChattyAI.DemoSpace"` - ChattyAI's fully qualified `id`
 - `"WebApp.DemoSpace"` - the root of the `"WebApp"` space
 
 
 Users of the web application, as they log in or out, may be added dynamically to
-the space and may use their own `id` namespaced under `"WebApp"`, 
+the space and may use their own unique `id` namespaced under `"WebApp"`, 
 
-So, if `"Dan"` logs in, their `id` within the environment would be:
+For example, if `"Dan"` logs in, his `id` within the environment would be:
 `"Dan.WebApp.DemoSpace"`.
 
 
@@ -354,7 +357,7 @@ At this point, we have a system where human users of the web application can
 chat with ChattyAI, using just a single action called `"say"` that both
 `Operator` classes implement.
 
-Now we'll add an `Operator` class that exposes many different actions, the
+Now we'll add an operator that exposes many different actions, the
 [`Host`](./everything/operators/host.py) class.
 
 ```python
@@ -388,8 +391,7 @@ At this point, we can demonstrate how discovery works from the perspective of
 a human user of the web application.
 
 Once added to a space, each `Operator` may send a `help` message to discover
-other operators, channels, and actions that are available in the space, and what
-arguments they take.
+other operators and actions that are available in the space.
 
 The `WebChannel` which hosts a simple chat UI, supports a "slash" syntax
 summarized here:
@@ -398,12 +400,11 @@ summarized here:
 ```
 _(Note that an empty argument value is considered true.)_
 
-So a person using the chat UI can discover the available actions in their space
-with:
+So a person using the chat UI can discover available actions with:
 ```
 /help
 ```
-That will broadcast a `"help"` action to all other operators, who will
+This will broadcast a `"help"` action to all other operators, who will
 individually respond with a list of their available actions. The returned list
 of actions from the `"Host"` operator, would look something like:
 
@@ -433,16 +434,19 @@ Notice that each action lists the fully qualified `id` of the operator in the
 `"to"` field, the docstring of the action's method in the `"thoughts"` field,
 and each argument along with its type in the `"args"` field.
 
-So, a person using the web app UI can call the `list_files` action on the `Host`
-operator with the following syntax:
+So, a person using the web app UI can invoke the `list_files` action on
+`"Host.DemoSpace"` with the following syntax:
 
 ```
 /list_files to:Host.DemoSpace directory_path:/app
 ```
 
-This will send the `list_files` action to the `Host` who will (after being
-granted permission) return the results back to the web user interface. Note the
-use of the fully qualified `id` of `Host.DemoSpace` used with the `to:` field
+This will send the `list_files` action to the `Host` operator who will (after
+being granted permission) return the results back to `Dan.WebApp.DemoSpace`
+rendering them to the web user interface.
+
+Note the use of the fully qualified `id` of `Host.DemoSpace` used with the `to:`
+field
 
 
 ## Broadcast vs Point-to-Point Messaging
@@ -459,6 +463,12 @@ just a single operator you can use something like:
 ```
 
 And that will send the `help` message to only the `Host` operator.
+
+Note that point-to-point messages (messages that define the `"to"` field) will
+result in an error if the action is not defined on the target operator.
+
+Broadcast messages will _not_ return an error, but will silently be ignored by
+operators who do not implement the given action.
 
 
 ## Adding an Environment-Aware Agent
@@ -495,16 +505,18 @@ you'll notice a few things:
 agent's own thoughts. This differs slightly from common practice (as far as I
 understand). I do not think this makes a large difference but was worth
 mentioning. This is a personal preference that I believe may be a slightly more
-natural way to frame content in the prompt. There are shades of an "ego" here
-that is fascinating to think about but I'll leave that for another time. :)
+natural way to frame content in a prompt. There are shades of an "ego" here that
+is fascinating to think about but I'll leave that for another time. :)
 
 1. I frame the situation clearly and accurately for the agent, telling it enough
 about the situation, its goals, and the JSON format that it uses to communicate.
 
 1. I "pretend" that the bottom portion is a terminal application. By strongly
-signaling a change in context with the `%%%% Terminal %%%%` header, we help to
+signaling a change in context with the `%%%%% Terminal %%%%%` header, we help to
 make clear to the language model that this is a distinct section of content with
-it's own text patterns to follow.
+it's own text patterns to continue. I do not believe that this is a necessary
+technique either but it is interesting to note, and I've had good success so far
+with it.
 
 1. I use the `_message_log_to_list()` method to dynamically insert the previous
 conversation up to the current point. See the mixin class `PromptMethods` for
@@ -513,8 +525,9 @@ implementation will eventually hit the context window after a short time.
 
 1. I insert a fake event at the beginning of the terminal portion of the prompt,
 pretending that the agent executed the `/help` action proactively, and display
-the resulting list of possible actions as a nifty way to insert the available
-actions while keeping the supposed context of the terminal.
+the resulting list of possible actions as a slick way to insert the available
+actions while keeping the supposed context of the terminal, and providing a
+one-shot example to begin from.
 
 
 Note that ChattyAI uses a more typical prompt, showing that this technique need
@@ -556,13 +569,23 @@ if __name__ == '__main__':
         time.sleep(1)
 ```
 
+If you run the above python script, after a short boot time you can visit the
+web app on the port you specify (`WEB_APP_PORT`) and you should see a simple
+chat interface.
 
+The following is a screenshot of a typical conversation which you may experience
+that showcases the `DemoAgent`'s ability to understand and interact fully with
+every other connected operator, including running commands on the host, or even
+chatting with `ChattyAI`.
+
+
+> TODO add screenshot
 
 
 # Hypothetical Examples
 
-The following examples are not implemented, but are presented to give you an
-idea of other ways that this API could be used.
+The following examples are not implemented, but are presented to give you
+additional ideas of ways that this API could be used.
 
 ```python
 Space([
@@ -572,19 +595,19 @@ Space([
         ip="192.168.1.100"),
 
     # Add a voice assistant interface
-    VoiceAssistant("Sirilexa")
+    VoiceAssistant("VoiceyAI")
 
-    # One could connect and send/receive messages via email
+    # Use email to send/receive messages from others
     Email("Dan", address="dan@dan.com"),
 
-    # AI agents can access other ML systems, like for images
+    # AI agents can access other ML services, like for images
     DiffusionModel("ImageAI"),
 
     # Horizontal scaling could be achieved by simply duplicating operators
     # (notice we repeat the last one)
     DiffusionModel("ImageAI"),
 
-    # Existing AI agent frameworks may integrate as well
+    # Existing AI agents may integrate as well
     LangChainAgent("MyLangChainAgent"))
 
     # Development related tasks like model training may also be accomplished.
