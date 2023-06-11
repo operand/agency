@@ -682,7 +682,7 @@ start:
 on common application concerns such as speed, security, and messaging.
 - If you'd like to add specific implementations of `Operator`'s and `Spaces`
 they can go into their respective folders.
-- Changes to core classes should be accompanied by tests if possible.
+- Changes to core classes should be accompanied by tests if applicable.
 
 
 If you have any questions, suggestions, or problems, please open an
