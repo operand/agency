@@ -41,7 +41,8 @@ access to your host, allowing you to limit the resources and directories that
 may be accessed.
 
 ```sh
-pip install everything
+git clone git@github.com:operand/everything.git
+pip install ./everything
 ```
 
 
