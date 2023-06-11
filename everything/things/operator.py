@@ -94,15 +94,7 @@ class Operator():
             try:
                 message = self.__message_queue.get(timeout=0.01)
                 try:
-                    try:
-                        self.__commit_action(message)
-                    except PermissionError as e:
-                        # prompt for permission and requeue or raise new permission error
-                        if self._request_permission(message):
-                            self.__message_queue.put(message)
-                        else:
-                            raise PermissionError(
-                              f"Access denied by '{self.operator.id()}' for: {message}")
+                    self.__commit_action(message)
                 except Exception as e:
                     # Here we handle errors that occur while handling an action, including
                     # access denial, by reporting the error back to the sender. If an error
