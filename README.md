@@ -574,8 +574,8 @@ web app on the port you specify (`WEB_APP_PORT`) and you should see a simple
 chat interface.
 
 The following is a screenshot of a conversation that showcases `DemoAgent`'s
-ability to understand and intelligently interact with other connected operators,
-including running commands on the host, or even chatting with `ChattyAI`.
+ability to understand and intelligently interact with other operators, including
+running commands on the host, or even chatting with `ChattyAI`.
 
 Note that my messages are broadcasted in the below conversation, which explains
 why `"Chatty"` responds to each message as does `"Demo"`. There is an obvious

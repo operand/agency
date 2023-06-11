@@ -61,7 +61,6 @@ class DemoAgent(Operator, PromptMethods):
     @access_policy(ACCESS_PERMITTED)
     def _action__say(self, content: str) -> bool:
         full_prompt = self._full_prompt()
-        util.debug(f"*openai prompt:", full_prompt)
         completion = openai.Completion.create(
           model=self.__model,
           prompt=full_prompt,

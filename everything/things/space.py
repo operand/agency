@@ -17,7 +17,6 @@ class Space(Operator):
 
     def add(self, operator: Operator):
         """Adds and starts an operator to the space"""
-        util.debug(f"*[{self.id()}] adding {operator.id()}")
         self.operators.append(operator)
         operator.space = self
         if self.running.is_set():
