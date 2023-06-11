@@ -630,7 +630,7 @@ Though you could entirely create a simple agent using only the primitives in
 not intended to be a full-fledged agent toolset. It can be thought of as more of
 an "agent integration framework".
 
-Projects like LangChain, AutoGPT and many others are exploring how to create
+Projects like LangChain, AutoGPT and others are exploring how to create
 purpose-built agents that solve diverse problems using tools.
 
 `everything` is concerned with creating a safe and dynamic _environment_ for
@@ -649,18 +649,42 @@ and not use agents at all!
 An additional benefit of its general design is that `everything` may also
 simplify some agent development workflows. See the hypothetical examples above.
 
-So, `everything` is a simple but more general framework intended to support
-agent development and to ultimately enable agents to safely integrate with
-anything, in any way imaginable.
+So, `everything` is a more general framework intended to support agent
+development and to ultimately enable agents to safely integrate with anything,
+in any way imaginable.
 
 
 # Contributing
 
-Please feel free! Feedback is also appreciated!
+Please feel free to open PRs!
 
 If you have any questions, suggestions, or problems, please open an
 [issue](https://github.com/operand/everything/issues).
 
+
+## Development Installation
+
+Stable development dependencies are maintained in `requirements-dev.in`. You can
+install the development dependencies with:
+
+```bash
+git clone git@github.com:operand/everything.git
+cd everything
+poetry install --dev
+```
+
+
+## Test Suite
+
+You can run the test suite with:
+```bash
+pytest
+```
+
+The test suite is currently set up to run on pull requests to the `main` branch.
+
+
+## PR Guidelines
 
 If you're looking to open a PR I'd like to keep to the following guidelines to
 start:
@@ -675,37 +699,11 @@ examples if you'd like.
 - Changes to core classes should be accompanied by tests whenever possible.
 
 
-
-
-## Development Installation
-
-Stable development dependencies are maintained in `requirements-dev.in`. You can
-install the development dependencies with:
-```bash
-pip install -r requirements-dev.txt
-```
-
-To add a dependency, add it to the `requirements.in` file and run:
-```bash
-pip-compile requirements-dev.in
-```
-And make sure to commit your changes.
-
-
-## Test Suite
-
-You can run the test suite with:
-```bash
-pytest
-```
-
-The test suite is currently set up to run on pull requests to the `main` branch.
-
-
 # Roadmap
 
-My goal is to maintain a minimal, natural, and practical API for bringing human,
-artificial, and other computing systems together, with the following priorities.
+The goal is to maintain a minimal, natural, and practical API for bringing
+human, artificial, and other computing systems together, with the following
+priorities.
 
 
 ## Priorities
