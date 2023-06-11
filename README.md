@@ -573,8 +573,9 @@ Note how Demo is able to correctly follow each of my instructions. I also
 demonstrate the results of rejecting an action and asking him to use a different
 approach.
 
-Behind the scenes after I explained my rejection, Demo used the command `wc -l
-Dockerfile` which was more appropriate. And the file indeed has 75 lines.
+Behind the scenes, Demo did message Chatty directly, and after I explained my
+rejection of the `read_file` action, Demo used the command `wc -l Dockerfile`
+which was more appropriate. And the file indeed has 75 lines.
 
 <p align="center">
   <img src="https://i.ibb.co/f1GMb5P/Screenshot-2023-06-10-at-11-50-42-PM.png"
