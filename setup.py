@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="everything",
+    name="python-everything",
     packages=find_packages(),
 )
