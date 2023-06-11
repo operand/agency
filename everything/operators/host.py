@@ -21,7 +21,7 @@ class Host(Operator):
           stdout=subprocess.PIPE,
           stderr=subprocess.PIPE,
           text=True,
-          cwd="/app"
+          cwd="/app" # TODO: make this configurable
         )
         output = result.stdout + result.stderr
         if result.returncode != 0:

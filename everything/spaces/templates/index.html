@@ -96,7 +96,9 @@
           }
         }
         else {
-          let parts = action_text.match(/"[^"]+"|\S+/g).map(part => part.replace(/"/g, ''));
+          let parts = action_text
+              .match(/"[^"]+"|\S+/g)
+              .map(part => part.replace(/"/g, ''));
           let action_name = parts[0].substring(1);
           let args = this.parseArguments(parts);
 

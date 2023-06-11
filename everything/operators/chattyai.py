@@ -11,7 +11,7 @@ import textwrap
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 
 
-class ChattyLM(Operator, PromptMethods):
+class ChattyAI(Operator, PromptMethods):
     """
     Encapsulates a simple chatting AI backed by a language model.
     Currently uses transformers library as a backend provider.

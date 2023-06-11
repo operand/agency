@@ -1,5 +1,4 @@
 from eventlet import wsgi
-from everything.things import util
 from everything.things.operator import ACCESS_PERMITTED, Operator, access_policy
 from everything.things.schema import MessageSchema
 from everything.things.space import Space
@@ -23,7 +22,7 @@ class WebAppUser(Operator):
 
     # We use the _after_action__ method to pass through all messages to the
     # socketio web client
-    def _after_action___(self, original_message: MessageSchema, return_value: str, error: str):
+    def _after_action__(self, original_message: MessageSchema, return_value: str, error: str):
         self.space.socketio.server.emit(
           'message', original_message, room=self.connected_sid)
 
@@ -78,7 +77,9 @@ class WebApp(Space):
         # Define routes
         @app.route('/')
         def index():
-            return render_template('index.html', operator_id=f"{self.current_operator().id()}")
+            return render_template(
+                'index.html',
+                operator_id=f"{self.current_operator().id()}")
 
         @self.socketio.on('connect')
         def handle_connect():
@@ -88,7 +89,7 @@ class WebApp(Space):
         @self.socketio.on('message')
         def handle_action(action):
             """
-            Handles incoming actions from the web user interface
+            Handles incoming actions from the web interface
             """
             # NOTE we must send it as the _user_, not the space
             self.current_operator()._send(action)
@@ -96,7 +97,7 @@ class WebApp(Space):
         @self.socketio.on('permission_response')
         def handle_alert_response(allowed: bool):
             """
-            Handles incoming alert responses
+            Handles incoming alert response from the web interface
             """
             raise NotImplementedError
 

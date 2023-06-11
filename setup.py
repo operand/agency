@@ -19,7 +19,7 @@ setup(
     "colorama>=0.4",
     "pydantic>=1.8",
 
-    # Required by ChattyLM example
+    # Required by ChattyAI example
     "transformers>=4.29",
     "torch>=2.0",
 
