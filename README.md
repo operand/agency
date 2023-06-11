@@ -17,7 +17,7 @@ each other as individual "operators" that you may perform "actions" on.
 discovering and invoking actions across all parties, automatically handling
 things such as reporting exceptions, enforcing access restrictions, and more.
 
-The API equally accommodates integration of systems as varied as:
+The API accommodates integration with systems as varied as:
 
 - voice assistants
 - UI driven applications
@@ -48,19 +48,18 @@ pip install everything
 # API Overview
 
 `everything` is an implementation of the [Actor
-model](https://en.wikipedia.org/wiki/Actor_model) intended for use in systems
-that may equally mix AI, humans, and traditional computing systems.
+model](https://en.wikipedia.org/wiki/Actor_model) intended for integrating AI,
+human, and traditional computing systems.
 
 In `everything`, all entities are represented as instances of the class
 `Operator`. This includes all humans, software, or AI agents.
 
-The `Operator` class can be thought of as a base class similar to "Object" in
-many object-oriented languages. All `Operator`'s may expose "actions" which can
-be invoked by other `Operator`'s, by simply defining instance methods on the
-class.
+The `Operator` class is a base class similar to "Object" in many object-oriented
+languages. All operators may expose "actions" which can be invoked by other
+operators, by simply defining instance methods on the class.
 
-A `Space` is itself a subclass of `Operator` and is used to group multiple
-`Operator`'s together and facilitate communication among them.
+A `Space` is a subclass of `Operator` and is used to group multiple operators
+together.
 
 A `Space` can be thought of as both a collection of `Operator`'s and a "router"
 for their communication. An `Operator` cannot communicate with others until it
@@ -71,8 +70,9 @@ namespacing and hierarchical organization of the `Operator`'s in your
 application.
 
 To summarize, the two classes of `Operator` and `Space` together create a simple
-API for defining and integrating complex multimodal applications that mix AI,
-human, and traditional computing systems.
+API for defining and integrating complex applications that may mix AI, human,
+and traditional computing systems.
+
 
 Let's walk through a thorough example to see how this works in practice.
 
@@ -81,7 +81,7 @@ Let's walk through a thorough example to see how this works in practice.
 
 > Please note that the example classes used in this walkthrough are implemented
 for you to explore and try out, but should be considered "proof of concept"
-quality only.
+quality at this time.
 
 
 ## Creating a `Space`
@@ -89,23 +89,22 @@ quality only.
 Let's start by instantiating a demo space.
 
 ```python
-demo_space = Space("DemoSpace")
+space = Space("DemoSpace")
 ```
 
-Spaces, like all `Operator`'s, must be given an `id`. So the line above
+Spaces, like all operators, must be given an `id`. So the line above
 instantiates a single space called `"DemoSpace"` that we can now add
-`Operator`'s to.
+operators to.
 
 
 ## Adding an `Operator` to a `Space`
 
-Now, let's add our first `Operator` to the space, a simple transformers library
+Now, let's add our first operator to the space, a simple transformers library
 backed chatbot class named `ChattyAI`. You can browse the source code for
 `ChattyAI` [here](./everything/operators/chattyai.py).
 
 ```python
-demo_space.add(
-    ChattyAI("Chatty", model="EleutherAI/gpt-neo-125m"))
+space.add(ChattyAI("Chatty", model="EleutherAI/gpt-neo-125m"))
 ```
 
 The line above adds a new `ChattyAI` instance to the space, with the `id` of
@@ -113,10 +112,10 @@ The line above adds a new `ChattyAI` instance to the space, with the `id` of
 used to initialize the HuggingFace transformers language model.
 
 At this point "Chatty" has a fully qualified `id` of `"Chatty.DemoSpace"`.  This
-is because `ChattyAI` is a member of the `DemoSpace` space.
+is because `"Chatty"` is a member of the `"DemoSpace"` space.
 
-In this way, spaces establish a namespace for their members which can later be
-used to address them.
+This way, spaces establish a namespace for their member operators which can
+later be used to address them.
 
 
 ## Defining Actions
@@ -163,14 +162,14 @@ self._send({
 ```
 
 This is a very simple implementation, but it demonstrates the basic idea of how
-to invoke an "action" on another `Operator`.
+to invoke an action on another operator.
 
-When an `Operator` receives a message, it invokes the action method specified in
-by the `action` field of the message, passing the `args` to the action method as
-keyword arguments.
+When an operator receives a message, it invokes the action method specified in
+by the `"action"` field of the message, passing the `"args"` to the action
+method as keyword arguments.
 
-So here we see that `ChattyAI` is invoking the `"say"` action on the sender of
-the original message, passing the response as the `content` argument.
+So here we see that Chatty is invoking the `"say"` action on the sender of
+the original message, passing the response as the `"content"` argument.
 
 
 ## The Common Message Schema
@@ -185,10 +184,10 @@ Simply put, an "action" is the format you use when sending, as seen in the
 it will be automatically added when routing.
 
 A "message" then, is simply a "received action" which includes the additional
-`"from"` field containing the sender's `id`.
+`"from"` field containing the sender's fully qualified `id`.
 
 Continuing the example above, the original sender would receive a response
-message from `ChattyAI` that would look something like:
+message from Chatty that would look something like:
 
 ```python
 {
@@ -203,17 +202,17 @@ message from `ChattyAI` that would look something like:
 ```
 
 This is an example of the full common message schema that is used for all
-messages sent between `Operator`'s in `everything`.
+messages sent between operators in `everything`.
 
 This format is intended to be simple and extensible enough to support any use
 case while remaining human readable.
 
-So when the sending `Operator` receives the above response, it in turn invokes
+So when the sending operator receives the above response, it in-turn invokes
 their own `"say"` action, for them to process as they choose.
 
-Note that the `"thoughts"` field is broken out as a distinct argument for
-providing a natural language explanation to accompany any action, but as of this
-writing `ChattyAI` does not make use of it.
+Note that the `"thoughts"` field is defined as a distinct argument for providing
+a natural language explanation to accompany any action, but as of this writing
+`ChattyAI` does not make use of it.
 
 For more details on the common message schema see
 [schema.py](./everything/things/schema.py).
@@ -232,7 +231,7 @@ def _action__say(self, content: str):
 ```
 
 This is an example of an access control policy. Access control policies are used
-to control what actions can be invoked by other `Operator`'s.
+to control what actions can be invoked by other operators.
 
 The access policy can currently be one of three values:
 
@@ -246,8 +245,8 @@ sender is notified of the denial.
 If `ACCESS_REQUESTED` is used, the receiving operator will be prompted at run
 time to approve the action.
 
-To implement a method for an operator to approve/disapprove access, you must
-implement the `_request_permission()` method with the following signature:
+If any actions require permission, you must implement the
+`_request_permission()` method with the following signature:
 
 ```python
 def _request_permission(self, proposed_message: MessageSchema) -> bool:
@@ -273,22 +272,20 @@ A single chatting AI wouldn't be useful without someone to chat with, so now
 let's add humans into the space so that they can chat with "Chatty". To do
 this, we'll use the `WebApp` class, which is a subclass of `Space`.
 
-**Why is `WebApp` a subclass of `Space` and not `Operator`?**
+Why is `WebApp` a subclass of `Space` and not `Operator`?
 
-This is an arbitrary choice up to the developer, but the rule of thumb should
-be:
+This is an arbitrary choice up to the developer, but the guideline is:
 
-_If you want to include multiple `Operator`'s as a group, you should create a
+_If you want to include multiple operators as a group, you should create a
 `Space` subclass and implement any additional logic necessary to forward
-messages to individual `Operator`'s in the group._
+messages to individual operators in the group._
 
-We could implement `WebApp` as a subclass of `Operator`, and creat the web
-application in a way where there would only be one user, perhaps running it
-locally, or where the web application is viewed as a single operator to others
-in the space, if that fits the use case.
+We could implement `WebApp` as a subclass of `Operator`, and create a web
+application in a way where the web app would appear as a single operator,
+perhaps running it locally, if that fits the use case.
 
-But since a typical web application serves multiple users, it may make more
-sense to implement it as a `Space` subclass, so that individual users of the web
+But since a typical web application serves multiple users, it may make sense to
+implement it as a `Space` subclass, so that individual users of the web
 application can be addressed by other operators using a namespace associated
 with the web application, as we'll see below.
 
@@ -313,8 +310,8 @@ user may expose to others.
 
 Using the `asyncio` library you'll see that we simply forward messages as-is to
 the `React` frontend, and allow the client code to handle rendering and parsing
-of input as actions back to the `Flask` application, which in-turn forwards them
-to their intended receiver.
+of input as actions back to the `Flask` application, which in-turn sends them to
+their intended receiver in the space.
 
 
 ## Namespacing and Adding the Web Application
@@ -323,46 +320,41 @@ Now that we've defined our new `WebApp` class, we can add it to `DemoSpace`
 with:
 
 ```python
-demo_space.add(
-    WebApp("WebApp", port=os.getenv('WEB_APP_PORT')))
+space.add(WebApp("WebApp", port=os.getenv('WEB_APP_PORT')))
 ```
 
 Whenever any operator is added to a space, its fully qualified `id` becomes
 namespaced by the space's `id`.
 
-For example, the `WebApp` being an operator as well, receives an `id` of
-`"WebApp.DemoSpace"` after running the line above.
+For example, after running the line above the `WebApp` being an operator as
+well, receives an `id` of `"WebApp.DemoSpace"`.
 
-At this point, we have the following list of operators using their fully
-qualified `id`'s
+At this point, we have integrated the following operators listed using their
+fully qualified `id`'s
 
 - `"DemoSpace"` - The root space
 - `"ChattyAI.DemoSpace"` - ChattyAI's fully qualified `id`
 - `"WebApp.DemoSpace"` - the root of the `"WebApp"` space
 
 
-Users of the web application, as they log in or out, may be added dynamically to
-the space and may use their own unique `id` namespaced under `"WebApp"`, 
+Users of the web application, as they log in or out, may be added dynamically
+under the `"WebApp"` namespace allowing them to be addressed with a fully
+qualified `id` of, for example `"Dan.WebApp.DemoSpace"`.
 
-For example, if `"Dan"` logs in, his `id` within the environment would become:
-`"Dan.WebApp.DemoSpace"`.
-
-
-_(Please note that login/out functionality is not fully implemented as of this
-writing.)_
+_(Note that login/out functionality is not implemented as of this writing.)_
 
 
 ## Adding OS Access with the `Host` class
 
 At this point, we have a system where human users of the web application can
-chat with ChattyAI, using just a single action called `"say"` that both
+chat with `ChattyAI`, using just a single action called `"say"` that both
 `Operator` classes implement.
 
 Now we'll add an operator that exposes many different actions, the
 [`Host`](./everything/operators/host.py) class.
 
 ```python
-demo_space.add(Host("Host"))
+space.add(Host("Host"))
 ```
 
 The `Host` class allows access to the host operating system where the python
@@ -453,8 +445,7 @@ field
 ## Broadcast vs Point-to-Point Messaging
 
 If we omit the `to:Host.DemoSpace` portion of the command above, the message will be
-broadcast, and any `Operator`'s who implement a `list_files` action will
-respond.
+broadcast, and any operators who implement a `list_files` action will respond.
 
 This is also how the `/help` command works. If you want to request help from
 just a single operator you can use something like:
@@ -462,8 +453,6 @@ just a single operator you can use something like:
 ```
 /help to:Host.DemoSpace
 ```
-
-And that will send the `help` message to only the `Host` operator.
 
 Note that point-to-point messages (messages that define the `"to"` field) will
 result in an error if the action is not defined on the target operator.
@@ -474,7 +463,7 @@ operators who do not implement the given action.
 
 ## Adding an Environment-Aware Agent
 
-Finally we get to the exciting part!
+Finally we get to the good part!
 
 We'll now add an intelligent agent into this environment and see that it is
 easily able to understand and interact with any of the systems or humans we've
@@ -483,7 +472,7 @@ connected thus far.
 To add the [`DemoAgent`](./everything/operators/demo_agent.py) class to the
 environment:
 ```python
-demo_space.add(
+space.add(
     DemoAgent("Demo",
         model="text-davinci-003",
         openai_api_key=os.getenv("OPENAI_API_KEY")))
@@ -503,14 +492,14 @@ others is largely embodied in the `DemoAgent._prompt_head()` method. In it
 you'll notice a few things:
 
 1. The prompt is written from the first person perspective as though it is the
-agent's own thoughts. This differs slightly from common practice (as far as I
-understand). I do not think this makes a large difference but was worth
-mentioning. This is a personal preference that I believe may be a slightly more
-natural way to frame content in a prompt. There are shades of an "ego" here that
-is fascinating to think about but I'll leave that for another time. :)
+agent's own thoughts. This differs slightly from common practice. I do not think
+this makes a large difference but was worth mentioning. This is a personal
+preference that I believe may be a slightly more natural way to frame content in
+a prompt. There are shades of an "ego" here that is fascinating to think about
+but I'll leave that for another time. :)
 
 1. I frame the situation clearly and accurately for the agent, telling it enough
-about the situation, its goals, and the JSON format that it uses to communicate.
+about who it is, its goals, and the JSON format that it uses to communicate.
 
 1. I "pretend" that the bottom portion is a terminal application. By strongly
 signaling a change in context with the `%%%%% Terminal %%%%%` header, we help 
@@ -575,28 +564,29 @@ chat interface.
 
 The following is a screenshot of a conversation that showcases `DemoAgent`'s
 ability to understand and intelligently interact with other operators, including
-running commands on the host, or even chatting with `ChattyAI`.
+running commands on the host, or even chatting with "Chatty".
 
 Note that my messages are broadcasted in the below conversation, which explains
-why `"Chatty"` responds to each message as does `"Demo"`. There is an obvious
-difference in quality, of course.
+why Chatty responds to each message as does Demo. There is an obvious difference
+in quality, of course.
 
-Note how `"Demo"` is able to correctly follow each of my instructions. I also
+Note how Demo is able to correctly follow each of my instructions. I also
 demonstrate the results of rejecting an action and asking him to use a different
 approach.
 
-Behind the scenes after I explained my rejection, `"Demo"` used the command `wc
--l Dockerfile` which was more appropriate. And the file indeed has 75 lines.
+Behind the scenes after I explained my rejection, Demo used the command `wc -l
+Dockerfile` which was more appropriate. And the file indeed has 75 lines.
 
 <p align="center">
   <img src="https://i.ibb.co/f1GMb5P/Screenshot-2023-06-10-at-11-50-42-PM.png"
        alt="Screenshot-2023-06-10-at-11-50-42-PM" border="0" width=500>
 </p>
 
+
 # Hypothetical Examples
 
 The following examples are not implemented, but are presented to give you
-additional ideas of ways that `everything` could be used.
+additional ideas for ways that `everything` could be used.
 
 ```python
 Space([
@@ -609,7 +599,7 @@ Space([
     VoiceAssistant("VoiceyAI")
 
     # Use email to send/receive messages from others
-    Email("Dan", address="dan@dan.com"),
+    Email("Dan", address="dan@example.com"),
 
     # Integrate other ML services, like for images
     DiffusionModel("ImageAI"),
