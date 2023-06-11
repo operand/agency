@@ -589,10 +589,9 @@ Behind the scenes after I explained my rejection, `"Demo"` used the command `wc
 -l Dockerfile` which was more appropriate. And the file indeed has 75 lines.
 
 <p align="center">
-  <img src="https://i.ibb.co/F32HNpd/Screenshot-2023-06-10-at-11-36-12-PM.png"
-       alt="Screenshot-2023-06-10-at-11-36-12-PM" width=600>
+  <img src="https://i.ibb.co/f1GMb5P/Screenshot-2023-06-10-at-11-50-42-PM.png"
+       alt="Screenshot-2023-06-10-at-11-50-42-PM" border="0" width=500>
 </p>
-
 
 # Hypothetical Examples
 
