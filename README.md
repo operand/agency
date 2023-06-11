@@ -674,7 +674,7 @@ anything, in any way imaginable.
 
 # Contributing
 
-Please do! Feedback is also a contribution!
+Please feel free! Feedback is also appreciated!
 
 If you have any questions, suggestions, or problems, please open an
 [issue](https://github.com/operand/everything/issues).
@@ -688,7 +688,7 @@ on common application concerns such as speed, security, and messaging.
 
 - If you'd like to add specific implementations of `Operator`'s and `Space`'s
 they should go into their respective folders. Feel free to improve the included
-examples as well!
+examples if you'd like.
 
 - Changes to core classes should be accompanied by tests whenever possible.
 
