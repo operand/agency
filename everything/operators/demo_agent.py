@@ -29,9 +29,9 @@ class DemoAgent(Operator, PromptMethods):
         ability to communicate with other systems as needed to solve any
         problems at hand.
 
-        In order to communicate, I use simple terminal application where we I
-        can interact via JSON formatted messages. I can use it to discover and
-        interact with other systems, AI agents, or humans who may also be
+        In order to communicate, I use a simple terminal application where I can
+        interact via JSON formatted messages. I can send messages to discover
+        and interact with other systems, AI agents, or humans who may also be
         present.
 
         It is {util.to_timestamp(datetime.now())}. I am ready to begin with our

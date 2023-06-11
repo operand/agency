@@ -486,35 +486,39 @@ results with agents.
 
 ### The `DemoAgent` Prompt
 
+What makes the `DemoAgent` able to intelligently discover and communicate with
+others is largely embodied in the `DemoAgent._prompt_head()` method. In it
+you'll notice a few things:
+
+1. The prompt is written from the first person perspective as though it is the
+agent's own thoughts. This differs slightly from common practice (as far as I
+understand). I do not think this makes a large difference but was worth
+mentioning. This is a personal preference that I believe may be a slightly more
+natural way to frame content in the prompt. There are shades of an "ego" here
+that is fascinating to think about but I'll leave that for another time. :)
+
+1. I frame the situation clearly and accurately for the agent, telling it enough
+about the situation, its goals, and the JSON format that it uses to communicate.
+
+1. I "pretend" that the bottom portion is a terminal application. By strongly
+signaling a change in context with the `%%%% Terminal %%%%` header, we help to
+make clear to the language model that this is a distinct section of content with
+it's own text patterns to follow.
+
+1. I use the `_message_log_to_list()` method to dynamically insert the previous
+conversation up to the current point. See the mixin class `PromptMethods` for
+the implementation. There is no summarization used, so the current
+implementation will eventually hit the context window after a short time.
+
+1. I insert a fake event at the beginning of the terminal portion of the prompt,
+pretending that the agent executed the `/help` action proactively, and display
+the resulting list of possible actions as a nifty way to insert the available
+actions while keeping the supposed context of the terminal.
 
 
-
-
----
-# TODOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-
-
-Agents may be presented with the same help information, either as part of their
-prompt or they may act directly by invoking the `/help` action themselves.
-
-Note that agents, like any other "operator" do not need to use the same 
-"slash" syntax described above for calling actions. An agent may, for example,
-be designed to communicate entirely in JSON.
-
-So just to illustrate, the equivalent of an agent's `/help` command in JSON could be:
-```json
-{
-  "from": "AgentChannel",
-  "thoughts": "I need to find what actions are available",
-  "action": "help",
-  "args": {}
-}
-```
-
-This approach allows both human users _and_ AI agents or any other system to
-dynamically discover and call on each other!
-
----
+Note that ChattyAI uses a more typical prompt, showing that this technique need
+not be shared by all agents connected to the space, but can be entirely unique
+to each agent.
 
 
 ## Complete Demo Implementation
