@@ -664,13 +664,10 @@ If you have any questions, suggestions, or problems, please open an
 
 ## Development Installation
 
-Stable development dependencies are maintained in `requirements-dev.in`. You can
-install the development dependencies with:
-
 ```bash
 git clone git@github.com:operand/everything.git
 cd everything
-poetry install --dev
+poetry install
 ```
 
 
@@ -682,21 +679,6 @@ pytest
 ```
 
 The test suite is currently set up to run on pull requests to the `main` branch.
-
-
-## PR Guidelines
-
-If you're looking to open a PR I'd like to keep to the following guidelines to
-start:
-
-- The core classes (`Operator` and `Space`) should be kept minimal and focused
-on common application concerns such as speed, security, and messaging.
-
-- If you'd like to add specific implementations of `Operator`'s and `Space`'s
-they should go into their respective folders. Feel free to improve the included
-examples if you'd like.
-
-- Changes to core classes should be accompanied by tests whenever possible.
 
 
 # Roadmap
