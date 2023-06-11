@@ -17,13 +17,12 @@ each other as individual "operators" that you may perform "actions" on.
 discovering and invoking actions across all parties, automatically handling
 things such as reporting exceptions, enforcing access restrictions, and more.
 
-The API accommodates integration with systems as varied as:
+The API accommodates agent integration with systems as varied as:
 
-- voice assistants
 - UI driven applications
 - terminal environments
-- web applications
 - software APIs
+- other AI agents
 - people
 - ...
 - anything
@@ -224,8 +223,9 @@ For more details on the common message schema see
 
 ## Access Control
 
-You may have noticed the `@access_policy` decorator used on the `"say"` action in
-`ChattyAI`:
+
+All actions must declare an access policy like the following example seen above
+the `ChattyAI._action__say()` method:
 
 ```python
 @access_policy(ACCESS_PERMITTED)
@@ -234,8 +234,8 @@ def _action__say(self, content: str):
     ...
 ```
 
-This is an example of an access control policy. Access control policies are used
-to control what actions can be invoked by other operators.
+Access control policies are used to control what actions can be invoked by other
+operators.
 
 The access policy can currently be one of three values:
 
@@ -574,8 +574,8 @@ I also demonstrate the results of rejecting an action and asking him to use a
 different approach.
 
 Behind the scenes, Demo did message Chatty directly, and after I explained my
-rejection of the `read_file` action, Demo used the command `wc -l Dockerfile`
-which was more appropriate. And the file indeed has 75 lines.
+rejection of the `read_file` action, Demo used the `shell_command` action with
+`wc -l Dockerfile` which was more appropriate. And the file indeed has 75 lines.
 
 <p align="center">
   <img src="https://i.ibb.co/f1GMb5P/Screenshot-2023-06-10-at-11-50-42-PM.png"
@@ -585,8 +585,8 @@ which was more appropriate. And the file indeed has 75 lines.
 
 # Hypothetical Examples
 
-The following examples are not implemented, but are presented to give you
-additional ideas for integrations that `everything` could be support.
+The following examples are not implemented, but are presented as additional
+ideas for integrations that `everything` could support.
 
 ```python
 Space([
@@ -674,7 +674,7 @@ in any way imaginable.
 
 # Contributing
 
-Please feel free to open PRs!
+Please do!
 
 If you have any questions, suggestions, or problems, please open an
 [issue](https://github.com/operand/everything/issues).
@@ -693,7 +693,7 @@ poetry install
 
 You can run the test suite with:
 ```bash
-pytest
+poetry run pytest
 ```
 
 The test suite is currently set up to run on pull requests to the `main` branch.
