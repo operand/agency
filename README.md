@@ -564,26 +564,8 @@ If you run the above python script, after a short boot time you can visit the
 web app on the port you specify (`WEB_APP_PORT`) and you should see a simple
 chat interface.
 
-The following is a screenshot of a conversation that showcases `DemoAgent`'s
-ability to understand and intelligently interact with other operators, including
-running commands on the host, or even chatting with "Chatty".
-
-Note that my messages are broadcasted in the below conversation, which explains
-why Chatty responds to each message as does Demo. There is an obvious difference
-in quality, of course.
-
-Note how Demo is able to correctly follow each of my instructions. I also
-demonstrate the results of rejecting an action and asking him to use a different
-approach.
-
-Behind the scenes, Demo did message Chatty directly, and after I explained my
-rejection of the `read_file` action, Demo used the command `wc -l Dockerfile`
-which was more appropriate. And the file indeed has 75 lines.
-
-<p align="center">
-  <img src="https://i.ibb.co/f1GMb5P/Screenshot-2023-06-10-at-11-50-42-PM.png"
-       alt="Screenshot-2023-06-10-at-11-50-42-PM" border="0" width=500>
-</p>
+With the above implementation, `DemoAgent` will be able to handle simple tasks
+involving any of the connected systems.
 
 
 # Hypothetical Examples
