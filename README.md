@@ -77,7 +77,7 @@ human, and traditional computing systems.
 Let's walk through a thorough example to see how this works in practice.
 
 
-# Walkthrough
+# Example Walkthrough
 
 _Please note that the example classes used in this walkthrough are implemented
 for you to explore and try out, but should be considered "proof of concept"
@@ -146,9 +146,9 @@ prompt format with the language model, and return the result to the sender.
 
 ## Invoking Actions
 
-At the end of the `ChattyAI` `"say"` implementation, we see the first instance
-of `everything`'s messaging protocol. `ChattyAI` returns a response to the
-sender by calling:
+At the end of the `ChattyAI` `"say"` implementation, we see an example of using
+`everything`'s messaging protocol. `ChattyAI` returns a response to the sender
+by calling:
 
 ```python
 self._send({
@@ -165,35 +165,35 @@ This is a very simple implementation, but it demonstrates the basic idea of how
 to invoke an "action" on another `Operator`.
 
 When an `Operator` receives a message, it invokes the action specified in the
-`action` field of the message, passing the `args` to the action as keyword
-arguments.
+`action` field of the message, passing the `args` to the action method as
+keyword arguments.
 
 So here we see that `ChattyAI` is invoking the `"say"` action on the sender of
-the message, passing the response as the `content` argument.
+the original message, passing the response as the `content` argument.
 
 
 ## The Common Message Schema
 
-In the example above, we also see the format that is used when sending actions.
+In the example above, we see the format that is used when sending actions.
 
 In describing the messaging format, there are two terms that are used similarly:
 "action" and "message".
 
 Simply put, an "action" is the format you use when sending, as seen in the
-`_send()` call above. You do not specify your own `id` in the `from` field,
-because the `Space` will automatically add it for you when routing.
+`_send()` call above. You do not specify your own `id` in the `"from"` field, as
+it will be automatically added when routing.
 
-A "message" then, is simply an "action" with the addition of the sender's `id`
-in the `from` field.
+A "message" then, is simply a "received action" which includes the additional
+`"from"` field containing the sender's `id`.
 
-Continuing the example above, the original sender would recieve a response
+Continuing the example above, the original sender would receive a response
 message from `ChattyAI` that would look something like:
 
 ```python
 {
     "from": "Chatty.DemoSpace",
     "to": "Sender.DemoSpace",
-    "thoughts": "Whatever Chatty was thinking",
+    "thoughts": "",
     "action": "say",
     "args": {
       "content": "Whatever Chatty said",
@@ -211,7 +211,8 @@ So when the sending `Operator` receives the above response, it in turn invokes
 their own `"say"` action, for them to process as they choose.
 
 Note that the `"thoughts"` field is broken out as a distinct argument for
-providing a natural language explanation to accompany any action.
+providing a natural language explanation to accompany any action, but as of this
+writing `ChattyAI` does not make use of it.
 
 For more details on the common message schema see
 [schema.py](./everything/things/schema.py).
@@ -219,7 +220,7 @@ For more details on the common message schema see
 
 ## Access Control
 
-You may have noticed the `access_policy` decorator used on the `"say"` action in
+You may have noticed the `@access_policy` decorator used on the `"say"` action in
 `ChattyAI`:
 
 ```python
@@ -269,7 +270,7 @@ of the mechanics is a priority for this project.
 
 A single chatting AI wouldn't be useful without someone to chat with, so now
 let's add humans into the space so that they can chat with "Chatty". To do
-this, we'll use the `WebApp` class, which is subclass of `Space`.
+this, we'll use the `WebApp` class, which is a subclass of `Space`.
 
 Why is `WebApp` a subclass of `Space` and not `Operator`?
 
