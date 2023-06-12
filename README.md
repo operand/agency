@@ -39,11 +39,8 @@ RECOMMEND running your project within a Docker container to prevent direct
 access to your host, allowing you to limit the resources and directories that
 may be accessed.
 
-**Please note that `agency` is not yet published to pip.**
-
 ```sh
-git clone git@github.com:operand/agency.git
-pip install ./agency
+pip install python_agency
 ```
 
 
