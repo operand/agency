@@ -746,8 +746,3 @@ priorities.
 - Add docker assets to encourage using it
 - [_feel free to make
 suggestions_](https://github.com/operand/everything/issues)
-
-
-<p align="center">
-  <img src="https://i.ibb.co/p1Y41QX/logo-3.png" alt="logo-3" border="0" width=128>
-</p>
