@@ -3,8 +3,8 @@ from python_agency.agent import Agent
 from python_agency.agents.prompt_methods import PromptMethods
 from python_agency.schema import MessageSchema
 from transformers import AutoTokenizer, AutoModelForCausalLM
-import pagency.util as util
 import os
+import python_agency.util as util
 import textwrap
 
 
