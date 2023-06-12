@@ -1,5 +1,5 @@
 from colorama import Fore, Style
-from agency.agent import ACCESS_REQUESTED, Agent, access_policy
+from python_agency.agent import ACCESS_REQUESTED, Agent, access_policy
 import json
 import os
 import re

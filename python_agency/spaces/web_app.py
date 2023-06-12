@@ -1,7 +1,7 @@
 from eventlet import wsgi
-from agency.agent import ACCESS_PERMITTED, Agent, access_policy
-from agency.schema import MessageSchema
-from agency.space import Space
+from python_agency.agent import ACCESS_PERMITTED, Agent, access_policy
+from python_agency.schema import MessageSchema
+from python_agency.space import Space
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
