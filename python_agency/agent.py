@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from python_agency.schema import ActionSchema, MessageSchema
+from agency.schema import ActionSchema, MessageSchema
 import inspect
 import queue
 import re

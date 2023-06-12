@@ -1,5 +1,5 @@
-from python_agency.agent import Agent
-from python_agency.schema import MessageSchema
+from agency.agent import Agent
+from agency.schema import MessageSchema
 
 
 class Space(Agent):

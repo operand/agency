@@ -1,8 +1,8 @@
 from datetime import datetime
-from python_agency import util
-from python_agency.agent import ACCESS_PERMITTED, access_policy
-from python_agency.agent import Agent
-from python_agency.agents.prompt_methods import PromptMethods
+from agency import util
+from agency.agent import ACCESS_PERMITTED, access_policy
+from agency.agent import Agent
+from agency.agents.prompt_methods import PromptMethods
 import json
 import openai
 import textwrap

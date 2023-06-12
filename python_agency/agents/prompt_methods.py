@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from datetime import datetime
-from python_agency import util
-from python_agency.schema import MessageSchema
+from agency import util
+from agency.schema import MessageSchema
 
 
 class PromptMethods:

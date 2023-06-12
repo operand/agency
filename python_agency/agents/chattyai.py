@@ -1,10 +1,10 @@
-from python_agency.agent import ACCESS_PERMITTED, access_policy
-from python_agency.agent import Agent
-from python_agency.agents.prompt_methods import PromptMethods
-from python_agency.schema import MessageSchema
+from agency.agent import ACCESS_PERMITTED, access_policy
+from agency.agent import Agent
+from agency.agents.prompt_methods import PromptMethods
+from agency.schema import MessageSchema
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import os
-import python_agency.util as util
+import agency.util as util
 import textwrap
 
 

@@ -1,7 +1,7 @@
 from contextlib import contextmanager
-from python_agency.agent import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, access_policy
-from python_agency.agent import Agent
-from python_agency.space import Space
+from agency.agent import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, access_policy
+from agency.agent import Agent
+from agency.space import Space
 from tests.conftest import space_context
 import time
 import unittest
