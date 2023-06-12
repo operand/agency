@@ -651,7 +651,7 @@ expose to your agents.
 A central part of the design is that humans and other systems can easily
 integrate as well, using a simple common format for messages. You can even use
 `agency` to set up a basic chat room to use with friends or other systems and
-not use agents at all!
+not use AI-driven agents at all!
 
 An additional benefit of its general design is that `agency` may also simplify
 some agent development workflows. See the hypothetical examples above.
