@@ -1,9 +1,9 @@
-from everything.operator import ACCESS_PERMITTED, access_policy
-from everything.operator import Operator
-from everything.operators.prompt_methods import PromptMethods
-from everything.schema import MessageSchema
+from unite.operator import ACCESS_PERMITTED, access_policy
+from unite.operator import Operator
+from unite.operators.prompt_methods import PromptMethods
+from unite.schema import MessageSchema
 from transformers import AutoTokenizer, AutoModelForCausalLM
-import everything.util as util
+import unite.util as util
 import os
 import textwrap
 

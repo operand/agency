@@ -1,8 +1,8 @@
 from datetime import datetime
-from everything import util
-from everything.operator import ACCESS_PERMITTED, access_policy
-from everything.operator import Operator
-from everything.operators.prompt_methods import PromptMethods
+from unite import util
+from unite.operator import ACCESS_PERMITTED, access_policy
+from unite.operator import Operator
+from unite.operators.prompt_methods import PromptMethods
 import json
 import openai
 import textwrap
