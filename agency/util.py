@@ -1,11 +1,9 @@
-import datetime
-from datetime import datetime
-import inspect
-import re
-from typing import get_type_hints
-import regex
-import json
 from colorama import Fore, Style
+from datetime import datetime
+from typing import get_type_hints
+import inspect
+import json
+import re
 
 
 SYSTEM_TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'

@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from everything.things.space import Space
+from agency.space import Space
 import threading
 import time
 

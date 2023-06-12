@@ -1,12 +1,12 @@
 from colorama import Fore, Style
-from everything.things.operator import ACCESS_REQUESTED, Operator, access_policy
+from agency.agent import ACCESS_REQUESTED, Agent, access_policy
 import json
 import os
 import re
 import subprocess
 
 
-class Host(Operator):
+class Host(Agent):
     """
     Represents the host system of the running application
     """

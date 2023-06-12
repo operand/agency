@@ -1,9 +1,9 @@
-from everything.things.operator import ACCESS_PERMITTED, access_policy
-from everything.things.operator import Operator
-from everything.operators.prompt_methods import PromptMethods
-from everything.things.schema import MessageSchema
+from agency.agent import ACCESS_PERMITTED, access_policy
+from agency.agent import Agent
+from agency.agents.prompt_methods import PromptMethods
+from agency.schema import MessageSchema
 from transformers import AutoTokenizer, AutoModelForCausalLM
-import everything.things.util as util
+import agency.util as util
 import os
 import textwrap
 
@@ -11,7 +11,7 @@ import textwrap
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 
 
-class ChattyAI(Operator, PromptMethods):
+class ChattyAI(Agent, PromptMethods):
     """
     Encapsulates a simple chatting AI backed by a language model.
     Currently uses transformers library as a backend provider.
@@ -42,8 +42,8 @@ class ChattyAI(Operator, PromptMethods):
         # A chatting AI would probably only deal with "say" actions.
         return f"\n{pre_prompt} {message}"
 
-    def _pre_prompt(self, operator_id: str, timestamp=util.to_timestamp()) -> str:
-        return f"\n### {operator_id.split('.')[0]}: "
+    def _pre_prompt(self, agent_id: str, timestamp=util.to_timestamp()) -> str:
+        return f"\n### {agent_id.split('.')[0]}: "
 
     @access_policy(ACCESS_PERMITTED)
     def _action__say(self, content: str):

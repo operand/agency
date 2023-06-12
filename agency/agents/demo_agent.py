@@ -1,14 +1,14 @@
 from datetime import datetime
-from everything.things import util
-from everything.things.operator import ACCESS_PERMITTED, access_policy
-from everything.things.operator import Operator
-from everything.operators.prompt_methods import PromptMethods
+from agency import util
+from agency.agent import ACCESS_PERMITTED, access_policy
+from agency.agent import Agent
+from agency.agents.prompt_methods import PromptMethods
 import json
 import openai
 import textwrap
 
 
-class DemoAgent(Operator, PromptMethods):
+class DemoAgent(Agent, PromptMethods):
 
     def __init__(self, id, model, openai_api_key, **kwargs):
         super().__init__(id, **kwargs)
@@ -47,12 +47,12 @@ class DemoAgent(Operator, PromptMethods):
                 "action": "help",
                 "args": {},
             }, indent=2) + \
-            self._pre_prompt(operator_id=self.space.id()) + \
+            self._pre_prompt(agent_id=self.space.id()) + \
             json.dumps(self.space._get_help__sync()) + \
             self._message_log_to_list()
 
-    def _pre_prompt(self, operator_id, timestamp=util.to_timestamp(datetime.now())):
-        return f"\n[{timestamp}] {operator_id}:"
+    def _pre_prompt(self, agent_id, timestamp=util.to_timestamp(datetime.now())):
+        return f"\n[{timestamp}] {agent_id}:"
 
     def _message_line(self, message, indent=None):
         pre_prompt = self._pre_prompt(message['from'])

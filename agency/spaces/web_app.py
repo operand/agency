@@ -1,7 +1,7 @@
 from eventlet import wsgi
-from everything.things.operator import ACCESS_PERMITTED, Operator, access_policy
-from everything.things.schema import MessageSchema
-from everything.things.space import Space
+from agency.agent import ACCESS_PERMITTED, Agent, access_policy
+from agency.schema import MessageSchema
+from agency.space import Space
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
@@ -9,7 +9,7 @@ import eventlet
 import logging
 
 
-class WebAppUser(Operator):
+class WebAppUser(Agent):
     """Represents a user of the WebApp"""
 
     def _request_permission(self, proposed_message: MessageSchema) -> bool:
@@ -69,7 +69,7 @@ class WebApp(Space):
         self.socketio = SocketIO(app, async_mode='eventlet',
                                  logger=False, engineio_logger=False)
 
-        # NOTE: We're simplifying here by hardcoding a single operator named
+        # NOTE: We're simplifying here by hardcoding a single agent named
         # "Dan" representing a user of the WebApp. In a real application this
         # could be handled dynamically as users log on/off.
         self.add(WebAppUser("Dan"))
@@ -79,12 +79,12 @@ class WebApp(Space):
         def index():
             return render_template(
                 'index.html',
-                operator_id=f"{self.current_operator().id()}")
+                agent_id=f"{self.current_agent().id()}")
 
         @self.socketio.on('connect')
         def handle_connect():
             # When a client connects, store the socketio session ID
-            self.current_operator().connected_sid = request.sid
+            self.current_agent().connected_sid = request.sid
 
         @self.socketio.on('message')
         def handle_action(action):
@@ -92,7 +92,7 @@ class WebApp(Space):
             Handles incoming actions from the web interface
             """
             # NOTE we must send it as the _user_, not the space
-            self.current_operator()._send(action)
+            self.current_agent()._send(action)
 
         @self.socketio.on('permission_response')
         def handle_alert_response(allowed: bool):
@@ -107,7 +107,7 @@ class WebApp(Space):
               ('', int(self.__kwargs['port']))), app, log=eventlet_logger)
         eventlet.spawn(run_server)
 
-    def current_operator(self):
-        # NOTE current_operator would normally be determined via login but for
-        # now we hardcode it to the first operator, "Dan". (see above)
-        return self.operators[0]
+    def current_agent(self):
+        # NOTE current_agent would normally be determined via login but for
+        # now we hardcode it to the first agent, "Dan". (see above)
+        return self.agents[0]

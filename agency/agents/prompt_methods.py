@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from datetime import datetime
-from everything.things import util
-from everything.things.schema import MessageSchema
+from agency import util
+from agency.schema import MessageSchema
 
 
 class PromptMethods:
@@ -11,7 +11,7 @@ class PromptMethods:
     def _full_prompt(self):
         """
         Returns the full prompt, including the pre-prompt and the message log"""
-        return self._prompt_head() + self._pre_prompt(operator_id=self.id())
+        return self._prompt_head() + self._pre_prompt(agent_id=self.id())
 
     def _message_log_to_list(self, indent=None):
         """Convert an array of message_log entries to a prompt ready list"""
@@ -28,7 +28,7 @@ class PromptMethods:
         raise NotImplementedError("Must implement _prompt_head")
 
     @abstractmethod
-    def _pre_prompt(self, operator_id: str, timestamp=util.to_timestamp(datetime.now())):
+    def _pre_prompt(self, agent_id: str, timestamp=util.to_timestamp(datetime.now())):
         """
         Returns the "pre-prompt", the special string sequence that indicates it is
         ones turn to act: e.g. "### Assistant: "

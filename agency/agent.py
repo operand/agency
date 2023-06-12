@@ -1,11 +1,9 @@
 from abc import abstractmethod
-import threading
-from everything.things.schema import ActionSchema, MessageSchema
-import everything.things.util as util
+from agency.schema import ActionSchema, MessageSchema
 import inspect
 import queue
 import re
-import traceback
+import threading
 
 
 # access keys
@@ -25,7 +23,7 @@ def access_policy(level):
 ACTION_METHOD_PREFIX = "_action__"
 
 
-class Operator():
+class Agent():
     """
     An Actor that may represent a human, AI, or other system.
     """
@@ -45,7 +43,7 @@ class Operator():
 
     def id(self) -> str:
         """
-        Returns the fully qualified id of this operator
+        Returns the fully qualified id of this agent
         """
         _id = self.__id
         if self.space is not None:
@@ -53,14 +51,14 @@ class Operator():
         return _id
 
     def run(self):
-        """Starts the operator in a thread"""
+        """Starts the agent in a thread"""
         if not self.running.is_set():
             self.__thread = threading.Thread(target=self.__process)
             self.__thread.start()
             self.running.set()
 
     def stop(self):
-        """Stops the operator thread"""
+        """Stops the agents thread"""
         self.stopping.set()
         self.__thread.join()
 
@@ -189,7 +187,7 @@ class Operator():
         'action_name'. If no action_name is passed, returns all actions.
         [
           {
-            "space.operator": "<space_name>.<operator_name>",
+            "space.agent": "<space_name>.<agent_name>",
             "thoughts": "<docstring_of_action_method>",
             "action": "<action_method_name>",
             "args": {
@@ -221,7 +219,7 @@ class Operator():
             }
             self.__cached__get_action_help = [
               {
-                'to': self.id(),  # fully qualified operator id to send the action
+                'to': self.id(),  # fully qualified agent id to send the action
                 'action': name.replace(ACTION_METHOD_PREFIX, ''),
                 'thoughts': get_docstring(method),
                 'args': get_arguments(method),
@@ -237,16 +235,16 @@ class Operator():
 
     def _action_exists(self, action_name: str):
         """
-        Returns true if the action exists on this operator
+        Returns true if the action exists on this agent
         """
         return hasattr(self, f"{ACTION_METHOD_PREFIX}{action_name}")
 
-    # Override any of the following methods as needed to implement your operator
+    # Override any of the following methods as needed to implement your agent
 
     @access_policy(ACCESS_PERMITTED)
     def _action__help(self, action_name: str = None) -> list:
         """
-        Returns list of actions on this operator matching action_name, or all if none
+        Returns list of actions on this agent matching action_name, or all if none
         is passed.
         """
         return self._get_help(action_name)
@@ -298,7 +296,7 @@ class Operator():
     def _request_permission(self, proposed_message: MessageSchema) -> bool:
         """
         Implement this method to receive a proposed action message and present it to
-        the operator for review. Return true or false to indicate whether access
+        the agent for review. Return true or false to indicate whether access
         should be permitted.
         """
         raise NotImplementedError()
