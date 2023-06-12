@@ -1,14 +1,14 @@
 from datetime import datetime
-from unite import util
-from unite.operator import ACCESS_PERMITTED, access_policy
-from unite.operator import Operator
-from unite.operators.prompt_methods import PromptMethods
+from agency import util
+from agency.agent import ACCESS_PERMITTED, access_policy
+from agency.agent import Agent
+from agency.operators.prompt_methods import PromptMethods
 import json
 import openai
 import textwrap
 
 
-class DemoAgent(Operator, PromptMethods):
+class DemoAgent(Agent, PromptMethods):
 
     def __init__(self, id, model, openai_api_key, **kwargs):
         super().__init__(id, **kwargs)

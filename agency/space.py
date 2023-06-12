@@ -1,9 +1,9 @@
-from unite import util
-from unite.operator import Operator
-from unite.schema import MessageSchema
+from agency import util
+from agency.agent import Agent
+from agency.schema import MessageSchema
 
 
-class Space(Operator):
+class Space(Agent):
     """
     A Space is itself an Operator and is responsible for:
     - starting/stopping itself and its member operators
@@ -15,7 +15,7 @@ class Space(Operator):
         super().__init__(id=id)
         self.operators = []
 
-    def add(self, operator: Operator):
+    def add(self, operator: Agent):
         """Adds and starts an operator to the space"""
         self.operators.append(operator)
         operator.space = self

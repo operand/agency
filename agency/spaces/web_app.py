@@ -1,7 +1,7 @@
 from eventlet import wsgi
-from unite.operator import ACCESS_PERMITTED, Operator, access_policy
-from unite.schema import MessageSchema
-from unite.space import Space
+from agency.agent import ACCESS_PERMITTED, Agent, access_policy
+from agency.schema import MessageSchema
+from agency.space import Space
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
@@ -9,7 +9,7 @@ import eventlet
 import logging
 
 
-class WebAppUser(Operator):
+class WebAppUser(Agent):
     """Represents a user of the WebApp"""
 
     def _request_permission(self, proposed_message: MessageSchema) -> bool:

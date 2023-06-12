@@ -1,13 +1,13 @@
 from contextlib import contextmanager
-from unite.operator import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, access_policy
-from unite.operator import Operator
-from unite.space import Space
+from agency.agent import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, access_policy
+from agency.agent import Agent
+from agency.space import Space
 from tests.conftest import space_context
 import time
 import unittest
 
 
-class Webster(Operator):
+class Webster(Agent):
     """A fake human operator that sits behind a webapp Space"""
 
     @access_policy(ACCESS_PERMITTED)
@@ -19,7 +19,7 @@ class FakeWebApp(Space):
     """A fake webapp space that Webster is an operator within"""
 
 
-class Chatty(Operator):
+class Chatty(Agent):
     """A fake AI operator"""
 
 

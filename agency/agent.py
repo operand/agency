@@ -1,7 +1,7 @@
 from abc import abstractmethod
 import threading
-from unite.schema import ActionSchema, MessageSchema
-import unite.util as util
+from agency.schema import ActionSchema, MessageSchema
+import agency.util as util
 import inspect
 import queue
 import re
@@ -25,7 +25,7 @@ def access_policy(level):
 ACTION_METHOD_PREFIX = "_action__"
 
 
-class Operator():
+class Agent():
     """
     An Actor that may represent a human, AI, or other system.
     """
