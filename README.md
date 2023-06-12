@@ -39,11 +39,8 @@ RECOMMEND running your project within a Docker container to prevent direct
 access to your host, allowing you to limit the resources and directories that
 may be accessed.
 
-**Please note that `agency` is not yet published to pip.**
-
 ```sh
-git clone git@github.com:operand/agency.git
-pip install ./agency
+pip install agency
 ```
 
 
@@ -460,11 +457,11 @@ agents who do not implement the given action.
 
 ## Adding an Environment-Aware Agent
 
-Finally we get to the cool part!
+Finally we get to the good part!
 
-We'll now add an intelligent agent into this environment and see that it is
-easily able to understand and interact with any of the systems or humans we've
-connected thus far.
+We'll now add an intelligent agent into this environment and see that it is able
+to understand and interact with any of the systems or humans we've connected
+thus far.
 
 To add the [`DemoAgent`](./agency/agents/demo_agent.py) class to the
 environment:
@@ -476,10 +473,8 @@ space.add(
 ```
 
 Note that the `DemoAgent` class is implemented to use the OpenAI API as a
-language model backend.
-
-I recommend using language models on par with GPT-3.5 or better for the best
-results with agents.
+language model backend. I recommend using language models on par with GPT-3.5 or
+better for the best results with tool-using agents such as this.
 
 
 ### The `DemoAgent` Prompt
@@ -500,7 +495,7 @@ about who it is, its goals, and the JSON format that it uses to communicate.
 change in context with the `%%%%% Terminal %%%%%` header, we help make clear to
 the language model that this is a distinct section of content with its own text
 patterns to continue. I do not believe that this is a crucial technique either,
-but it is worth noting.
+but is worth noting.
 
 1. I use the `_message_log_to_list()` method to dynamically insert the previous
 conversation up to the current point. See the mixin class `PromptMethods` for
@@ -509,9 +504,9 @@ implementation will eventually hit the context window after a short time.
 
 1. I insert a fake event at the beginning of the terminal portion of the prompt,
 pretending that the agent themself executed the `help` action proactively, and
-display the resulting list. This is just a nice way to insert the available
-actions while keeping the supposed context of the terminal, and providing a
-one-shot example to begin from.
+display the resulting list of available actions. This is just a neat way to
+insert the available actions while keeping the supposed context of the terminal,
+and providing a one-shot example to begin from.
 
 Note that `ChattyAI` uses a more typical prompt, showing that prompt style and
 technique need not be shared by all agents connected to a space, but can be
@@ -553,24 +548,23 @@ if __name__ == '__main__':
 ```
 
 If you run the above python script, after a short boot time you can visit the
-web app on the port you specify (`WEB_APP_PORT`) and you should see a simple
-chat interface.
+web app at `localhost:$WEB_APP_PORT` and you should see a simple chat interface.
 
 The following is a screenshot of a conversation that showcases `DemoAgent`'s
 ability to intelligently interact with the other agents in the environment,
 including running commands on the host, or chatting with "Chatty".
 
 Note that my messages are broadcasted in the below conversation, which explains
-why Chatty responds to each message also. There is an obvious difference in
-quality, of course.
+why Chatty responds to each message as does "Demo". There is an obvious
+difference in quality, of course.
 
-I also demonstrate the results of rejecting an action and asking him to use a
+I also demonstrate the results of rejecting an action and asking Demo to use a
 different approach.
 
-Behind the scenes, Demo messaged Chatty directly, and after I explained my
-rejection of the `read_file` action, Demo used the `shell_command` action with
-`wc -l Dockerfile` which was more appropriate. And the Dockerfile indeed has 75
-lines.
+Behind the scenes, Demo messaged Chatty directly and correctly relayed her
+response, and after I explained my rejection of the `read_file` action, Demo
+used the `shell_command` action with `wc -l Dockerfile` which was more
+appropriate. And the file indeed has 75 lines.
 
 <p align="center">
   <img src="https://i.ibb.co/f1GMb5P/Screenshot-2023-06-10-at-11-50-42-PM.png"
@@ -657,7 +651,7 @@ expose to your agents.
 A central part of the design is that humans and other systems can easily
 integrate as well, using a simple common format for messages. You can even use
 `agency` to set up a basic chat room to use with friends or other systems and
-not use agents at all!
+not use AI-driven agents at all!
 
 An additional benefit of its general design is that `agency` may also simplify
 some agent development workflows. See the hypothetical examples above.

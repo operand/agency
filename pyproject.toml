@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "python-agency"
-version = "0.1.0"
+name = "agency"
+version = "1.0.0"
 description = "A fast and minimal foundation for unifying human, AI, and other computing systems, in python"
 authors = ["Daniel Rodriguez"]
 license = "GPL-3.0"

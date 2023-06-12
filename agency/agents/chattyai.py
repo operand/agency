@@ -3,8 +3,8 @@ from agency.agent import Agent
 from agency.agents.prompt_methods import PromptMethods
 from agency.schema import MessageSchema
 from transformers import AutoTokenizer, AutoModelForCausalLM
-import agency.util as util
 import os
+import agency.util as util
 import textwrap
 
 
