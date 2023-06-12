@@ -1,9 +1,9 @@
 from abc import abstractmethod
-import threading
 from agency.schema import ActionSchema, MessageSchema
 import inspect
 import queue
 import re
+import threading
 
 
 # access keys
