@@ -334,6 +334,7 @@ Users of the web application, as they log in or out, may be added dynamically
 under the `"WebApp"` namespace allowing them to be addressed with a fully
 qualified `id` of, for example `"Dan.WebApp.DemoSpace"`.
 
+
 _(Note that login/out functionality is not implemented as of this writing.)_
 
 
