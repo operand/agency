@@ -504,7 +504,7 @@ implementation will eventually hit the context window after a short time.
 
 1. I insert a fake event at the beginning of the terminal portion of the prompt,
 pretending that the agent themself executed the `help` action proactively, and
-display the resulting list of available actions. This is just a nifty way to
+display the resulting list of available actions. This is just a neat way to
 insert the available actions while keeping the supposed context of the terminal,
 and providing a one-shot example to begin from.
 
