@@ -40,7 +40,7 @@ access to your host, allowing you to limit the resources and directories that
 may be accessed.
 
 ```sh
-pip install python_agency
+pip install agency
 ```
 
 
