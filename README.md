@@ -39,7 +39,7 @@ RECOMMEND running your project within a Docker container to prevent direct
 access to your host, allowing you to limit the resources and directories that
 may be accessed.
 
-**Please note that `agency` is not yet published to pip but will be soon.**
+**Please note that `agency` is not yet published to pip.**
 
 ```sh
 git clone git@github.com:operand/agency.git
@@ -53,7 +53,7 @@ pip install ./agency
 model](https://en.wikipedia.org/wiki/Actor_model) intended for integrating AI,
 human, and traditional computing systems.
 
-In `agency`, all entities are considered "agents" and represented as instances
+In `agency`, all entities are called "agents" and represented as instances
 of the `Agent` class. This includes all humans, software, and AI-driven agents.
 
 The `Agent` class is a base class similar to "Object" in many object-oriented
@@ -459,7 +459,7 @@ agents who do not implement the given action.
 
 ## Adding an Environment-Aware Agent
 
-Finally we get to the fun part!
+Finally we get to the cool part!
 
 We'll now add an intelligent agent into this environment and see that it is
 easily able to understand and interact with any of the systems or humans we've
