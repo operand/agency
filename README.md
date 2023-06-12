@@ -1,19 +1,19 @@
-# `everything`
+# `agency`
 
 A fast and minimal foundation for unifying human, AI, and other computing
 systems, in python
 
 
-## What is `everything`?
+## What is `agency`?
 
-`everything` defines a common communication and action framework for integrating
+`agency` defines a common communication and action framework for integrating
 AI agents, humans, and traditional computing systems.
 
-`everything` allows you to establish shared environments called "spaces" where
-any number of humans, artificial, or other computing systems may equally address
-each other as individual "operators" that you may perform "actions" on.
+`agency` allows you to establish shared environments called "spaces" where any
+number of humans, artificial, or other computing systems may equally address
+each other as individual "agents" that you may perform "actions" on.
 
-`everything` handles the details of the common messaging protocol and allows
+`agency` handles the details of the common messaging protocol and allows
 discovering and invoking actions across all parties, automatically handling
 things such as reporting exceptions, enforcing access restrictions, and more.
 
@@ -30,52 +30,50 @@ The API accommodates agent integration with systems as varied as:
 
 # Install
 > **WARNING:**\
-Running `everything` may result in exposing your computer to access by any
-connected `Operator` including AI agents. Please understand the risks before
-using this software and do not configure it for OS access otherwise.\
+Running `agency` may result in exposing your computer to access by any connected
+`Agent` class including AI agents. Please understand the risks before using this
+software and do not configure it for OS access otherwise.\
 \
 If you want to enable OS access, to allow for file I/O for example, I HIGHLY
 RECOMMEND running your project within a Docker container to prevent direct
 access to your host, allowing you to limit the resources and directories that
 may be accessed.
 
-**Please note that `everything` is not yet at a stable release or published
-to pip but will be soon.**
+**Please note that `agency` is not yet published to pip but will be soon.**
 
 ```sh
-git clone git@github.com:operand/everything.git
-pip install ./everything
+git clone git@github.com:operand/agency.git
+pip install ./agency
 ```
 
 
 # API Overview
 
-`everything` is an implementation of the [Actor
+`agency` is an implementation of the [Actor
 model](https://en.wikipedia.org/wiki/Actor_model) intended for integrating AI,
 human, and traditional computing systems.
 
-In `everything`, all entities are represented as instances of the class
-`Operator`. This includes all humans, software, or AI agents.
+In `agency`, all entities are considered "agents" and represented as instances
+of the `Agent` class. This includes all humans, software, and AI-driven agents.
 
-The `Operator` class is a base class similar to "Object" in many object-oriented
-languages. All operators may expose "actions" which can be invoked by other
-operators, by simply defining instance methods on the class.
+The `Agent` class is a base class similar to "Object" in many object-oriented
+languages. All agents may expose "actions" which can be invoked by other
+agents, by simply defining instance methods on the class.
 
-A `Space` is a subclass of `Operator` and is used to group multiple operators
-together.
+A `Space` is also an `Agent` and is used to group multiple agents together.
 
-A space can be thought of as both a collection of operators and a "router"
-for their communication. An operator cannot communicate with others until it
-is first added to a space.
+A space can be thought of as both a collection of agents and a "router" for
+their communication. An agent cannot communicate with others until it is first
+added to a space.
 
 Spaces may be nested, allowing for namespacing and hierarchical organization of
-the operators in your application.
+the agents in your application.
 
-All operators may define public "actions" that other operators can discover and
-invoke at run time. Actions also specify an access policy, allowing you to
-control access and ensure safety.
+All agents may define public "actions" that other agents can discover and invoke
+at run time. Actions also specify an access policy, allowing you to monitor and
+control actions to ensure safety.
 
-To summarize, the two classes of `Operator` and `Space` together create a simple
+To summarize, the two classes of `Agent` and `Space` together create a simple
 API for defining applications that may mix AI, human, and traditional computing
 systems, in a way that is intended for all to equally understand and use.
 
@@ -98,16 +96,15 @@ Let's start by instantiating a demo space.
 space = Space("DemoSpace")
 ```
 
-Spaces, like all operators, must be given an `id`. So the line above
-instantiates a single space called `"DemoSpace"` that we can now add
-operators to.
+`Space`'s, like all `Agent`'s, must be given an `id`. So the line above
+instantiates a single space called `"DemoSpace"` that we can now add agents to.
 
 
-## Adding an `Operator` to a `Space`
+## Adding an `Agent` to a `Space`
 
-Now, let's add our first operator to the space, a simple transformers library
+Now, let's add our first agent to the space, a simple transformers library
 backed chatbot class named `ChattyAI`. You can browse the source code for
-`ChattyAI` [here](./everything/operators/chattyai.py).
+`ChattyAI` [here](./agency/agents/chattyai.py).
 
 ```python
 space.add(ChattyAI("Chatty", model="EleutherAI/gpt-neo-125m"))
@@ -152,7 +149,7 @@ prompt format with the language model, and return the result to the sender.
 ## Invoking Actions
 
 At the end of the `ChattyAI._action__say()` method, we see an example of using
-`everything`'s messaging protocol. `ChattyAI` returns a response to the sender
+`agency`'s messaging protocol. `ChattyAI` returns a response to the sender
 by calling:
 
 ```python
@@ -208,7 +205,7 @@ message from Chatty that would look something like:
 ```
 
 This is an example of the full message schema that is used for all messages sent
-between operators in `everything`.
+between operators in `agency`.
 
 This format is intended to be simple and extensible enough to support any use
 case while remaining human readable.
@@ -589,7 +586,7 @@ rejection of the `read_file` action, Demo used the `shell_command` action with
 # Hypothetical Examples
 
 The following examples are not implemented, but are presented as additional
-ideas for integrations that `everything` could support.
+ideas for integrations that `agency` could support.
 
 ```python
 Space([
@@ -644,33 +641,33 @@ Space([
 
 # FAQ
 
-## How does `everything` compare to agent libraries like LangChain?
+## How does `agency` compare to agent libraries like LangChain?
 
 Though you could entirely create a simple agent using only the primitives in
-`everything` (see [`DemoAgent`](./everything/operators/demo_agent.py)), it is
+`agency` (see [`DemoAgent`](./everything/operators/demo_agent.py)), it is
 not intended to be a full-fledged agent toolset. It can be thought of as more of
 an "agent integration framework".
 
 Projects like LangChain, AutoGPT and others are exploring how to create
 purpose-built agents that solve diverse problems using tools.
 
-`everything` is concerned with creating a safe and dynamic _environment_ for
+`agency` is concerned with creating a safe and dynamic _environment_ for
 these types of agents to work, where they can freely discover and communicate
 with the tools, each other, and any humans available in their environment.
 
-`everything` provides a simple means for defining actions, callbacks, and
+`agency` provides a simple means for defining actions, callbacks, and
 access policies that you can use to monitor and ensure safety for the systems
 you expose to your agents.
 
 A central part of the design is that humans and other systems can easily
 integrate as well, using a simple common format for messages. You can even use
-`everything` to set up a basic chat room to use with friends or other systems
+`agency` to set up a basic chat room to use with friends or other systems
 and not use agents at all!
 
-An additional benefit of its general design is that `everything` may also
+An additional benefit of its general design is that `agency` may also
 simplify some agent development workflows. See the hypothetical examples above.
 
-So, `everything` is a more general framework intended to support agent
+So, `agency` is a more general framework intended to support agent
 development and to ultimately enable agents to safely integrate with anything,
 in any way imaginable.
 
