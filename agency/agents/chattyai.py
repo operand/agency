@@ -42,8 +42,8 @@ class ChattyAI(Agent, PromptMethods):
         # A chatting AI would probably only deal with "say" actions.
         return f"\n{pre_prompt} {message}"
 
-    def _pre_prompt(self, operator_id: str, timestamp=util.to_timestamp()) -> str:
-        return f"\n### {operator_id.split('.')[0]}: "
+    def _pre_prompt(self, agent_id: str, timestamp=util.to_timestamp()) -> str:
+        return f"\n### {agent_id.split('.')[0]}: "
 
     @access_policy(ACCESS_PERMITTED)
     def _action__say(self, content: str):

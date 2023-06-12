@@ -5,40 +5,40 @@ from agency.schema import MessageSchema
 
 class Space(Agent):
     """
-    A Space is itself an Operator and is responsible for:
-    - starting/stopping itself and its member operators
-    - routing all messages for its member operators
+    A Space is itself an Agent and is responsible for:
+    - starting/stopping itself and its member agents
+    - routing all messages for its member agents
     """
 
     def __init__(self, id):
         """Creates and starts the Space"""
         super().__init__(id=id)
-        self.operators = []
+        self.agents = []
 
-    def add(self, operator: Agent):
-        """Adds and starts an operator to the space"""
-        self.operators.append(operator)
-        operator.space = self
+    def add(self, agent: Agent):
+        """Adds and starts an agent to the space"""
+        self.agents.append(agent)
+        agent.space = self
         if self.running.is_set():
-            operator.run()
+            agent.run()
 
     def run(self):
-        """Runs the operator in a thread"""
+        """Runs the agent in a thread"""
         super().run()
-        for operator in self.operators:
-            operator.run()
+        for agent in self.agents:
+            agent.run()
 
-    def _operator_ids(self, recursive: bool = True):
+    def _agent_ids(self, recursive: bool = True):
         """
-        Returns a list of all operator ids in this space not including itself.
-        If recursive is True (default) it includes operator ids in child spaces.
+        Returns a list of all agent ids in this space not including itself.
+        If recursive is True (default) it includes agent ids in child spaces.
         """
         ids = []
-        for _operator in self.operators:
-            if recursive and isinstance(_operator, Space):
-                ids.extend(_operator._operator_ids())
+        for _agent in self.agents:
+            if recursive and isinstance(_agent, Space):
+                ids.extend(_agent._agent_ids())
             else:
-                ids.append(_operator.id())
+                ids.append(_agent.id())
         return ids
 
     def _route(self, message: MessageSchema):
@@ -50,23 +50,23 @@ class Space(Agent):
             broadcast = True
 
         recipients = []
-        for operator in self.operators:
-            if broadcast and operator.id() != message['from']:
+        for agent in self.agents:
+            if broadcast and agent.id() != message['from']:
                 # broadcast routing
-                # NOTE this only broadcasts to direct member operators of the space
-                recipients.append(operator)
+                # NOTE this only broadcasts to direct member agents of the space
+                recipients.append(agent)
 
             elif not broadcast:
                 # point to point routing
-                if operator.id() == message['to']:
-                    recipients.append(operator)
-                elif isinstance(operator, Space) and message['to'] in operator._operator_ids():
+                if agent.id() == message['to']:
+                    recipients.append(agent)
+                elif isinstance(agent, Space) and message['to'] in agent._agent_ids():
                     # pass to child space for routing and return
-                    operator._route(message)
+                    agent._route(message)
                     return
 
         if len(recipients) == 0:
-            # no recipient operator id matched
+            # no recipient agent id matched
             if self.space is not None:
                 # pass to the parent space for routing
                 self.space._route(message)
@@ -79,7 +79,7 @@ class Space(Agent):
                     'action': 'error',
                     'args': {
                         'original_message': message,
-                        'error': f"\"{message['to']}\" operator not found"
+                        'error': f"\"{message['to']}\" agent not found"
                     }
                 })
         else:
@@ -92,7 +92,7 @@ class Space(Agent):
         Returns an action list immediately without forwarding messages
         """
         help = [
-            operator._get_help(action_name)
-            for operator in [self] + self.operators
+            agent._get_help(action_name)
+            for agent in [self] + self.agents
         ]
         return help

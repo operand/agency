@@ -8,7 +8,7 @@ import unittest
 
 
 class Webster(Agent):
-    """A fake human operator that sits behind a webapp Space"""
+    """A fake human agent that sits behind a webapp Space"""
 
     @access_policy(ACCESS_PERMITTED)
     def _action__say(self, content):
@@ -16,26 +16,26 @@ class Webster(Agent):
 
 
 class FakeWebApp(Space):
-    """A fake webapp space that Webster is an operator within"""
+    """A fake webapp space that Webster is an agent within"""
 
 
 class Chatty(Agent):
-    """A fake AI operator"""
+    """A fake AI agent"""
 
 
-def wait_for_messages(operator, count=2):
+def wait_for_messages(agent, count=2):
     max_time = 2  # seconds
     start_time = time.time()
     while (
         (time.time() - start_time) < max_time
-        and operator._message_log.__len__() < count
+        and agent._message_log.__len__() < count
     ):
         time.sleep(0.1)
 
 
 @contextmanager
 def space_with_webster_and_chatty():
-    """Returns a Space with a Webster operator"""
+    """Returns a Space with a Webster agent"""
     with space_context() as space:
         chatty = Chatty("Chatty")
         # NOTE that webster is nested in the webapp space
@@ -55,8 +55,8 @@ def test_send_and_receive():
 
         # We use callable class to dynamically define the _say action for chatty
         class ChattySay():
-            def __init__(self, operator) -> None:
-                self.operator = operator
+            def __init__(self, agent) -> None:
+                self.agent = agent
                 self.access_policy = ACCESS_PERMITTED
 
             def __call__(self, content):
@@ -155,8 +155,8 @@ def test_send_unpermitted_action():
     with space_with_webster_and_chatty() as (webster, chatty):
 
         class ChattySay():
-            def __init__(self, operator) -> None:
-                self.operator = operator
+            def __init__(self, agent) -> None:
+                self.agent = agent
                 self.access_policy = ACCESS_DENIED
 
             def __call__(self, content):
@@ -212,8 +212,8 @@ def test_send_request_permitted_action():
         # We use callable classes to dynamically define _action__say and
         # _request_permission
         class ChattySay():
-            def __init__(self, operator) -> None:
-                self.operator = operator
+            def __init__(self, agent) -> None:
+                self.agent = agent
                 self.access_policy = ACCESS_REQUESTED
 
             def __call__(self, content):
@@ -274,8 +274,8 @@ def test_send_request_rejected_action():
         # We use callable classes to dynamically define _action__say and
         # _request_permission
         class ChattySay():
-            def __init__(self, operator) -> None:
-                self.operator = operator
+            def __init__(self, agent) -> None:
+                self.agent = agent
                 self.access_policy = ACCESS_REQUESTED
 
             def __call__(self, content):

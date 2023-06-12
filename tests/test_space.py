@@ -5,7 +5,7 @@ import unittest
 
 def test_create_destroy():
     """
-    Tests basic creation and destruction of a Space without Operators.
+    Tests basic creation and destruction of a Space without Agents.
     """
     with space_context():
         # Just wait for 1 second here and let the context handle the rest
