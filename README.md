@@ -174,6 +174,11 @@ original message, passing the response as the `"content"` argument.
 
 ## The Common Message Schema
 
+> PLEASE NOTE \
+Work is in progress to build direct schema compatibility with the just announced
+[OpenAI Function calling
+API](https://platform.openai.com/docs/guides/gpt/function-calling)
+
 In the example above, we see the format that is used when sending actions.
 
 In describing the messaging format, there are two terms that are used similarly:
@@ -480,8 +485,11 @@ better for the best results with tool-using agents such as this.
 ### The `DemoAgent` Prompt
 
 What makes the `DemoAgent` able to intelligently discover and interact with
-others is largely embodied in the `DemoAgent._prompt_head()` method. In it
-you'll notice a few things:
+others is largely embodied in the `_prompt_head` and `_action__say` methods. In
+them you'll notice a few things:
+
+1. I'm just using the text completions API. 
+
 
 1. The prompt is written from the first person perspective as though it is the
 agent's own thoughts. This differs slightly from common practice, which usually
@@ -716,11 +724,13 @@ priorities.
 
 
 ## Planned Work
-- Add web app i/o examples
+- Add schema support for [OpenAI Function
+calling](https://platform.openai.com/docs/guides/gpt/function-calling)
+- Add web app multimodal i/o examples
   - image
   - audio
   - video
-- Add multimodal model example
+- Add multimodal model integration example
 - Add message broker/networking support (RabbitMQ)
 - Add integration example for [mlc-llm](https://github.com/mlc-ai/mlc-llm)
 - Add integration example for [gorilla](https://github.com/ShishirPatil/gorilla)

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "agency"
 version = "1.0.0"
-description = "A fast and minimal foundation for unifying human, AI, and other computing systems, in python"
+description = "A fast and minimal foundation for unifying human, AI, and other computing systems"
 authors = ["Daniel Rodriguez"]
 license = "GPL-3.0"
 readme = "README.md"

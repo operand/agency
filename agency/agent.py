@@ -287,7 +287,7 @@ class Agent():
         Called after every action. Override and use this method for logging or other
         situations where you may want to pass through all actions.
 
-        Note that this is ONLY called if the action was actually attempted, meaning
+        Note that this is only called if the action was actually attempted, meaning
         BOTH the action exists AND is permitted.
         """
         pass
