@@ -488,27 +488,27 @@ What makes the `DemoAgent` able to intelligently discover and interact with
 others is largely embodied in the `_prompt_head` and `_action__say` methods. In
 them you'll notice a few things:
 
-1. I'm just using the text completions API. 
-
+1. I'm just using the text completions API and using a custom approach to the
+prompt that doesn't involve a "system" user.
 
 1. The prompt is written from the first person perspective as though it is the
 agent's own thoughts. This differs slightly from common practice, which usually
 uses the second-person perspective. I do not think this makes a large difference
-but was worth mentioning. This is more of a personal preference.
+but was worth mentioning.
 
 1. I frame the situation clearly and accurately for the agent, telling it enough
 about who it is, its goals, and the JSON format that it uses to communicate.
 
-1. I "pretend" that the bottom portion is a terminal application. By signaling a
-change in context with the `%%%%% Terminal %%%%%` header, we help make clear to
-the language model that this is a distinct section of content with its own text
-patterns to continue. I do not believe that this is a crucial technique either,
-but is worth noting.
+1. I "pretend" that the bottom portion is the output of a terminal application.
+By signaling a change in context with the `%%%%% Terminal %%%%%` header, we help
+make clear to the language model that this is a distinct section of content with
+its own text patterns to continue. I do not believe that this is a crucial
+technique either, but is worth noting.
 
 1. I use the `_message_log_to_list()` method to dynamically insert the previous
 conversation up to the current point. See the mixin class `PromptMethods` for
 the implementation. There is no summarization used, so the current
-implementation will eventually hit the context window after a short time.
+implementation will eventually hit the context window after a some time.
 
 1. I insert a fake event at the beginning of the terminal portion of the prompt,
 pretending that the agent themself executed the `help` action proactively, and
