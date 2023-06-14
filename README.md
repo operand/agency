@@ -666,27 +666,33 @@ the plans below for where this is heading. Core functionality is pretty
 well tested at the moment.
 
 * This library makes use of threads for each individual agent. Multithreading
-is limited by python's GIL, meaning if you run a CPU bound model, other agents
-will have to wait for their "turn". This goes for anything else you might expose
-as an "agent" if it is CPU heavy. Note that I/O does not block, so networked
-backends or services will execute in parallel. Other forms of multiprocessing
-may eventually be considered.
+is limited by python's GIL, meaning if you run a CPU bound model other agents
+will have to wait for their "turn". This goes for anything else you might define
+as an "agent", if it is CPU heavy it will block other agents. Note that I/O does
+not block, so networked backends or services will execute in parallel.  Other
+forms of multiprocessing to avoid the GIL may eventually be considered.
 
-* This API purposely does NOT assume predefined roles of "user", "system",
-"assistant", etc. That is a limiting abstraction in my opinion that is a
-holdover of chat-oriented applications. For agents, it is my opinion that we
-should model the world more generally for them to interact with and reason
-about. In `agency`, all things are equally called "agents" and there are no
-special roles. This introduces some work in integrating with role based
-approaches.  See the implementation of
+* This API does NOT assume or enforce predefined roles like "user", "system",
+"assistant", etc. This is an intentional decision and is not likely to change.
+
+I believe using roles is a limiting abstraction that is a holdover of
+chat-oriented applications. `agency` is intended to allow potentially large
+numbers of agents and systems and people to come together. The concept of roles
+gets in the way of representing many things uniquely.
+
+This is a core feature of `agency`: that all things are treated equally and may
+be interacted with in different ways.
+
+The lack of roles introduces some challenges in integrating with role based
+APIs. See the implementation of
 [`OpenAIFunctionAgent`](./agency/agents/openai_function_agent.py) for an
 example.
 
 * There is not much by way of storage support. That is mostly left up to you and
 I'd suggest looking at the many technologies that focus on that. The `Agent`
-class implements a`._message_log` array which you can make use of or overwrite
-to back it with longer term storage. More direct support for storage APIs may be
-considered in the future.
+class implements a simple `._message_log` array which you can make use of or
+overwrite to back it with longer term storage. More direct support for storage
+APIs may be considered in the future.
 
 
 # Contributing
