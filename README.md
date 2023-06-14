@@ -508,7 +508,7 @@ technique either, but is worth noting.
 1. I use the `_message_log_to_list()` method to dynamically insert the previous
 conversation up to the current point. See the mixin class `PromptMethods` for
 the implementation. There is no summarization used, so the current
-implementation will eventually hit the context window after a some time.
+implementation will eventually hit the context window after some time.
 
 1. I insert a fake event at the beginning of the terminal portion of the prompt,
 pretending that the agent themself executed the `help` action proactively, and
@@ -545,7 +545,7 @@ if __name__ == '__main__':
 
     space.add(
         DemoAgent("Demo",
-            model="text-davinci-003",
+            model="gpt-3.5-turbo",
             openai_api_key=os.getenv("OPENAI_API_KEY")))
 
     space.run()

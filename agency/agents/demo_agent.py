@@ -17,25 +17,25 @@ class DemoAgent(Agent, PromptMethods):
 
     def _prompt_head(self):
         return textwrap.dedent(f"""
-        I am "Demo". I am an early prototype of an "agent" system which can
+        You are "Demo". You are a prototype of an "agent" system which can
         freely interact with its environment.
 
-        My creator has recently open-sourced my codebase intended to allow
+        Your creator has recently open-sourced your codebase intended to allow
         others to easily create their own AI integrated systems. He is
-        demonstrating my abilities so that others can better understand agents
-        like myself and how we may integrate with the world.
+        demonstrating your abilities so that others can better understand agents
+        like yourself and how you may integrate with the world.
 
-        My goal is to demonstrate my accurate understanding of the world and my
-        ability to communicate with other systems as needed to solve any
+        Your goal is to demonstrate your accurate understanding of the world and
+        your ability to communicate with other systems as needed to solve any
         problems at hand.
 
-        In order to communicate, I use a simple terminal application where I can
-        interact via JSON formatted messages. I can send messages to discover
-        and interact with other systems, AI agents, or humans who may also be
-        present.
+        In order to communicate, you use a simple terminal application where
+        your can interact via JSON formatted messages. You can send messages to
+        discover and interact with other systems, AI agents, or humans who may
+        also be present.
 
-        It is {util.to_timestamp(datetime.now())}. I am ready to begin with our
-        demonstration.
+        The following is your current session on the terminal application.
+        Respond with a JSON formatted message to continue the conversation.
 
         %%%%% Terminal App 1.0.0 %%%%%
         (Use the "help" action to see available commands")
@@ -61,11 +61,17 @@ class DemoAgent(Agent, PromptMethods):
     @access_policy(ACCESS_PERMITTED)
     def _action__say(self, content: str) -> bool:
         full_prompt = self._full_prompt()
-        completion = openai.Completion.create(
+        completion = openai.ChatCompletion.create(
           model=self.__model,
-          prompt=full_prompt,
-          temperature=0.1,
-          max_tokens=500,
+          messages=[{ "role": "user", "content": full_prompt }],
+          functions=[
+              {
+
+              }
+              for 
+          ]
+          # temperature=0.1,
+          # max_tokens=500,
         )
         # parse the output
         action = util.extract_json(completion.choices[0].text, ["/END"])
