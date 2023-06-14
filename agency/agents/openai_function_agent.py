@@ -8,7 +8,7 @@ import textwrap
 
 class OpenAIFunctionAgent(Agent):
     """
-    An agent which uses OpenAI's function_call API for inference
+    An agent which uses OpenAI's function calling API
     """
 
     def __init__(self, id, model, openai_api_key, **kwargs):
@@ -43,9 +43,8 @@ class OpenAIFunctionAgent(Agent):
         open_ai_messages = [{ "role": "system", "content": self.__system_prompt() }]
 
         # format and add the rest of the messages
-        # NOTE: openai unfortunately limits us to four predefined chat roles so
-        # we convert to them here. predefined roles aren't the right abstraction
-        # IMHO but this is one way to handle it if we must.
+        # NOTE: the chat api limits to only four predefined roles so we do our
+        # best to translate to them here.
         for message in self._message_log:
             # "return" and "error" are converted by default to "say" so ignore
             if message['action'] not in ["return", "error"]:
@@ -65,7 +64,6 @@ class OpenAIFunctionAgent(Agent):
                         })
 
                     # a "say" from anyone else is considered a function message
-                    # NOTE this highlights one of the problems with predefined
                     else:
                         open_ai_messages.append({
                             "role": "function",
@@ -75,25 +73,19 @@ class OpenAIFunctionAgent(Agent):
 
                 # all other actions are considered a function_call
                 else:
-                    # NOTE Strangely it does not appear that openai suggests
-                    # including function_call messages in the messages list. See:
-                    # https://github.com/openai/openai-cookbook/blob/main/examples/How_to_call_functions_with_chat_models.ipynb
+                    # AFAICT from the documentation I've found, it does not
+                    # appear that openai suggests including function_call
+                    # messages (the responses from openai) in the messages list.
                     #
-                    # I'm not sure why. Instead, I am going to add it here as a
-                    # "system" message reporting the details of what the function
-                    # call was. This is important information to infer from and it's
-                    # currently not clear from their documentation whether the
-                    # language model has access to it during inference. What if it
-                    # makes a mistake? It should see the function call details to
-                    # help it learn. And since this library also allows others to
-                    # call functions, it's important to be able to see what they are
-                    # calling as well.
+                    # I am going to add them here as a "system" message
+                    # reporting the details of what the function call was. This
+                    # is important information to infer from and it's currently
+                    # not clear whether the language model has access to it
+                    # during inference.
                     open_ai_messages.append({
                         "role": "system",
                         "content": f"""{"-".join(message["from"].split("."))} called function "{message["action"]}" with args {message["args"]}""",
                     })
-
-        util.debug(f"* openai messages:", open_ai_messages)
 
         return open_ai_messages
 
@@ -120,16 +112,15 @@ class OpenAIFunctionAgent(Agent):
                         for arg_name, arg_type in action_help['args'].items()
                     },
                     "required": [
-                        # i know.. we're looping twice. don't judge me.
                         arg_name for arg_name, _ in action_help['args'].items()
                     ],
                 }
             }
             for action_help in self.space._get_help__sync()
             if not (action_help['to'] == self.__kwargs['user_id'] and action_help['action'] == "say")
-            # the openai api handles "say" specially to the main user
+            # the openai chat api handles "say" specially to the main user, by
+            # treating it as a normal chat message
         ]
-        # util.debug(f"* openai functions:", functions)
         return functions
 
     def __arg_type_to_openai_type(self, arg_type):
@@ -162,15 +153,14 @@ class OpenAIFunctionAgent(Agent):
           function_call="auto",
           # ... https://platform.openai.com/docs/api-reference/chat/create
         )
-        # util.debug(f"*[{self.id()}] openai response: {completion}")
 
         # parse the output
         action = {
             # defaults
             "to": self.__kwargs['user_id'],
-            # TODO. we can add "thoughts" as an additional arg to each action
-            # but for now this implementation will ignore it. the text
-            # completion based implementation does use the "thoughts" field.
+            # TODO we can add "thoughts" as an additional arg to each action but
+            # for now this implementation will ignore it. the text completion
+            # implementation does use the "thoughts" field correctly.
             "thoughts": "",
         }
         response_message = completion['choices'][0]['message']
@@ -189,7 +179,5 @@ class OpenAIFunctionAgent(Agent):
             action['args'] = {
                 "content": response_message['content'],
             }
-
-        # util.debug(f"*[{self.id()}] sending action:", action)
 
         self._send(action)

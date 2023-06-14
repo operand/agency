@@ -73,7 +73,6 @@ class Agent():
         """
         Validates and sends (out) an action
         """
-        util.debug(f"*[{self.id()}] sending", action)
         # define message, validate, and route it
         message = MessageSchema(**{
           **action,
@@ -107,7 +106,6 @@ class Agent():
                     # reporting the error back to the sender. If an error occurs
                     # here, indicating that basic _send() functionality is
                     # broken, the application will exit.
-                    util.debug(f"*[{self.id()}] error", traceback.format_exc())
                     self._send({
                       "to": message['from'],
                       "thoughts": "An error occurred",
@@ -148,7 +146,6 @@ class Agent():
                 # Invoke the action method
                 # (set _current_message so that it can be used by the action)
                 self._current_message = message
-                # util.debug(f"*[{self.id()}] committing", message)
                 return_value = action_method(**message['args'])
                 self._current_message = None
 

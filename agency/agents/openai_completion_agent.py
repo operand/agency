@@ -37,9 +37,6 @@ class OpenAICompletionAgent(Agent, PromptMethods):
         and interact with other systems, AI agents, or humans who may also be
         present.
 
-        It is {util.to_timestamp(datetime.now())}. I am ready to begin with our
-        demonstration.
-
         %%%%% Terminal App 1.0.0 %%%%%
         (Use the "help" action to see available commands")
         """) + \

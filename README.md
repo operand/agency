@@ -472,7 +472,7 @@ We'll now add an intelligent agent into this environment and see that it is able
 to understand and interact with any of the systems or humans we've connected
 thus far.
 
-> Note that the following `OpenAIFunctionAgent` class uses the _just_ released
+> Note that the following `OpenAIFunctionAgent` class uses the newly released
 [openai function calling
 API](https://platform.openai.com/docs/guides/gpt/function-calling).
 
@@ -483,7 +483,7 @@ space.add(
     OpenAIFunctionAgent("FunctionAI",
         model="gpt-3.5-turbo-16k",
         openai_api_key=os.getenv("OPENAI_API_KEY"),
-        # user_id determines the "user" role in the OpenAI chat
+        # user_id determines the "user" role in the chat API
         user_id="Dan.WebApp.DemoSpace"))
 ```
 
@@ -526,7 +526,7 @@ if __name__ == '__main__':
             model="gpt-3.5-turbo-16k",
             openai_api_key=os.getenv("OPENAI_API_KEY"),
             # user_id determines the "user" role in the OpenAI chat
-            user_id="Operand.WebApp.DemoSpace"))
+            user_id="Dan.WebApp.DemoSpace"))
 
     space.add(
         OpenAICompletionAgent("CompletionAI",
@@ -555,15 +555,15 @@ quality, of course.
 I also demonstrate the results of rejecting an action and directing an agent to
 use a different approach.
 
-After I explained my rejection of the `read_file` action (which happened
-behindthe scenes on the terminal), "FunctionAI" appropriately used the
-`shell_command` action with `wc -l Dockerfile`. The Dockerfile indeed has 73
-lines.
+After I explained my rejection of the `read_file` action (which happened behind
+the scenes on the terminal), "FunctionAI" appropriately used the `shell_command`
+action with `wc -l Dockerfile`. The Dockerfile indeed has 73 lines.
 
-CompletionAI used that shell command on the first try. Anecdotally as of this
-writing, `CompletionAI` seems to be more accurate, even though it is using the
-text completion API vs the function calling feature of the chat API. This may be
-due to issues arising from the differences in approach discussed elsewhere.
+CompletionAI used that command on the first try. Anecdotally as of this writing,
+`CompletionAI` seems to be more accurate, even though it is using the text
+completion API vs the function calling feature of the chat API. This may be due
+to the implementation or issues arising from the translation into roles
+discussed elsewhere.
 
 <p align="center">
   <img src="https://i.ibb.co/nbvLJvg/Screenshot-2023-06-14-at-3-59-01-AM.png"
