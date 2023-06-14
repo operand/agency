@@ -108,7 +108,7 @@ class Agent():
                       "action": "error",
                       "args": {
                         "original_message": message,
-                        "error": f"{type(e).__name__}: {e}",
+                        "error": f"{e}",
                       },
                     })
             except queue.Empty:
