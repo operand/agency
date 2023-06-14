@@ -134,7 +134,7 @@ def test_send_undefined_action():
                 "action": "error",
                 "args": {
                     "original_message": first_message,
-                    "error": "\"say\" action not found"
+                    "error": "\"say\" action not found on \"Chatty.TestSpace\""
                 },
                 "from": "Chatty.TestSpace"
             },
@@ -143,7 +143,7 @@ def test_send_undefined_action():
                 "thoughts": "An error occurred",
                 "action": "say",
                 "args": {
-                    "content": "ERROR: \"say\" action not found"
+                    "content": "ERROR: \"say\" action not found on \"Chatty.TestSpace\""
                 },
                 "from": "Chatty.TestSpace"
             }

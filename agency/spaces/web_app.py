@@ -72,7 +72,7 @@ class WebApp(Space):
         # NOTE: We're simplifying here by hardcoding a single agent named
         # "Dan" representing a user of the WebApp. In a real application this
         # could be handled dynamically as users log on/off.
-        self.add(WebAppUser("Dan"))
+        self.add(WebAppUser(kwargs['demo_user_id']))
 
         # Define routes
         @app.route('/')

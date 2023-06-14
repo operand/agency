@@ -91,7 +91,8 @@ class Space(Agent):
         Returns an action list immediately without forwarding messages
         """
         help = [
-            agent._get_help(action_name)
+            item
             for agent in [self] + self.agents
+            for item in agent._get_help(action_name)
         ]
         return help

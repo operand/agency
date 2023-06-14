@@ -41,14 +41,17 @@ class Agent():
         # A basic approach to storing messages
         self._message_log = []
 
-    def id(self) -> str:
+    def id(self, fully_qualified=True) -> str:
         """
         Returns the fully qualified id of this agent
         """
-        _id = self.__id
-        if self.space is not None:
-            _id = f"{self.__id}.{self.space.id()}"
-        return _id
+        if fully_qualified:
+            _id = self.__id
+            if self.space is not None:
+                _id = f"{self.__id}.{self.space.id()}"
+            return _id
+        else:
+            return self.__id
 
     def run(self):
         """Starts the agent in a thread"""
@@ -94,10 +97,11 @@ class Agent():
                 try:
                     self.__commit_action(message)
                 except Exception as e:
-                    # Here we handle errors that occur while handling an action, including
-                    # access denial, by reporting the error back to the sender. If an error
-                    # occurs here, indicating that basic _send() functionality is broken,
-                    # the application will exit.
+                    # Here we handle exceptions that occur while committing an
+                    # action, including PermissionError's from access denial, by
+                    # reporting the error back to the sender. If an error occurs
+                    # here, indicating that basic _send() functionality is
+                    # broken, the application will exit.
                     self._send({
                       "to": message['from'],
                       "thoughts": "An error occurred",
@@ -124,7 +128,7 @@ class Agent():
             if message['to'] == self.id():
                 # if it was point to point, raise an error
                 raise AttributeError(
-                    f"\"{message['action']}\" action not found")
+                    f"\"{message['action']}\" action not found on \"{self.id()}\"")
             else:
                 # broadcasts will not raise an error
                 return
@@ -287,7 +291,7 @@ class Agent():
         Called after every action. Override and use this method for logging or other
         situations where you may want to pass through all actions.
 
-        Note that this is ONLY called if the action was actually attempted, meaning
+        Note that this is only called if the action was actually attempted, meaning
         BOTH the action exists AND is permitted.
         """
         pass

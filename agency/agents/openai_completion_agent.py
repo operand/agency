@@ -8,7 +8,10 @@ import openai
 import textwrap
 
 
-class DemoAgent(Agent, PromptMethods):
+class OpenAICompletionAgent(Agent, PromptMethods):
+    """
+    An agent which uses OpenAI's completion API for inference
+    """
 
     def __init__(self, id, model, openai_api_key, **kwargs):
         super().__init__(id, **kwargs)
@@ -17,8 +20,8 @@ class DemoAgent(Agent, PromptMethods):
 
     def _prompt_head(self):
         return textwrap.dedent(f"""
-        I am "Demo". I am an early prototype of an "agent" system which can
-        freely interact with its environment.
+        I am "{self.id(fully_qualified=False)}". I am an early prototype of an
+        "agent" system which can freely interact with its environment.
 
         My creator has recently open-sourced my codebase intended to allow
         others to easily create their own AI integrated systems. He is
@@ -33,9 +36,6 @@ class DemoAgent(Agent, PromptMethods):
         interact via JSON formatted messages. I can send messages to discover
         and interact with other systems, AI agents, or humans who may also be
         present.
-
-        It is {util.to_timestamp(datetime.now())}. I am ready to begin with our
-        demonstration.
 
         %%%%% Terminal App 1.0.0 %%%%%
         (Use the "help" action to see available commands")
