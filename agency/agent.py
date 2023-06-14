@@ -73,6 +73,7 @@ class Agent():
         """
         Validates and sends (out) an action
         """
+        util.debug(f"*[{self.id()}] sending", action)
         # define message, validate, and route it
         message = MessageSchema(**{
           **action,
@@ -133,7 +134,7 @@ class Agent():
             if message['to'] == self.id():
                 # if it was point to point, raise an error
                 raise AttributeError(
-                    f"\"{message['action']}\" action not found")
+                    f"\"{message['action']}\" action not found on \"{self.id()}\"")
             else:
                 # broadcasts will not raise an error
                 return
@@ -147,7 +148,7 @@ class Agent():
                 # Invoke the action method
                 # (set _current_message so that it can be used by the action)
                 self._current_message = message
-                util.debug(f"*[{self.id()}] committing", message)
+                # util.debug(f"*[{self.id()}] committing", message)
                 return_value = action_method(**message['args'])
                 self._current_message = None
 

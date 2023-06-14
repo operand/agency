@@ -1,5 +1,4 @@
 import json
-from urllib import response
 from agency import util
 from agency.agent import ACCESS_PERMITTED, access_policy
 from agency.agent import Agent
@@ -127,8 +126,8 @@ class OpenAIFunctionAgent(Agent):
                 }
             }
             for action_help in self.space._get_help__sync()
-            if action_help['action'] != "say"
-            # the openai api handles "say" specially
+            if not (action_help['to'] == self.__kwargs['user_id'] and action_help['action'] == "say")
+            # the openai api handles "say" specially to the main user
         ]
         # util.debug(f"* openai functions:", functions)
         return functions
@@ -163,7 +162,7 @@ class OpenAIFunctionAgent(Agent):
           function_call="auto",
           # ... https://platform.openai.com/docs/api-reference/chat/create
         )
-        util.debug(f"*[{self.id()}] openai response: {completion}")
+        # util.debug(f"*[{self.id()}] openai response: {completion}")
 
         # parse the output
         action = {

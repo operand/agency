@@ -551,8 +551,8 @@ Note that my messages are broadcasted in the below conversation, which explains
 why all three respond to each message. There is an obvious difference in
 quality, of course.
 
-I also demonstrate the results of rejecting an action and directing them to use
-a different approach.
+I also demonstrate the results of rejecting an action and directing an agent to
+use a different approach.
 
 Behind the scenes, "FunctionAI" messaged Chatty directly and correctly relayed
 her response, and after I explained my rejection of the `read_file` action,
