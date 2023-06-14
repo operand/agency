@@ -20,8 +20,8 @@ class OpenAICompletionAgent(Agent, PromptMethods):
 
     def _prompt_head(self):
         return textwrap.dedent(f"""
-        I am "Demo". I am an early prototype of an "agent" system which can
-        freely interact with its environment.
+        I am "{self.id(fully_qualified=False)}". I am an early prototype of an
+        "agent" system which can freely interact with its environment.
 
         My creator has recently open-sourced my codebase intended to allow
         others to easily create their own AI integrated systems. He is

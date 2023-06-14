@@ -7,6 +7,8 @@ import queue
 import re
 import threading
 
+from numpy import full
+
 
 # access keys
 ACCESS = "access"
@@ -43,14 +45,17 @@ class Agent():
         # A basic approach to storing messages
         self._message_log = []
 
-    def id(self) -> str:
+    def id(self, fully_qualified=True) -> str:
         """
         Returns the fully qualified id of this agent
         """
-        _id = self.__id
-        if self.space is not None:
-            _id = f"{self.__id}.{self.space.id()}"
-        return _id
+        if fully_qualified:
+            _id = self.__id
+            if self.space is not None:
+                _id = f"{self.__id}.{self.space.id()}"
+            return _id
+        else:
+            return self.__id
 
     def run(self):
         """Starts the agent in a thread"""

@@ -71,9 +71,8 @@ at run time. Actions also specify an access policy, allowing you to monitor and
 control actions to ensure safety.
 
 To summarize, the two classes of `Agent` and `Space` together create a simple
-API for defining applications that may mix AI, human, and traditional computing
+API for creating applications that may mix AI, human, and traditional computing
 systems, in a way that is intended for all to equally understand and use.
-
 
 Let's walk through a thorough example to see how this works in practice.
 
@@ -207,14 +206,14 @@ enough to support any use case while remaining human readable.
 
 Note that the `"thoughts"` field is defined as a distinct argument for providing
 a natural language explanation to accompany any action, but as of this writing
-`ChattyAI` does not make use of it. `DemoAgent` discussed below, does.
+`ChattyAI` does not make use of it. `OpenAICompletionAgent` discussed below,
+does.
 
 For more details on the common message schema see
 [schema.py](./agency/schema.py).
 
 
 ## Access Control
-
 
 All actions must declare an access policy like the following example seen above
 the `ChattyAI._action__say()` method:
@@ -249,15 +248,15 @@ def _request_permission(self, proposed_message: MessageSchema) -> bool:
 ```
 
 This method is called when an agent attempts to invoke an action that has been
-marked as `ACCESS_REQUESTED`. Your method should inspect the `proposed_message`
-and return a boolean indicating whether or not to permit the action.
+marked as `ACCESS_REQUESTED`. Your method should inspect `proposed_message` and
+return a boolean indicating whether or not to permit the action.
 
 You can use this approach to protect against dangerous actions being taken. For
 example if you allow terminal access, you may want to review commands before
 they are invoked.
 
 This implementation of access control is just a start, and further development
-of the mechanics is a priority for this project.
+of the functionality is a priority for this project.
 
 
 ## Adding Human Users With the `WebApp` Class
@@ -271,7 +270,7 @@ to the developer, and may depend on what they want to accomplish.
 
 We could implement `WebApp` as a subclass of `Agent`. This would represent the
 web application as a single agent within the system. Users of the web
-application would not be able to be addressed individually by agents.
+application would not be able to be addressed individually by other agents.
 
 But since a typical web application serves multiple users, it may make sense to
 implement it as a `Space` subclass, so that individual users of the web
@@ -298,8 +297,8 @@ user may expose to others.
 
 Using the `asyncio` library you'll see that we simply forward messages as-is to
 the `React` frontend, and allow the client code to handle rendering and parsing
-of input as actions back to the `Flask` application, which routes them to their
-intended receiver in the space.
+of input as actions back to the `Flask` application, which forwards them to
+their intended receiver in the space.
 
 This way, we allow individual web users to appear as individual agents to others
 in the space.
@@ -311,7 +310,8 @@ Now that we've defined our new `WebApp` class, we can add it to `DemoSpace`
 with:
 
 ```python
-space.add(WebApp("WebApp", port=os.getenv('WEB_APP_PORT')))
+space.add(
+    WebApp("WebApp", port=os.getenv('WEB_APP_PORT')))
 ```
 
 Whenever any agent is added to a space, its fully qualified `id` becomes
@@ -329,8 +329,9 @@ qualified `id`'s:
 
 Users of the web application, as they log in or out, may be added dynamically
 under the `"WebApp"` namespace allowing them to be addressed with a fully
-qualified `id` of, for example `"Dan.WebApp.DemoSpace"`.
+qualified `id` of, for example:
 
+- `"Dan.WebApp.DemoSpace"`.
 
 _(Note that login/out functionality is not implemented as of this writing.)_
 
@@ -366,7 +367,7 @@ thanks to the implementation of `_request_permission()` in the `Host` class.
 
 Note that this implementation of `_request_permission()` is just one
 possibility. We could have implemented, for example, a phone notification for a
-human to review from anywhere.
+human to review from elsewhere.
 
 
 ## Discovering Actions
@@ -377,14 +378,14 @@ a human user of the web application.
 Once added to a space, each agent may send a `help` message to discover other
 agents and actions that are available in the space.
 
-The `WebApp` which hosts a simple chat UI supports a "slash" syntax summarized
-here:
+The `WebApp` application hosts a simple chat UI that supports a "slash" syntax
+summarized here:
 
 ```python
 /actionname arg1:val1 arg2:val2 ...
 ```
 
-So a person using the chat UI can discover available actions with:
+So a person using the chat UI can discover available actions by typing:
 
 ```
 /help
@@ -392,7 +393,7 @@ So a person using the chat UI can discover available actions with:
 
 This will broadcast a `help` action to all other agents, who will individually
 respond with a list of their available actions. The returned list of actions
-from the `Host` agent, would look something like:
+would look something like:
 
 ```python
 [
@@ -412,6 +413,14 @@ from the `Host` agent, would look something like:
           "directory_path": "str"
         }
     },
+    {
+        "to": "ChattyAI.DemoSpace",
+        "action": "say",
+        "thoughts": "Use this action to say something to Chatty",
+        "args": {
+          "content": "str"
+        }
+    },
     ...
 ]
 ```
@@ -429,10 +438,10 @@ So a person using the web app UI can invoke the `list_files` action on
 
 This will send the `list_files` action to the `Host` agent who will (after being
 granted permission) return the results back to `"Dan.WebApp.DemoSpace"`
-rendering it to the web user interface.
+rendering it to the web user interface as a message.
 
 Note the use of the fully qualified `id` of `Host.DemoSpace` used with the `to:`
-field
+field.
 
 
 ## Broadcast vs Point-to-Point Messaging
@@ -463,45 +472,27 @@ We'll now add an intelligent agent into this environment and see that it is able
 to understand and interact with any of the systems or humans we've connected
 thus far.
 
-To add the [`DemoAgent`](./agency/agents/demo_agent.py) class to the
+> Note that the following `OpenAIFunctionAgent` class uses the _just_ released
+[openai function calling
+API](https://platform.openai.com/docs/guides/gpt/function-calling).
+
+To add the [`OpenAIFunctionAgent`](./agency/agents/demo_agent.py) class to the
 environment:
 ```python
 space.add(
-    DemoAgent("Demo",
-        model="text-davinci-003",
-        openai_api_key=os.getenv("OPENAI_API_KEY")))
+    OpenAIFunctionAgent("FunctionAI",
+        model="gpt-3.5-turbo-16k",
+        openai_api_key=os.getenv("OPENAI_API_KEY"),
+        # user_id determines the "user" role in the OpenAI chat
+        user_id="Dan.WebApp.DemoSpace"))
 ```
 
-Note that the `DemoAgent` class is implemented to use the OpenAI API as a
-language model backend. I recommend using language models on par with GPT-3.5 or
-better for the best results with tool-using agents such as this.
+The `user_id` argument determines which agent is represented as the "user" role
+to the chat API. Since the chat API is limited to a predefined set of roles, we
+need to indicate which is the main "user".
 
-
-### The `DemoAgent` Prompt
-
-What makes the `DemoAgent` able to intelligently discover and interact with
-others is largely embodied in the `__system_prompt` and `_action__say` methods.
-
-A few notes to point out:
-
-1. This is using the _just_ released [function calling
-api](https://platform.openai.com/docs/guides/gpt/function-calling) from openai.
-
-1. Due to the limitations of using predefined roles in the chat completions api
-I had to come up with conversion logic from the more generic "everything is an
-agent with actions" approach of this library, and convert each message into one
-of an appropriate role. I think this is less than ideal. The idea of predefined
-roles is at odds with the assumptions made in this library. I do NOT plan on
-imposing roles in this library and would suggest instead that they are a
-limiting abstraction that should be done away with, especially for tool using
-agents. If you must use roles, that is easily supported as demonstrated by the
-implementation. An alternative implementation using only the text completion API
-(without the limitation of roles) can be seen in [TODO]()
-
-
-Note that `ChattyAI` uses a more typical prompt approach, showing that prompt
-style and technique need not be shared by all agents connected to a space, but
-can be entirely unique to each agent.
+For an implementation that uses a plain text completion API, see
+[`OpenAICompletionAgent`](./agency/agents/openai_completion_agent.py).
 
 
 ## Complete Demo Implementation
@@ -518,20 +509,32 @@ if __name__ == '__main__':
     space = Space("DemoSpace") 
 
     space.add(
-        WebApp("WebApp", port=os.getenv('WEB_APP_PORT')))
+        WebApp("WebApp",
+            demo_user_id="Dan", # hardcoded for simplicity
+            port=os.getenv('WEB_APP_PORT')))
 
     space.add(
-        ChattyAI("Chatty", model="EleutherAI/gpt-neo-125m"))
+        ChattyAI("Chatty",
+            model="EleutherAI/gpt-neo-125m"))
 
     space.add(
         Host("Host"))
 
     space.add(
-        DemoAgent("Demo",
-            model="gpt-3.5-turbo",
+        OpenAIFunctionAgent("FunctionAI",
+            model="gpt-3.5-turbo-16k",
+            openai_api_key=os.getenv("OPENAI_API_KEY"),
+            # user_id determines the "user" role in the OpenAI chat
+            user_id="Operand.WebApp.DemoSpace"))
+
+    space.add(
+        OpenAICompletionAgent("CompletionAI",
+            model="text-davinci-003",
             openai_api_key=os.getenv("OPENAI_API_KEY")))
 
     space.run()
+
+    print("pop!")
 
     # keep alive
     while True:
@@ -541,7 +544,7 @@ if __name__ == '__main__':
 If you run the above python script, after a short boot time you can visit the
 web app at `localhost:$WEB_APP_PORT` and you should see a simple chat interface.
 
-The following is a screenshot of a conversation that showcases `DemoAgent`'s
+The following is a screenshot of a conversation that showcases `OpenAIFunctionAgent`'s
 ability to intelligently interact with the other agents in the environment,
 including running commands on the host, or chatting with "Chatty".
 
@@ -624,9 +627,9 @@ Space([
 ## How does `agency` compare to agent libraries like LangChain?
 
 Though you could entirely create a simple agent using only the primitives in
-`agency` (see [`DemoAgent`](./agency/agents/demo_agent.py)), it is not intended
-to be a full-fledged agent toolset. It can be thought of as an "agent
-integration framework".
+`agency` (see [`agents/`](./agency/agents/)), it is not intended to be a
+full-fledged agent toolset. It can be thought of as an "agent integration
+framework".
 
 Projects like LangChain and others are exploring how to create purpose-built
 agents that solve diverse problems using tools.
@@ -650,6 +653,34 @@ some agent development workflows. See the hypothetical examples above.
 So, `agency` is a more general framework intended to support agent development
 and to ultimately enable agents to safely integrate with anything, in any way
 imaginable.
+
+## What known limitations or issues are there?
+
+* It's a new project, so keep that in mind in terms of completeness, but see
+the plans below for where this is heading.
+
+* This library makes use of threads for each individual agent. Multithreading
+is limited by python's GIL, meaning if you run a CPU bound model, other agents
+will have to wait for their "turn". This goes for anything else you might expose
+as an "agent" if it is CPU heavy. Note that I/O does not block, so networked
+backends or services will execute in parallel. Other forms of multiprocessing
+may eventually be considered.
+
+* This API purposely does NOT assume predefined roles of "user", "system",
+"assistant", etc. That is a limiting abstraction in my opinion that is a
+holdover of chat-oriented applications. For agents, it is my opinion that we
+should model the world more generally for them to interact with and reason
+about. In `agency`, all things are equally called "agents" and there are no
+special roles. This introduces some work in integrating with other API styles.
+See the implementation of
+[`OpenAIFunctionAgent`](./agency/agents/openai_function_agent.py) for an
+example.
+
+* There is not much by way of storage support. That is mostly left up to you and
+I'd suggest looking at the many technologies that focus on that. The `Agent`
+class implements an array backed `._message_log()` method which you can make use
+of or overwrite to back it with longer term storage. More support for storage
+may be considered in the future if it becomes clear how it could best be done.
 
 
 # Contributing
