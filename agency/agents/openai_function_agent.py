@@ -1,3 +1,4 @@
+from urllib import response
 from agency import util
 from agency.agent import ACCESS_PERMITTED, access_policy
 from agency.agent import Agent
@@ -82,13 +83,15 @@ class OpenAIFunctionAgent(Agent):
                 # currently not clear from their documentation whether the
                 # language model has access to it during inference. What if it
                 # makes a mistake? It should see the function call details to
-                # help it learn. And since this library allows others to call
-                # functions, it's important to be able to see what they are
+                # help it learn. And since this library also allows others to
+                # call functions, it's important to be able to see what they are
                 # calling as well.
                 open_ai_messages.append({
                     "role": "system",
                     "content": f"""{message["from"]} called function "{message["action"]}" with args {message["args"]} and thoughts {message["thoughts"]}""",
                 })
+
+        util.debug(f"* openai messages:", open_ai_messages)
 
         return open_ai_messages
 
@@ -97,13 +100,12 @@ class OpenAIFunctionAgent(Agent):
         Returns a list of functions converted from space._get_help__sync() to be
         sent to OpenAI as the functions arg
         """
-        util.debug("* getting functions...")
-        return [
+        functions = [
             {
                 # note that we send a fully qualified name for the action and
                 # convert '.' to '-' since openai doesn't allow '.'
-                "name": f"{action_method['to']}.{action_method['action']}".replace('.', '-'),
-                "description": action_method['thoughts'],
+                "name": f"{action_help['to']}.{action_help['action']}".replace('.', '-'),
+                "description": action_help['thoughts'],
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -113,24 +115,24 @@ class OpenAIFunctionAgent(Agent):
                             # args. maybe in the future. for now:
                             "description": f"arg {arg_name} of type {arg_type}",
                         }
-                        for arg_name, arg_type in action_method['args'].items()
+                        for arg_name, arg_type in action_help['args'].items()
                     },
                     "required": [
                         # i know.. we're looping twice. don't judge me.
-                        arg_name for arg_name, _ in action_method['args'].items()
+                        arg_name for arg_name, _ in action_help['args'].items()
                     ],
                 }
             }
-            for action_method in self.space._get_help__sync()
-            if action_method['action'] != "say"
+            for action_help in self.space._get_help__sync()
+            if action_help['action'] != "say"
             # the openai api handles "say" specially
         ]
+        return functions
 
     def __arg_type_to_openai_type(self, arg_type):
         """
         Converts an arg type to an openai type
         """
-        util.debug(f"* converting arg type to openai type: {arg_type}")
         if arg_type == "str":
             return "string"
         elif arg_type == "number":
@@ -151,15 +153,30 @@ class OpenAIFunctionAgent(Agent):
           messages=self.__open_ai_messages(),
           functions=self.__open_ai_functions(),
           function_call="auto",
-          # temperature=0.1,
-          # max_tokens=500,
+          # ... https://platform.openai.com/docs/api-reference/chat/create
         )
-
         util.debug(f"* openai response: {completion}")
 
         # parse the output
-        # TODO: convert to the common message schema here
-        raise NotImplementedError()
+        action = {
+            # defaults
+            "to": self.__kwargs['user_id'],
+            "thoughts": "",
+        }
+        response_message = completion['choices'][0]['message']
+        if 'function_call' in response_message:
+            # extract receiver and action
+            function_parts = response_message['function_call']['name'].split('-')
+            action['to'] = function_parts[:-1] # all but last
+            action['action'] = function_parts[-1] # last
+            action['action'] = action['action'].replace('-', '.') # convert back to '.'
+            action['args'] = response_message['function_call']['arguments']
+        else:
+            action['action'] = "say"
+            action['args'] = {
+                "content": response_message['content'],
+            }
 
-        action = util.extract_json(completion.choices[0].text, ["/END"])
+        util.debug(f"* sending action:", action)
+
         self._send(action)

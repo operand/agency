@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from agency import util
 from agency.schema import ActionSchema, MessageSchema
 import inspect
 import queue
@@ -91,6 +92,7 @@ class Agent():
         while not self.stopping.is_set():
             try:
                 message = self.__message_queue.get(timeout=0.01)
+                util.debug(f"[{self.id()}] processing", message)
                 try:
                     self.__commit_action(message)
                 except Exception as e:
@@ -104,7 +106,7 @@ class Agent():
                       "action": "error",
                       "args": {
                         "original_message": message,
-                        "error": f"{e}",
+                        "error": f"{type(e).__name__}: {e}",
                       },
                     })
             except queue.Empty:

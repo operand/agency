@@ -96,5 +96,4 @@ class Space(Agent):
             for agent in [self] + self.agents
             for item in agent._get_help(action_name)
         ]
-        util.debug(f"* help:", help)
         return help
