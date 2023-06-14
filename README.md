@@ -498,7 +498,8 @@ For an implementation that uses a plain text completion API, see
 ## Complete Demo Implementation
 
 The following is the full implementation (minus imports) of the above
-walkthrough that you can try out on your own. Note that `Space.run()` starts a
+walkthrough that you can try out on your own, including both OpenAI agent
+examples and the HuggingFace based "Chatty". Note that `Space.run()` starts a
 thread, so we simply keep the application alive with a while loop.
 
 ```python
@@ -554,14 +555,19 @@ quality, of course.
 I also demonstrate the results of rejecting an action and directing an agent to
 use a different approach.
 
-Behind the scenes, "FunctionAI" messaged Chatty directly and correctly relayed
-her response, and after I explained my rejection of the `read_file` action,
-"FunctionAI" used the `shell_command` action with `wc -l Dockerfile` which was
-more appropriate. And the file indeed has 75 lines.
+After I explained my rejection of the `read_file` action (which happened
+behindthe scenes on the terminal), "FunctionAI" appropriately used the
+`shell_command` action with `wc -l Dockerfile`. The Dockerfile indeed has 73
+lines.
+
+CompletionAI used that shell command on the first try. Anecdotally as of this
+writing, `CompletionAI` seems to be more accurate, even though it is using the
+text completion API vs the function calling feature of the chat API. This may be
+due to issues arising from the differences in approach discussed elsewhere.
 
 <p align="center">
-  <img src="https://i.ibb.co/f1GMb5P/Screenshot-2023-06-10-at-11-50-42-PM.png"
-       alt="Screenshot-2023-06-10-at-11-50-42-PM" border="0" width=500>
+  <img src="https://i.ibb.co/nbvLJvg/Screenshot-2023-06-14-at-3-59-01-AM.png"
+       alt="Screenshot-2023-06-14-at-3-59-01-AM" border="0" width=500>
 </p>
 
 
@@ -653,10 +659,11 @@ So, `agency` is a more general framework intended to support agent development
 and to ultimately enable agents to safely integrate with anything, in any way
 imaginable.
 
-## What known limitations or issues are there?
+## What are some known limitations or issues?
 
 * It's a new project, so keep that in mind in terms of completeness, but see
-the plans below for where this is heading.
+the plans below for where this is heading. Core functionality is pretty
+well tested at the moment.
 
 * This library makes use of threads for each individual agent. Multithreading
 is limited by python's GIL, meaning if you run a CPU bound model, other agents
@@ -670,16 +677,16 @@ may eventually be considered.
 holdover of chat-oriented applications. For agents, it is my opinion that we
 should model the world more generally for them to interact with and reason
 about. In `agency`, all things are equally called "agents" and there are no
-special roles. This introduces some work in integrating with other API styles.
-See the implementation of
+special roles. This introduces some work in integrating with role based
+approaches.  See the implementation of
 [`OpenAIFunctionAgent`](./agency/agents/openai_function_agent.py) for an
 example.
 
 * There is not much by way of storage support. That is mostly left up to you and
 I'd suggest looking at the many technologies that focus on that. The `Agent`
-class implements an array backed `._message_log()` method which you can make use
-of or overwrite to back it with longer term storage. More support for storage
-may be considered in the future if it becomes clear how it could best be done.
+class implements a`._message_log` array which you can make use of or overwrite
+to back it with longer term storage. More direct support for storage APIs may be
+considered in the future.
 
 
 # Contributing
@@ -719,20 +726,17 @@ priorities.
 ## Priorities
 - **Speed**:
   Performance is always a concern. If it's not performant, it's not practical.
-  Currently the limitations of pythong multi-threading are a bottleneck 
+  Currently the limitations of python multi-threading are a bottleneck.
 - **Access Control and Safety**:
-  Designing an effective access control solution for AI integrated systems is a
-  fundamental problem to solve in order to ensure safety. I believe I've
-  included a sane first attempt at such a pattern, but further exploration will
-  be a focus of this project.
+  An effective access control solution for AI integrated systems is fundamental
+  to ensure safety. I believe I've included a sane first step at such a pattern,
+  but further development will be a focus of this project.
 - **Compatibility and Usability**:
   In general, I believe this is a fair start in defining a set of patterns for
-  creating AI integrated systems. I intend to continually improve the API,
-  protocol, and other aspects of its design as needed based on feedback from
-  real world use. [So please let me
-  know!](https://github.com/operand/agency/issues)
+  creating AI integrated systems. With more use, I hope to ensure ensure the
+  API is kept small, and compatible with a wide variety of use cases.
 - **Documentation**:
-  I hope to ensure documentation is kept small, accurate and up to date. This
+  I hope to ensure documentation is kept organized, clear, and accurate. This
   readme serves as a start.
 
 
