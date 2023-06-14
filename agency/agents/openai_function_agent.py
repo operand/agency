@@ -7,7 +7,8 @@ import textwrap
 
 class OpenAIFunctionAgent(Agent):
     """
-    An agent which uses OpenAI's function_call API"""
+    An agent which uses OpenAI's function_call API for inference
+    """
 
     def __init__(self, id, model, openai_api_key, **kwargs):
         super().__init__(id)

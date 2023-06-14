@@ -8,7 +8,10 @@ import openai
 import textwrap
 
 
-class DemoAgent(Agent, PromptMethods):
+class OpenAICompletionAgent(Agent, PromptMethods):
+    """
+    An agent which uses OpenAI's completion API for inference
+    """
 
     def __init__(self, id, model, openai_api_key, **kwargs):
         super().__init__(id, **kwargs)
