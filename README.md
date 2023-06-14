@@ -484,17 +484,19 @@ others is largely embodied in the `__system_prompt` and `_action__say` methods.
 
 A few notes to point out:
 
-1. This is using the just released [function calling
+1. This is using the _just_ released [function calling
 api](https://platform.openai.com/docs/guides/gpt/function-calling) from openai.
 
-1. Due to limitations imposed by the predefined roles in the chat completions
-api I had to come up with conversion logic from the more generic "everything is
-an agent" approach of this library, and convert each message into one of an
-appropriate role. I think this is less than ideal. The idea of predefined roles
-is at odds with the assumptions made in this library. I do NOT plan on imposing
-roles in this library and would suggest instead that they are a limiting
-abstraction that should be done away with. If you must use roles, that is easily
-supported as demonstrated by the implementation.
+1. Due to the limitations of using predefined roles in the chat completions api
+I had to come up with conversion logic from the more generic "everything is an
+agent with actions" approach of this library, and convert each message into one
+of an appropriate role. I think this is less than ideal. The idea of predefined
+roles is at odds with the assumptions made in this library. I do NOT plan on
+imposing roles in this library and would suggest instead that they are a
+limiting abstraction that should be done away with, especially for tool using
+agents. If you must use roles, that is easily supported as demonstrated by the
+implementation. An alternative implementation using only the text completion API
+(without the limitation of roles) can be seen in [TODO]()
 
 
 Note that `ChattyAI` uses a more typical prompt approach, showing that prompt

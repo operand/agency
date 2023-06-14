@@ -93,7 +93,7 @@ class DemoAgent(Agent):
         """
         return [
             {
-                # note that we use a provide qualified name here for the action
+                # note that we send a fully qualified name for the action
                 "name": f"{action_method['to']}.{action_method['action']}",
                 "description": action_method['thoughts'],
                 "parameters": {
@@ -102,18 +102,20 @@ class DemoAgent(Agent):
                         arg_name: {
                             "type": arg_type,
                             # this library doesn't support descriptions for
-                            # args. maybe in the future. for now we do this:
+                            # args. maybe in the future. for now:
                             "description": f"arg {arg_name} of type {arg_type}",
                         }
                         for arg_name, arg_type in action_method['args'].items()
                     },
                     "required": [
+                        # i know.. we're looping twice. don't judge me.
                         arg_name for arg_name, _ in action_method['args'].items()
                     ],
                 }
             }
             for action_method in self.space._get_help__sync()
-            if action_method['name'] != "say" # the openai api handles "say" specially
+            # the openai api handles "say" specially
+            if action_method['name'] != "say"
         ]
 
 
