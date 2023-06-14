@@ -735,7 +735,7 @@ priorities.
   such a pattern, but further development will be a focus of this project.
 - **Compatibility and Usability**:
   In general, I believe this is a fair start in defining a set of patterns for
-  creating agent systems. I hope to ensure ensure the API is kept small, and
+  creating agent systems. I hope to ensure the API is kept small, and
   compatible with a wide variety of use cases.
 - **Documentation**:
   I hope to ensure documentation is kept organized, clear, and accurate. This
@@ -743,8 +743,6 @@ priorities.
 
 
 ## Planned Work
-- Add schema support for [OpenAI Function
-calling](https://platform.openai.com/docs/guides/gpt/function-calling)
 - Add web app multimodal i/o examples
   - image
   - audio
