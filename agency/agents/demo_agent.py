@@ -66,7 +66,7 @@ class DemoAgent(Agent):
                         "content": message["args"]["content"],
                     })
 
-            # all other action types are considered a function call
+            # all other actions are considered a function_call
             else:
                 # NOTE Strangely it does not appear that openai suggests
                 # including function_call messages in the messages list. See:
@@ -76,7 +76,8 @@ class DemoAgent(Agent):
                 # "system" message reporting the details of what the function
                 # call was. This is important information to infer from and it's
                 # currently not clear whether the language model has access to
-                # it from their documentation.
+                # it from their documentation. What if it makes a mistake? It
+                # should see the function call details to help it learn.
                 open_ai_messages.append({
                     "role": "system",
                     "content": f"""{message["from"]} called function "{message["action"]}" with args {message["args"]} and thoughts {message["thoughts"]}""",
@@ -84,9 +85,16 @@ class DemoAgent(Agent):
 
     def __open_ai_functions(self):
         """
-        Returns a list of functions converted from _get_help__sync() to be sent
-        to OpenAI
+        Returns a list of functions converted from space._get_help__sync() to be
+        sent to OpenAI as the functions arg
         """
+        return [
+            {
+                "name": "say",
+            }
+            for action_method in self._get_help__sync()
+            if action_method['name'] != "say" # the openai api handles "say" specially
+        ]
 
 
     @access_policy(ACCESS_PERMITTED)
@@ -99,6 +107,7 @@ class DemoAgent(Agent):
           model=self.__model,
           messages=self.__open_ai_messages(),
           functions=self.__open_ai_functions(),
+          function_call="auto",
           # temperature=0.1,
           # max_tokens=500,
         )

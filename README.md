@@ -174,11 +174,6 @@ original message, passing the response as the `"content"` argument.
 
 ## The Common Message Schema
 
-> PLEASE NOTE \
-Work is in progress to build direct schema compatibility with the just announced
-[OpenAI Function calling
-API](https://platform.openai.com/docs/guides/gpt/function-calling)
-
 In the example above, we see the format that is used when sending actions.
 
 In describing the messaging format, there are two terms that are used similarly:
@@ -485,40 +480,26 @@ better for the best results with tool-using agents such as this.
 ### The `DemoAgent` Prompt
 
 What makes the `DemoAgent` able to intelligently discover and interact with
-others is largely embodied in the `_prompt_head` and `_action__say` methods. In
-them you'll notice a few things:
+others is largely embodied in the `__system_prompt` and `_action__say` methods.
 
-1. I'm just using the text completions API and using a custom approach to the
-prompt that doesn't involve a "system" user.
+A few notes to point out:
 
-1. The prompt is written from the first person perspective as though it is the
-agent's own thoughts. This differs slightly from common practice, which usually
-uses the second-person perspective. I do not think this makes a large difference
-but was worth mentioning.
+1. This is using the just released [function calling
+api](https://platform.openai.com/docs/guides/gpt/function-calling) from openai.
 
-1. I frame the situation clearly and accurately for the agent, telling it enough
-about who it is, its goals, and the JSON format that it uses to communicate.
+1. Due to limitations imposed by the predefined roles in the chat completions
+api I had to come up with conversion logic from the more generic "everything is
+an agent" approach of this library, and convert each message into one of an
+appropriate role. I think this is less than ideal. The idea of predefined roles
+is at odds with the assumptions made in this library. I do NOT plan on imposing
+roles in this library and would suggest instead that they are a limiting
+abstraction that should be done away with. If you must use roles, that is easily
+supported as demonstrated by the implementation.
 
-1. I "pretend" that the bottom portion is the output of a terminal application.
-By signaling a change in context with the `%%%%% Terminal %%%%%` header, we help
-make clear to the language model that this is a distinct section of content with
-its own text patterns to continue. I do not believe that this is a crucial
-technique either, but is worth noting.
 
-1. I use the `_message_log_to_list()` method to dynamically insert the previous
-conversation up to the current point. See the mixin class `PromptMethods` for
-the implementation. There is no summarization used, so the current
-implementation will eventually hit the context window after some time.
-
-1. I insert a fake event at the beginning of the terminal portion of the prompt,
-pretending that the agent themself executed the `help` action proactively, and
-display the resulting list of available actions. This is just a neat way to
-insert the available actions while keeping the supposed context of the terminal,
-and providing a one-shot example to begin from.
-
-Note that `ChattyAI` uses a more typical prompt, showing that prompt style and
-technique need not be shared by all agents connected to a space, but can be
-entirely unique to each agent.
+Note that `ChattyAI` uses a more typical prompt approach, showing that prompt
+style and technique need not be shared by all agents connected to a space, but
+can be entirely unique to each agent.
 
 
 ## Complete Demo Implementation
