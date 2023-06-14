@@ -1,4 +1,5 @@
 from abc import abstractmethod
+import traceback
 from agency import util
 from agency.schema import ActionSchema, MessageSchema
 import inspect
@@ -95,10 +96,12 @@ class Agent():
                 try:
                     self.__commit_action(message)
                 except Exception as e:
-                    # Here we handle errors that occur while handling an action, including
-                    # access denial, by reporting the error back to the sender. If an error
-                    # occurs here, indicating that basic _send() functionality is broken,
-                    # the application will exit.
+                    # Here we handle exceptions that occur while committing an
+                    # action, including PermissionError's from access denial, by
+                    # reporting the error back to the sender. If an error occurs
+                    # here, indicating that basic _send() functionality is
+                    # broken, the application will exit.
+                    util.debug(f"*[{self.id()}] error", traceback.format_exc())
                     self._send({
                       "to": message['from'],
                       "thoughts": "An error occurred",
