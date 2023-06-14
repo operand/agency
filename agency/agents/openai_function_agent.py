@@ -38,6 +38,7 @@ class OpenAIFunctionAgent(Agent):
         Returns a list of messages converted from the message_log to be sent to
         OpenAI
         """
+        util.debug(f"* getting openai messages...")
         # start with the system message
         open_ai_messages = [{ "role": "system", "content": self.__system_prompt() }]
 
@@ -89,11 +90,14 @@ class OpenAIFunctionAgent(Agent):
                     "content": f"""{message["from"]} called function "{message["action"]}" with args {message["args"]} and thoughts {message["thoughts"]}""",
                 })
 
+        return open_ai_messages
+
     def __open_ai_functions(self):
         """
         Returns a list of functions converted from space._get_help__sync() to be
         sent to OpenAI as the functions arg
         """
+        util.debug("* getting functions...")
         return [
             {
                 # note that we send a fully qualified name for the action
@@ -128,6 +132,11 @@ class OpenAIFunctionAgent(Agent):
         Sends a message to the openai chatcompletion api, translates the
         response, and sends the resulting action
         """
+        util.debug(f"* openai say:", {
+            "content": content,
+            "messages": self.__open_ai_messages(),
+            # "functions": self.__open_ai_functions(),
+        })
         completion = openai.ChatCompletion.create(
           model=self.__model,
           messages=self.__open_ai_messages(),
