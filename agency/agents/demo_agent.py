@@ -24,8 +24,8 @@ class DemoAgent(Agent):
         like yourself and how you may integrate with the world.
 
         Your goal is to demonstrate your accurate understanding of the world and
-        your ability to communicate with other systems as needed to solve any
-        problems at hand.
+        your ability to communicate with as needed to solve any problems at
+        hand.
 
         The following is your current conversation. Respond appropriately.
         """)
@@ -75,9 +75,12 @@ class DemoAgent(Agent):
                 # I'm not sure why. Instead, I am going to add it here as a
                 # "system" message reporting the details of what the function
                 # call was. This is important information to infer from and it's
-                # currently not clear whether the language model has access to
-                # it from their documentation. What if it makes a mistake? It
-                # should see the function call details to help it learn.
+                # currently not clear from their documentation whether the
+                # language model has access to it during inference. What if it
+                # makes a mistake? It should see the function call details to
+                # help it learn. And since this library allows others to call
+                # functions, it's important to be able to see what they are
+                # calling.
                 open_ai_messages.append({
                     "role": "system",
                     "content": f"""{message["from"]} called function "{message["action"]}" with args {message["args"]} and thoughts {message["thoughts"]}""",
@@ -90,9 +93,26 @@ class DemoAgent(Agent):
         """
         return [
             {
-                "name": "say",
+                # note that we use a provide qualified name here for the action
+                "name": f"{action_method['to']}.{action_method['action']}",
+                "description": action_method['thoughts'],
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        arg_name: {
+                            "type": arg_type,
+                            # this library doesn't support descriptions for
+                            # args. maybe in the future. for now we do this:
+                            "description": f"arg {arg_name} of type {arg_type}",
+                        }
+                        for arg_name, arg_type in action_method['args'].items()
+                    },
+                    "required": [
+                        arg_name for arg_name, _ in action_method['args'].items()
+                    ],
+                }
             }
-            for action_method in self._get_help__sync()
+            for action_method in self.space._get_help__sync()
             if action_method['name'] != "say" # the openai api handles "say" specially
         ]
 
@@ -111,6 +131,8 @@ class DemoAgent(Agent):
           # temperature=0.1,
           # max_tokens=500,
         )
+
+        util.debug(f"* openai response: {completion}")
 
         # parse the output
         # TODO: convert to the common message schema here
