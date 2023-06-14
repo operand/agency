@@ -31,8 +31,8 @@ The API accommodates agent integration with systems as varied as:
 # Install
 > **WARNING:**\
 Running `agency` may result in exposing your computer to access by any connected
-`Agent` class including AI agents. Please understand the risks before using this
-software and do not configure it for OS access otherwise.\
+`Agent` class. Please understand the risks before using this software and do not
+configure it for OS access otherwise.\
 \
 If you want to enable OS access, to allow for file I/O for example, I HIGHLY
 RECOMMEND running your project within a Docker container to prevent direct
@@ -54,8 +54,9 @@ In `agency`, all entities are called "agents" and represented as instances
 of the `Agent` class. This includes all humans, software, and AI-driven agents.
 
 The `Agent` class is a base class similar to "Object" in many object-oriented
-languages. All agents may expose "actions" which can be invoked by other
-agents, by simply defining instance methods on the class.
+languages. All agents may expose "actions" that other agents can discover and
+invoke at run time. Actions also specify an access policy, allowing you to
+monitor and control actions to ensure safety.
 
 A `Space` is also an `Agent` and is used to group multiple agents together.
 
@@ -65,10 +66,6 @@ added to a space.
 
 Spaces may be nested, allowing for namespacing and hierarchical organization of
 the agents in your application.
-
-All agents may define public "actions" that other agents can discover and invoke
-at run time. Actions also specify an access policy, allowing you to monitor and
-control actions to ensure safety.
 
 To summarize, the two classes of `Agent` and `Space` together create a simple
 API for creating applications that may mix AI, human, and traditional computing
@@ -673,26 +670,25 @@ not block, so networked backends or services will execute in parallel.  Other
 forms of multiprocessing to avoid the GIL may eventually be considered.
 
 * This API does NOT assume or enforce predefined roles like "user", "system",
-"assistant", etc. This is an intentional decision and is not likely to change.
+  "assistant", etc. This is an intentional decision and is not likely to change.
 
-I believe using roles is a limiting abstraction that is a holdover of
-chat-oriented applications. `agency` is intended to allow potentially large
-numbers of agents and systems and people to come together. The concept of roles
-gets in the way of representing many things uniquely.
+  `agency` is intended to allow potentially large numbers of agents, systems,
+  and people to come together. A small predefined set of roles gets in the way
+  of representing many things uniquely and independently.
 
-This is a core feature of `agency`: that all things are treated equally and may
-be interacted with in different ways.
+  This is a core feature of `agency`: that all things are treated the same and
+  may be interacted with through common means.
 
-The lack of roles introduces some challenges in integrating with role based
-APIs. See the implementation of
-[`OpenAIFunctionAgent`](./agency/agents/openai_function_agent.py) for an
-example.
+  The lack of roles introduces some challenges in integrating with role based
+  APIs. See the implementation of
+  [`OpenAIFunctionAgent`](./agency/agents/openai_function_agent.py) for an
+  example.
 
 * There is not much by way of storage support. That is mostly left up to you and
-I'd suggest looking at the many technologies that focus on that. The `Agent`
-class implements a simple `._message_log` array which you can make use of or
-overwrite to back it with longer term storage. More direct support for storage
-APIs may be considered in the future.
+  I'd suggest looking at the many technologies that focus on that. The `Agent`
+  class implements a simple `_message_log` array which you can make use of or
+  overwrite to back it with longer term storage. More direct support for storage
+  APIs may be considered in the future.
 
 
 # Contributing
@@ -734,13 +730,13 @@ priorities.
   Performance is always a concern. If it's not performant, it's not practical.
   Currently the limitations of python multi-threading are a bottleneck.
 - **Access Control and Safety**:
-  An effective access control solution for AI integrated systems is fundamental
-  to ensure safety. I believe I've included a sane first step at such a pattern,
-  but further development will be a focus of this project.
+  An effective access control solution for agent-integrated systems is
+  fundamental to ensure safety. I believe I've included a sane first step at
+  such a pattern, but further development will be a focus of this project.
 - **Compatibility and Usability**:
   In general, I believe this is a fair start in defining a set of patterns for
-  creating AI integrated systems. With more use, I hope to ensure ensure the
-  API is kept small, and compatible with a wide variety of use cases.
+  creating agent systems. I hope to ensure ensure the API is kept small, and
+  compatible with a wide variety of use cases.
 - **Documentation**:
   I hope to ensure documentation is kept organized, clear, and accurate. This
   readme serves as a start.
