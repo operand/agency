@@ -1,3 +1,4 @@
+import json
 from urllib import response
 from agency import util
 from agency.agent import ACCESS_PERMITTED, access_policy
@@ -39,7 +40,6 @@ class OpenAIFunctionAgent(Agent):
         Returns a list of messages converted from the message_log to be sent to
         OpenAI
         """
-        util.debug(f"* getting openai messages...")
         # start with the system message
         open_ai_messages = [{ "role": "system", "content": self.__system_prompt() }]
 
@@ -48,48 +48,51 @@ class OpenAIFunctionAgent(Agent):
         # we convert to them here. predefined roles aren't the right abstraction
         # IMHO but this is one way to handle it if we must.
         for message in self._message_log:
-            # "say" actions are converted to messages using the content arg
-            if message['action'] == "say":
-                # assistant
-                if message["from"] == self.id():
-                    open_ai_messages.append({
-                        "role": "assistant",
-                        "content": message["args"]["content"],
-                    })
-                # user
-                elif message["from"] == self.__kwargs['user_id']:
-                    open_ai_messages.append({
-                        "role": "user",
-                        "content": message["args"]["content"],
-                    })
+            # "return" and "error" are converted by default to "say" so ignore
+            if message['action'] not in ["return", "error"]:
+                # "say" actions are converted to messages using the content arg
+                if message['action'] == "say":
+                    # assistant
+                    if message["from"] == self.id():
+                        open_ai_messages.append({
+                            "role": "assistant",
+                            "content": message["args"]["content"],
+                        })
+                    # user
+                    elif message["from"] == self.__kwargs['user_id']:
+                        open_ai_messages.append({
+                            "role": "user",
+                            "content": message["args"]["content"],
+                        })
 
-                # a "say" from anyone else is considered a function message
-                # NOTE this highlights one of the problems with predefined
+                    # a "say" from anyone else is considered a function message
+                    # NOTE this highlights one of the problems with predefined
+                    else:
+                        open_ai_messages.append({
+                            "role": "function",
+                            "name": f"{'-'.join(message['from'].split('.'))}-{message['action']}",
+                            "content": message["args"]["content"],
+                        })
+
+                # all other actions are considered a function_call
                 else:
+                    # NOTE Strangely it does not appear that openai suggests
+                    # including function_call messages in the messages list. See:
+                    # https://github.com/openai/openai-cookbook/blob/main/examples/How_to_call_functions_with_chat_models.ipynb
+                    #
+                    # I'm not sure why. Instead, I am going to add it here as a
+                    # "system" message reporting the details of what the function
+                    # call was. This is important information to infer from and it's
+                    # currently not clear from their documentation whether the
+                    # language model has access to it during inference. What if it
+                    # makes a mistake? It should see the function call details to
+                    # help it learn. And since this library also allows others to
+                    # call functions, it's important to be able to see what they are
+                    # calling as well.
                     open_ai_messages.append({
-                        "role": "function",
-                        "content": message["args"]["content"],
+                        "role": "system",
+                        "content": f"""{"-".join(message["from"].split("."))} called function "{message["action"]}" with args {message["args"]}""",
                     })
-
-            # all other actions are considered a function_call
-            else:
-                # NOTE Strangely it does not appear that openai suggests
-                # including function_call messages in the messages list. See:
-                # https://github.com/openai/openai-cookbook/blob/main/examples/How_to_call_functions_with_chat_models.ipynb
-                #
-                # I'm not sure why. Instead, I am going to add it here as a
-                # "system" message reporting the details of what the function
-                # call was. This is important information to infer from and it's
-                # currently not clear from their documentation whether the
-                # language model has access to it during inference. What if it
-                # makes a mistake? It should see the function call details to
-                # help it learn. And since this library also allows others to
-                # call functions, it's important to be able to see what they are
-                # calling as well.
-                open_ai_messages.append({
-                    "role": "system",
-                    "content": f"""{message["from"]} called function "{message["action"]}" with args {message["args"]} and thoughts {message["thoughts"]}""",
-                })
 
         util.debug(f"* openai messages:", open_ai_messages)
 
@@ -112,8 +115,8 @@ class OpenAIFunctionAgent(Agent):
                         arg_name: {
                             "type": self.__arg_type_to_openai_type(arg_type),
                             # this library doesn't support descriptions for
-                            # args. maybe in the future. for now:
-                            "description": f"arg {arg_name} of type {arg_type}",
+                            # args. maybe in the future. for now we skip it
+                            "description": f"",
                         }
                         for arg_name, arg_type in action_help['args'].items()
                     },
@@ -127,6 +130,7 @@ class OpenAIFunctionAgent(Agent):
             if action_help['action'] != "say"
             # the openai api handles "say" specially
         ]
+        # util.debug(f"* openai functions:", functions)
         return functions
 
     def __arg_type_to_openai_type(self, arg_type):
@@ -135,10 +139,14 @@ class OpenAIFunctionAgent(Agent):
         """
         if arg_type == "str":
             return "string"
-        elif arg_type == "number":
-            return "number"
         elif arg_type == "bool":
             return "boolean"
+        elif arg_type == "list":
+            return "array"
+        elif arg_type == "dict":
+            return "object"
+        elif arg_type == "int":
+            return "integer"
         else:
             raise ValueError(f"Unknown openai arg type for: {arg_type}")
 
@@ -161,16 +169,22 @@ class OpenAIFunctionAgent(Agent):
         action = {
             # defaults
             "to": self.__kwargs['user_id'],
+            # TODO. we can add "thoughts" as an additional arg to each action
+            # but for now this implementation will ignore it. the text
+            # completion based implementation does use the "thoughts" field.
             "thoughts": "",
         }
         response_message = completion['choices'][0]['message']
         if 'function_call' in response_message:
             # extract receiver and action
             function_parts = response_message['function_call']['name'].split('-')
-            action['to'] = function_parts[:-1] # all but last
+            action['to'] = ".".join(function_parts[:-1]) # all but last
             action['action'] = function_parts[-1] # last
-            action['action'] = action['action'].replace('-', '.') # convert back to '.'
-            action['args'] = response_message['function_call']['arguments']
+            # arguments comes as a string when it probably should be an object
+            if isinstance(response_message['function_call']['arguments'], str):
+                action['args'] = json.loads(response_message['function_call']['arguments'])
+            else:
+                action['args'] = response_message['function_call']['arguments']
         else:
             action['action'] = "say"
             action['args'] = {

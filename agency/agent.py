@@ -92,7 +92,6 @@ class Agent():
         while not self.stopping.is_set():
             try:
                 message = self.__message_queue.get(timeout=0.01)
-                util.debug(f"[{self.id()}] processing", message)
                 try:
                     self.__commit_action(message)
                 except Exception as e:
@@ -119,6 +118,7 @@ class Agent():
         # Check if the action exists
         action_method = None
         try:
+            util.debug(f"*[{self.id()}] committing", message)
             action_method = getattr(
               self, f"{ACTION_METHOD_PREFIX}{message['action']}")
         except AttributeError as e:
