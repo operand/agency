@@ -63,73 +63,64 @@
         this.chatbox = React.createRef()
       }
 
-      parseArguments(parts) {
-        let args = {};
+      parseSlashSyntaxAction(action_text) {
+          action_text = action_text.trim();
+          let action = {};
 
-        for (let i = 1; i < parts.length; i++) {
-          let splitIndex = parts[i].indexOf(":");
-          let key = parts[i].substring(0, splitIndex);
-          let val = parts[i].substring(splitIndex + 1);
+          if (!action_text.startsWith("/")) {
+            action = {
+              "action": "say",
+              "thoughts": "",
+              "args": { "content": action_text }
+            }
+          } else {
+            let commandEndIndex = action_text.indexOf(" ");
+            let action_name = action_text.substring(1, commandEndIndex);
+            let args = {};
 
-          if (val.startsWith('"') && val.endsWith('"')) {
-            val = val.slice(1, -1);
-          }
+            let currentArgName = "";
+            let currentArgValue = "";
+            let inQuotes = false;
 
-          args[key] = val;
-        }
+            for (let i = commandEndIndex + 1; i < action_text.length; i++) {
+              let char = action_text[i];
 
-        return args;
-      }
-
-      parseSlashSyntaxAction(actionText) {
-        actionText = actionText.trim();
-        let action = {};
-        if (!actionText.startsWith("/")) {
-          action = {
-            "action": "say",
-            "thoughts": "",
-            "args": { "content": actionText }
-          }
-        }
-        else {
-          let args = {};
-          let parts = actionText.match(/"[^"]+"|\S+/g);
-          let actionName = parts[0].substring(1);
-
-          for (let i = 1; i < parts.length; i++) {
-            let splitIndex = parts[i].indexOf(":");
-            let key = parts[i].substring(0, splitIndex);
-            let val = parts[i].substring(splitIndex + 1);
-
-            if (val.startsWith('"') && val.endsWith('"')) {
-              val = val.slice(1, -1);
-            } else if (val.startsWith('{') && val.endsWith('}')) {
-              try {
-                val = JSON.parse(val);
-              } catch (e) {
-                console.error(`Error parsing JSON value for key ${key}: ${e}`);
+              if (char === ':' && !inQuotes) {
+                currentArgName = currentArgValue.trim();
+                currentArgValue = "";
+              } else if (char === '"' && !inQuotes) {
+                inQuotes = true;
+              } else if (char === '"' && inQuotes) {
+                inQuotes = false;
+              } else if (char === ' ' && !inQuotes) {
+                args[currentArgName] = currentArgValue.trim();
+                currentArgValue = "";
+              } else {
+                currentArgValue += char;
               }
             }
 
-            args[key] = val;
+            if (currentArgName && currentArgValue) {
+              args[currentArgName] = currentArgValue.trim();
+            }
+
+            // pull out the "to" and "thoughts" args if they exist
+            let to = args['to'];
+            delete args['to'];
+            let thoughts = args['thoughts'];
+            delete args['thoughts'];
+
+            action = {
+              "to": to,
+              "thoughts": thoughts || "",
+              "action": action_name,
+              "args": args
+            };
           }
 
-          // pull out the "to" and "thoughts" args if they exist
-          let to = args['to']
-          delete args['to']
-          let thoughts = args['thoughts']
-          delete args['thoughts']
-
-          action = {
-            "to": to,
-            "thoughts": thoughts || "",
-            "action": actionName,
-            "args": args
-          };
+          console.log("sending action: ", action);
+          return action;
         }
-        console.log("sending action: ", action)
-        return action;
-      }
 
       componentDidMount() {
         this.socket.on('message', (msg) => {
