@@ -5,7 +5,9 @@ import openai
 import textwrap
 
 
-class DemoAgent(Agent):
+class OpenAIFunctionAgent(Agent):
+    """
+    An agent which uses OpenAI's function_call API"""
 
     def __init__(self, id, model, openai_api_key, **kwargs):
         super().__init__(id)
@@ -80,7 +82,7 @@ class DemoAgent(Agent):
                 # makes a mistake? It should see the function call details to
                 # help it learn. And since this library allows others to call
                 # functions, it's important to be able to see what they are
-                # calling.
+                # calling as well.
                 open_ai_messages.append({
                     "role": "system",
                     "content": f"""{message["from"]} called function "{message["action"]}" with args {message["args"]} and thoughts {message["thoughts"]}""",
