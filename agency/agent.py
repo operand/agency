@@ -126,7 +126,6 @@ class Agent():
         # Check if the action exists
         action_method = None
         try:
-            util.debug(f"*[{self.id()}] committing", message)
             action_method = getattr(
               self, f"{ACTION_METHOD_PREFIX}{message['action']}")
         except AttributeError as e:
@@ -148,6 +147,7 @@ class Agent():
                 # Invoke the action method
                 # (set _current_message so that it can be used by the action)
                 self._current_message = message
+                util.debug(f"*[{self.id()}] committing", message)
                 return_value = action_method(**message['args'])
                 self._current_message = None
 

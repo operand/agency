@@ -75,32 +75,44 @@
             val = val.slice(1, -1);
           }
 
-          try {
-            args[key] = JSON.parse(`"${val}"`);
-          } catch (e) {
-            args[key] = val;
-          }
+          args[key] = val;
         }
 
         return args;
       }
 
-      parseSlashSyntaxAction(action_text) {
-        action_text = action_text.trim();
+      parseSlashSyntaxAction(actionText) {
+        actionText = actionText.trim();
         let action = {};
-        if (!action_text.startsWith("/")) {
+        if (!actionText.startsWith("/")) {
           action = {
             "action": "say",
             "thoughts": "",
-            "args": { "content": action_text }
+            "args": { "content": actionText }
           }
         }
         else {
-          let parts = action_text
-              .match(/"[^"]+"|\S+/g)
-              .map(part => part.replace(/"/g, ''));
-          let action_name = parts[0].substring(1);
-          let args = this.parseArguments(parts);
+          let args = {};
+          let parts = actionText.match(/"[^"]+"|\S+/g);
+          let actionName = parts[0].substring(1);
+
+          for (let i = 1; i < parts.length; i++) {
+            let splitIndex = parts[i].indexOf(":");
+            let key = parts[i].substring(0, splitIndex);
+            let val = parts[i].substring(splitIndex + 1);
+
+            if (val.startsWith('"') && val.endsWith('"')) {
+              val = val.slice(1, -1);
+            } else if (val.startsWith('{') && val.endsWith('}')) {
+              try {
+                val = JSON.parse(val);
+              } catch (e) {
+                console.error(`Error parsing JSON value for key ${key}: ${e}`);
+              }
+            }
+
+            args[key] = val;
+          }
 
           // pull out the "to" and "thoughts" args if they exist
           let to = args['to']
@@ -111,7 +123,7 @@
           action = {
             "to": to,
             "thoughts": thoughts || "",
-            "action": action_name,
+            "action": actionName,
             "args": args
           };
         }
@@ -131,9 +143,9 @@
           });
         });
 
-        this.socket.on('permission_request', (proposed_msg) => {
-          console.log('permission_request: ', proposed_msg);
-          const answer = window.confirm(`Do you permit the following?\n${proposed_msg}`);
+        this.socket.on('permission_request', (proposedMsg) => {
+          console.log('permission_request: ', proposedMsg);
+          const answer = window.confirm(`Do you permit the following?\n${proposedMsg}`);
           this.socket.emit('permission_response')
         });
       }
@@ -197,8 +209,12 @@
               {
                 this.state.messages.map((message, index) => (
                   <div key={index}>
-                    {message.from ? `${message.from.split(".")[0]}: ` : ''}
-                    {this.messageToText(message)}
+                    <div style={{color: 'blue'}}>
+                      {message.from ? `${message.from.split(".")[0]}: ` : ''}
+                    </div>
+                    <div>
+                      {this.messageToText(message)}
+                    </div>
                   </div>
                 ))
               }

@@ -311,7 +311,7 @@ with:
 
 ```python
 space.add(
-    WebApp("WebApp", port=os.getenv('WEB_APP_PORT')))
+    WebApp("WebApp", port='8080'))
 ```
 
 Whenever any agent is added to a space, its fully qualified `id` becomes
@@ -511,7 +511,7 @@ if __name__ == '__main__':
     space.add(
         WebApp("WebApp",
             demo_user_id="Dan", # hardcoded for simplicity
-            port=os.getenv('WEB_APP_PORT')))
+            port='8080'))
 
     space.add(
         ChattyAI("Chatty",
@@ -542,23 +542,22 @@ if __name__ == '__main__':
 ```
 
 If you run the above python script, after a short boot time you can visit the
-web app at `localhost:$WEB_APP_PORT` and you should see a simple chat interface.
+web app at `http://localhost:8080` and you should see a simple chat interface.
 
-The following is a screenshot of a conversation that showcases `OpenAIFunctionAgent`'s
-ability to intelligently interact with the other agents in the environment,
-including running commands on the host, or chatting with "Chatty".
+The following is a screenshot of a conversation that showcases all the agents
+intelligently interacting and following orders.
 
 Note that my messages are broadcasted in the below conversation, which explains
-why Chatty responds to each message as does "Demo". There is an obvious
-difference in quality, of course.
+why all three respond to each message. There is an obvious difference in
+quality, of course.
 
-I also demonstrate the results of rejecting an action and asking Demo to use a
-different approach.
+I also demonstrate the results of rejecting an action and directing them to use
+a different approach.
 
-Behind the scenes, Demo messaged Chatty directly and correctly relayed her
-response, and after I explained my rejection of the `read_file` action, Demo
-used the `shell_command` action with `wc -l Dockerfile` which was more
-appropriate. And the file indeed has 75 lines.
+Behind the scenes, "FunctionAI" messaged Chatty directly and correctly relayed
+her response, and after I explained my rejection of the `read_file` action,
+"FunctionAI" used the `shell_command` action with `wc -l Dockerfile` which was
+more appropriate. And the file indeed has 75 lines.
 
 <p align="center">
   <img src="https://i.ibb.co/f1GMb5P/Screenshot-2023-06-10-at-11-50-42-PM.png"

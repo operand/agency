@@ -20,8 +20,8 @@ class OpenAIFunctionAgent(Agent):
 
     def __system_prompt(self):
         return textwrap.dedent(f"""
-        You are "Demo". You are a prototype of an "agent" system which can
-        freely interact with its environment.
+        You are "{self.id(fully_qualified=False)}". You are a prototype of an
+        "agent" system which can freely interact with its environment.
 
         Your creator has recently open-sourced your codebase intended to allow
         others to easily create their own AI integrated systems. He is
@@ -163,7 +163,7 @@ class OpenAIFunctionAgent(Agent):
           function_call="auto",
           # ... https://platform.openai.com/docs/api-reference/chat/create
         )
-        util.debug(f"* openai response: {completion}")
+        util.debug(f"*[{self.id()}] openai response: {completion}")
 
         # parse the output
         action = {
@@ -191,6 +191,6 @@ class OpenAIFunctionAgent(Agent):
                 "content": response_message['content'],
             }
 
-        util.debug(f"* sending action:", action)
+        # util.debug(f"*[{self.id()}] sending action:", action)
 
         self._send(action)
