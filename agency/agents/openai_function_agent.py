@@ -100,14 +100,15 @@ class OpenAIFunctionAgent(Agent):
         util.debug("* getting functions...")
         return [
             {
-                # note that we send a fully qualified name for the action
-                "name": f"{action_method['to']}.{action_method['action']}",
+                # note that we send a fully qualified name for the action and
+                # convert '.' to '-' since openai doesn't allow '.'
+                "name": f"{action_method['to']}.{action_method['action']}".replace('.', '-'),
                 "description": action_method['thoughts'],
                 "parameters": {
                     "type": "object",
                     "properties": {
                         arg_name: {
-                            "type": arg_type,
+                            "type": self.__arg_type_to_openai_type(arg_type),
                             # this library doesn't support descriptions for
                             # args. maybe in the future. for now:
                             "description": f"arg {arg_name} of type {arg_type}",
@@ -121,10 +122,23 @@ class OpenAIFunctionAgent(Agent):
                 }
             }
             for action_method in self.space._get_help__sync()
+            if action_method['action'] != "say"
             # the openai api handles "say" specially
-            if action_method['name'] != "say"
         ]
 
+    def __arg_type_to_openai_type(self, arg_type):
+        """
+        Converts an arg type to an openai type
+        """
+        util.debug(f"* converting arg type to openai type: {arg_type}")
+        if arg_type == "str":
+            return "string"
+        elif arg_type == "number":
+            return "number"
+        elif arg_type == "bool":
+            return "boolean"
+        else:
+            raise ValueError(f"Unknown openai arg type for: {arg_type}")
 
     @access_policy(ACCESS_PERMITTED)
     def _action__say(self, content: str) -> bool:
@@ -132,11 +146,6 @@ class OpenAIFunctionAgent(Agent):
         Sends a message to the openai chatcompletion api, translates the
         response, and sends the resulting action
         """
-        util.debug(f"* openai say:", {
-            "content": content,
-            "messages": self.__open_ai_messages(),
-            # "functions": self.__open_ai_functions(),
-        })
         completion = openai.ChatCompletion.create(
           model=self.__model,
           messages=self.__open_ai_messages(),

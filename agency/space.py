@@ -1,3 +1,4 @@
+from agency import util
 from agency.agent import Agent
 from agency.schema import MessageSchema
 
@@ -91,7 +92,9 @@ class Space(Agent):
         Returns an action list immediately without forwarding messages
         """
         help = [
-            agent._get_help(action_name)
+            item
             for agent in [self] + self.agents
+            for item in agent._get_help(action_name)
         ]
+        util.debug(f"* help:", help)
         return help
