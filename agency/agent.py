@@ -256,35 +256,19 @@ class Agent():
     @access_policy(ACCESS_PERMITTED)
     def _action__return(self, original_message: MessageSchema, return_value: str):
         """
-        Overwrite this action to handle returned data from a prior action. By
+        Implement this action to handle returned data from a prior action. By
         default this action simply replaces it with an incoming "say".
         """
-        self._receive({
-          "from": original_message['to'],
-          "to": self.id(),
-          "thoughts": "A value was returned for your action",
-          "action": "say",
-          "args": {
-            "content": return_value.__str__(),
-          },
-        })
+        print("WARNING: Data was returned from an action. Implement _action__return to handle it.")
+        pass
 
     @access_policy(ACCESS_PERMITTED)
     def _action__error(self, original_message: MessageSchema, error: str):
         """
-        Overwrite this action to handle errors from an action. By default this
-        action simply converts it to an incoming "say".
+        Implement this action to handle errors from an action.
         """
-        # TODO: handle errors during errors to stop infinite loops
-        self._receive({
-          "from": original_message['to'],
-          "to": self.id(),
-          "thoughts": "An error occurred",
-          "action": "say",
-          "args": {
-            "content": f"ERROR: {error}",
-          },
-        })
+        print("WARNING: An error occurred in an action. Implement _action__error to handle it.")
+        pass
 
     def _after_action(self, original_message: MessageSchema, return_value: str, error: str):
         """
