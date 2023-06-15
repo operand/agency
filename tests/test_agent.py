@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from agency.agent import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, access_policy
 from agency.agent import Agent
+from agency.schema import MessageSchema
 from agency.space import Space
 from tests.conftest import space_context
 import time
@@ -13,6 +14,33 @@ class Webster(Agent):
     @access_policy(ACCESS_PERMITTED)
     def _action__say(self, content):
         pass
+
+    # We implement actions for "return" and "error" so that we can test that
+    # these are called correctly as well. They simply forward the messages as
+    # "say" messages to the original sender (Webster)
+    @access_policy(ACCESS_PERMITTED)
+    def _action__return(self, original_message: MessageSchema, return_value: str):
+        self._receive({
+          "from": original_message['to'],
+          "to": self.id(),
+          "thoughts": "A value was returned for your action",
+          "action": "say",
+          "args": {
+            "content": return_value.__str__(),
+          },
+        })
+
+    @access_policy(ACCESS_PERMITTED)
+    def _action__error(self, original_message: MessageSchema, error: str):
+        self._receive({
+          "from": original_message['to'],
+          "to": self.id(),
+          "thoughts": "An error occurred",
+          "action": "say",
+          "args": {
+            "content": f"ERROR: {error}",
+          },
+        })
 
 
 class FakeWebApp(Space):
