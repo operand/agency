@@ -32,7 +32,10 @@ jobs:
           execSync('git checkout HEAD pyproject.toml');
           const currentVersion = toml.parse(current).tool.poetry.version;
           const previousVersion = toml.parse(previous).tool.poetry.version;
-          return currentVersion !== previousVersion;
+          const result = currentVersion !== previousVersion;
+          console.log("result = currentVersion !== previousVersion");
+          console.log(`${result} = (${currentVersion}) !== (${previousVersion})`);
+          return result;
 
     # - name: Create tag
     #   if: steps.check_version.outputs.result == 'true'
