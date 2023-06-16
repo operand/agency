@@ -25,8 +25,7 @@ jobs:
           const execSync = require('child_process').execSync;
           const toml = require('@iarna/toml');
           const current = fs.readFileSync('pyproject.toml', 'utf8');
-          execSync('git fetch origin main:main');
-          execSync('git checkout main pyproject.toml');
+          execSync('git checkout HEAD^1 pyproject.toml');
           const previous = fs.readFileSync('pyproject.toml', 'utf8');
           execSync('git checkout HEAD pyproject.toml');
           const currentVersion = toml.parse(current).tool.poetry.version;
