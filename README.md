@@ -75,9 +75,54 @@ Let's walk through a thorough example to see how this works in practice.
 
 # Example Walkthrough
 
-> Please note that the example classes used in this walkthrough are implemented
-for you to explore and try out, but should be considered "proof of concept"
-quality.
+> Please note that the example agent classes used in this walkthrough are
+implemented for you to explore and try out, but should be considered "proof of
+concept" quality at this time.
+
+The following snippet is the full resulting implementation (minus imports) of
+the example walkthrough that you can try out on your own, including two OpenAI
+agent examples and the HuggingFace based `ChattyAI`. Note that `Space.run()`
+starts a thread, so we simply keep the application alive with a while loop.
+
+```python
+# demo.py
+
+if __name__ == '__main__':
+
+    space = Space("DemoSpace") 
+
+    space.add(
+        WebApp("WebApp",
+            demo_user_id="Dan", # hardcoded for simplicity
+            port='8080'))
+
+    space.add(
+        ChattyAI("Chatty",
+            model="EleutherAI/gpt-neo-125m"))
+
+    space.add(
+        Host("Host"))
+
+    space.add(
+        OpenAIFunctionAgent("FunctionAI",
+            model="gpt-3.5-turbo-16k",
+            openai_api_key=os.getenv("OPENAI_API_KEY"),
+            # user_id determines the "user" role in the OpenAI chat
+            user_id="Dan.WebApp.DemoSpace"))
+
+    space.add(
+        OpenAICompletionAgent("CompletionAI",
+            model="text-davinci-003",
+            openai_api_key=os.getenv("OPENAI_API_KEY")))
+
+    space.run()
+
+    print("pop!")
+
+    # keep alive
+    while True:
+        time.sleep(1)
+```
 
 
 ## Creating a `Space`
@@ -491,52 +536,7 @@ For an implementation that uses a plain text completion API, see
 [`OpenAICompletionAgent`](./agency/agents/openai_completion_agent.py).
 
 
-## Complete Demo Implementation
-
-The following is the full implementation (minus imports) of the above
-walkthrough that you can try out on your own, including both OpenAI agent
-examples and the HuggingFace based "Chatty". Note that `Space.run()` starts a
-thread, so we simply keep the application alive with a while loop.
-
-```python
-# demo.py
-
-if __name__ == '__main__':
-
-    space = Space("DemoSpace") 
-
-    space.add(
-        WebApp("WebApp",
-            demo_user_id="Dan", # hardcoded for simplicity
-            port='8080'))
-
-    space.add(
-        ChattyAI("Chatty",
-            model="EleutherAI/gpt-neo-125m"))
-
-    space.add(
-        Host("Host"))
-
-    space.add(
-        OpenAIFunctionAgent("FunctionAI",
-            model="gpt-3.5-turbo-16k",
-            openai_api_key=os.getenv("OPENAI_API_KEY"),
-            # user_id determines the "user" role in the OpenAI chat
-            user_id="Dan.WebApp.DemoSpace"))
-
-    space.add(
-        OpenAICompletionAgent("CompletionAI",
-            model="text-davinci-003",
-            openai_api_key=os.getenv("OPENAI_API_KEY")))
-
-    space.run()
-
-    print("pop!")
-
-    # keep alive
-    while True:
-        time.sleep(1)
-```
+## Running the Example
 
 If you run the above python script, after a short boot time you can visit the
 web app at `http://localhost:8080` and you should see a simple chat interface.
