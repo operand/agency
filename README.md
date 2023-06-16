@@ -454,14 +454,6 @@ would look something like:
           "directory_path": "str"
         }
     },
-    {
-        "to": "ChattyAI.DemoSpace",
-        "action": "say",
-        "thoughts": "Use this action to say something to Chatty",
-        "args": {
-          "content": "str"
-        }
-    },
     ...
 ]
 ```
