@@ -1,7 +1,7 @@
 # `agency`
 
-A fast and minimal foundation for unifying human, AI, and other computing
-systems, in python
+A fast and minimal actor model framework for integrating AI, human, and other
+computing systems
 
 
 ## What is `agency`?
@@ -58,9 +58,8 @@ languages. All agents may expose "actions" that other agents can discover and
 invoke at run time. Actions also specify an access policy, allowing you to
 monitor and control actions to ensure safety.
 
-A `Space` is also an `Agent` and is used to group multiple agents together.
-
-A space can be thought of as both a collection of agents and a "router" for
+A `Space` is also an `Agent` and is used to group multiple agents together. A
+space can be thought of as both a collection of agents and a facilitator for
 their communication. An agent cannot communicate with others until it is first
 added to a space.
 
@@ -78,7 +77,7 @@ Let's walk through a thorough example to see how this works in practice.
 
 > Please note that the example classes used in this walkthrough are implemented
 for you to explore and try out, but should be considered "proof of concept"
-quality at this time.
+quality.
 
 
 ## Creating a `Space`
@@ -297,9 +296,6 @@ the `React` frontend, and allow the client code to handle rendering and parsing
 of input as actions back to the `Flask` application, which forwards them to
 their intended receiver in the space.
 
-This way, we allow individual web users to appear as individual agents to others
-in the space.
-
 
 ## Namespacing and Adding the Web Application
 
@@ -330,6 +326,9 @@ qualified `id` of, for example:
 
 - `"Dan.WebApp.DemoSpace"`.
 
+This way, we allow individual web users to appear as individual agents to others
+in the space.
+
 _(Note that login/out functionality is not implemented as of this writing.)_
 
 
@@ -350,8 +349,8 @@ The `Host` class allows access to the host operating system where the python
 application is running. It exposes actions such as `read_file` and
 `shell_command` which allow other agents to interact with the host.
 
-This class is a good example of one with potentially dangerous actions that need
-to be accessed with care. You'll notice that all the methods in the `Host` class
+This class is a good example of one with potentially dangerous actions that must
+be accessed with care. You'll notice that all the methods in the `Host` class
 have been given the access policy:
 
 ```python
@@ -437,11 +436,11 @@ This will send the `list_files` action to the `Host` agent who will (after being
 granted permission) return the results back to `"Dan.WebApp.DemoSpace"`
 rendering it to the web user interface as a message.
 
-Note the use of the fully qualified `id` of `Host.DemoSpace` used with the `to:`
-field.
-
 
 ## Broadcast vs Point-to-Point Messaging
+
+Note the use of the fully qualified `id` of `Host.DemoSpace` used with the `to:`
+field.
 
 If we omit the `to:Host.DemoSpace` portion of the command above, the message
 will be broadcast, and any agents who implement a `list_files` action will
@@ -659,15 +658,15 @@ imaginable.
 ## What are some known limitations or issues?
 
 * It's a new project, so keep that in mind in terms of completeness, but see
-the plans below for where this is heading. Core functionality is pretty
-well tested at the moment.
+  the plans below for where this is heading. Core functionality is pretty well
+  tested at the moment.
 
 * This library makes use of threads for each individual agent. Multithreading
-is limited by python's GIL, meaning if you run a CPU bound model other agents
-will have to wait for their "turn". This goes for anything else you might define
-as an "agent", if it is CPU heavy it will block other agents. Note that I/O does
-not block, so networked backends or services will execute in parallel.  Other
-forms of multiprocessing to avoid the GIL may eventually be considered.
+  is limited by python's GIL, meaning if you run a CPU bound model other agents
+  will have to wait for their "turn". This goes for anything else you might
+  define as an "agent", if it is CPU heavy it will block other agents. Note that
+  I/O does not block, so networked backends or services will execute in
+  parallel. Other forms of multiprocessing to avoid the GIL will be considered.
 
 * This API does NOT assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.
@@ -743,12 +742,12 @@ priorities.
 
 
 ## Planned Work
+- Add message broker/networking support (RabbitMQ)
 - Add web app multimodal i/o examples
   - image
   - audio
   - video
 - Add multimodal model integration example
-- Add message broker/networking support (RabbitMQ)
 - Add integration example for [mlc-llm](https://github.com/mlc-ai/mlc-llm)
 - Add integration example for [gorilla](https://github.com/ShishirPatil/gorilla)
 - Add integration example for LangChain
@@ -757,5 +756,4 @@ priorities.
 - Consider adding a storage API
 - Consider prior work on distributed access control
 - Add docker assets to encourage using it
-- [_feel free to make
-suggestions_](https://github.com/operand/agency/issues)
+- [_feel free to make suggestions!_](https://github.com/operand/agency/issues)
