@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - wip # TEMP!
 
 jobs:
   publish:
