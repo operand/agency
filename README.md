@@ -745,4 +745,4 @@ priorities.
 
 [See the issues page.](https://github.com/operand/agency/issues).
 
-If you have any suggestions or otherwise please add an issue!
+If you have any suggestions, please feel free to add an issue!
