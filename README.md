@@ -659,7 +659,7 @@ imaginable.
 
 * It's a new project, so keep that in mind in terms of completeness, but see
   [the issues page](https://github.com/operand/agency/issues) for what is
-  planned. Core functionality is pretty well tested at the moment.
+  currently planned. Core functionality is pretty well tested at the moment.
 
 * This library makes use of threads for each individual agent. Multithreading
   is limited by python's GIL, meaning if you run a CPU bound model other agents
