@@ -204,9 +204,9 @@ self._send({
 This is a simple implementation that demonstrates the basic idea of how to
 invoke an action on another agent.
 
-When an agent receives a message, it invokes the action method specified in by
-the `"action"` field of the message, passing the `"args"` to the action method
-as keyword arguments.
+When an agent receives a message, it invokes the action method specified by the
+`"action"` field of the message, passing the `"args"` to the action method as
+keyword arguments.
 
 So here we see that Chatty is invoking the `say` action on the sender of the
 original message, passing the response as the `"content"` argument.
@@ -673,10 +673,9 @@ imaginable.
 
   `agency` is intended to allow potentially large numbers of agents, systems,
   and people to come together. A small predefined set of roles gets in the way
-  of representing many things uniquely and independently.
-
-  This is a core feature of `agency`: that all things are treated the same and
-  may be interacted with through common means.
+  of representing many things uniquely and independently. This is a core feature
+  of `agency`: that all things are treated the same and may be interacted with
+  through common means.
 
   The lack of roles introduces some challenges in integrating with role based
   APIs. See the implementation of
@@ -727,7 +726,8 @@ priorities.
 ## Priorities
 - **Speed**:
   Performance is always a concern. If it's not performant, it's not practical.
-  Currently the limitations of python multi-threading are a bottleneck.
+  Currently the limitations of python multi-threading are a bottleneck and a
+  priority to address.
 - **Access Control and Safety**:
   An effective access control solution for agent-integrated systems is
   fundamental to ensure safety. I believe I've included a sane first step at
@@ -742,18 +742,7 @@ priorities.
 
 
 ## Planned Work
-- Add message broker/networking support (RabbitMQ)
-- Add web app multimodal i/o examples
-  - image
-  - audio
-  - video
-- Add multimodal model integration example
-- Add integration example for [mlc-llm](https://github.com/mlc-ai/mlc-llm)
-- Add integration example for [gorilla](https://github.com/ShishirPatil/gorilla)
-- Add integration example for LangChain
-- Add model training example
-- Consider alternative multiprocessing approaches
-- Consider adding a storage API
-- Consider prior work on distributed access control
-- Add docker assets to encourage using it
-- [_feel free to make suggestions!_](https://github.com/operand/agency/issues)
+
+[Please see the issues page.](https://github.com/operand/agency/issues).
+
+If you have any suggestions or thoughts, feel free to add an issue!
