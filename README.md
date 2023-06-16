@@ -454,14 +454,6 @@ would look something like:
           "directory_path": "str"
         }
     },
-    {
-        "to": "ChattyAI.DemoSpace",
-        "action": "say",
-        "thoughts": "Use this action to say something to Chatty",
-        "args": {
-          "content": "str"
-        }
-    },
     ...
 ]
 ```
@@ -538,8 +530,9 @@ For an implementation that uses a plain text completion API, see
 
 ## Running the Example
 
-If you run the above python script, after a short boot time you can visit the
-web app at `http://localhost:8080` and you should see a simple chat interface.
+If you run the python script provided at the beginning of this walkthrough,
+after a short boot time you can visit the web app at `http://localhost:8080` and
+you should see a simple chat interface.
 
 The following is a screenshot of a conversation that showcases all the agents
 intelligently interacting and following orders.
@@ -553,7 +546,7 @@ use a different approach.
 
 After I explained my rejection of the `read_file` action (which happened behind
 the scenes on the terminal), "FunctionAI" appropriately used the `shell_command`
-action with `wc -l Dockerfile`. The Dockerfile indeed has 73 lines.
+action with `wc -l Dockerfile`. The Dockerfile indeed had 73 lines.
 
 CompletionAI used that command on the first try. Anecdotally as of this writing,
 `CompletionAI` seems to be more accurate, even though it is using the text
