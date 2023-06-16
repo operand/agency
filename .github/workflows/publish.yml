@@ -33,8 +33,7 @@ jobs:
           const currentVersion = toml.parse(current).tool.poetry.version;
           const previousVersion = toml.parse(previous).tool.poetry.version;
           const result = currentVersion !== previousVersion;
-          console.log("result = currentVersion !== previousVersion");
-          console.log(`${result} = (${currentVersion}) !== (${previousVersion})`);
+          console.log(`\n${result} = (${currentVersion}) !== (${previousVersion})`);
           return result;
 
     # - name: Create tag
