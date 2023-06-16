@@ -743,6 +743,6 @@ priorities.
 
 ## Planned Work
 
-[Please see the issues page.](https://github.com/operand/agency/issues).
+[See the issues page.](https://github.com/operand/agency/issues).
 
-If you have any suggestions or thoughts, feel free to add an issue!
+If you have any suggestions or otherwise please add an issue!
