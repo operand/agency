@@ -658,15 +658,17 @@ imaginable.
 ## What are some known limitations or issues?
 
 * It's a new project, so keep that in mind in terms of completeness, but see
-  the plans below for where this is heading. Core functionality is pretty well
-  tested at the moment.
+  [the issues page](https://github.com/operand/agency/issues) for what is
+  planned. Core functionality is pretty well tested at the moment.
 
 * This library makes use of threads for each individual agent. Multithreading
   is limited by python's GIL, meaning if you run a CPU bound model other agents
   will have to wait for their "turn". This goes for anything else you might
   define as an "agent", if it is CPU heavy it will block other agents. Note that
   I/O does not block, so networked backends or services will execute in
-  parallel. Other forms of multiprocessing to avoid the GIL will be considered.
+  parallel.
+
+  Other forms of multiprocessing to avoid the GIL will be considered.
 
 * This API does NOT assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.
@@ -692,9 +694,6 @@ imaginable.
 # Contributing
 
 Please do!
-
-If you have any questions, suggestions, or problems, please open an
-[issue](https://github.com/operand/agency/issues).
 
 
 ## Development Installation
@@ -743,6 +742,6 @@ priorities.
 
 ## Planned Work
 
-[See the issues page.](https://github.com/operand/agency/issues).
+[Please see the issues page.](https://github.com/operand/agency/issues)
 
-If you have any suggestions, please feel free to add an issue!
+If you have any suggestions or otherwise, feel free to add an issue!
