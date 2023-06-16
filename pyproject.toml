@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "agency"
 version = "1.0.2"
-description = "A fast and minimal foundation for unifying human, AI, and other computing systems"
+description = "A fast and minimal actor model framework for integrating AI, human, and other computing systems"
 authors = ["Daniel Rodriguez"]
 license = "GPL-3.0"
 readme = "README.md"
