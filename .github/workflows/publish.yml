@@ -1,4 +1,4 @@
-name: Publish to PyPI
+name: publish
 on:
   push:
     branches:
@@ -23,9 +23,12 @@ jobs:
       with:
         script: |
           const fs = require('fs');
+          const execSync = require('child_process').execSync;
           const toml = require('@iarna/toml');
           const current = fs.readFileSync('pyproject.toml', 'utf8');
+          execSync('git checkout HEAD^1 pyproject.toml');
           const previous = fs.readFileSync('pyproject.toml', 'utf8');
+          execSync('git checkout HEAD pyproject.toml');
           const currentVersion = toml.parse(current).tool.poetry.version;
           const previousVersion = toml.parse(previous).tool.poetry.version;
           return currentVersion !== previousVersion;
