@@ -33,20 +33,16 @@ jobs:
           const currentVersion = toml.parse(current).tool.poetry.version;
           const previousVersion = toml.parse(previous).tool.poetry.version;
           const versionChanged = currentVersion !== previousVersion;
-          if (versionChanged) {
+          if (true) {
             console.log(`version changed from ${previousVersion} to ${currentVersion}`);
             return currentVersion;
           } else {
-            console.log(`version did not change`);
+            console.log(`version did not change from ${previousVersion}`);
           }
 
     - name: WTAF
       run: |
         echo "${{ steps.check_version.outputs.result }}"
-        echo "${{ steps.check_version.outputs.result.version_changed }}"
-        echo "${{ steps.check_version.outputs.result.current_version }}"
-        echo "${{ steps.check_version.outputs.result.version_changed == true }}"
-        echo "${{ steps.check_version.outputs.result.version_changed == 'true' }}"
 
     - name: Install Poetry
       if: ${{ steps.check_version.outputs.result.version_changed == true }}
