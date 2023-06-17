@@ -2,7 +2,6 @@
 
 A fast and minimal actor model framework for building agent-integrated systems
 
-
 ## What is `agency`?
 
 `agency` defines a common communication and action framework for integrating
