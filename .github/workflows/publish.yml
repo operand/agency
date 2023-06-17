@@ -40,6 +40,10 @@ jobs:
     - name: WTAF
       run: |
         echo "${{ steps.check_version.outputs.result }}"
+        echo "${{ steps.check_version.outputs.result.version_changed }}"
+        echo "${{ steps.check_version.outputs.result.current_version }}"
+        echo "${{ steps.check_version.outputs.result.version_changed == true }}"
+        echo "${{ steps.check_version.outputs.result.version_changed == 'true' }}"
 
     - name: Install Poetry
       if: ${{ steps.check_version.outputs.result.version_changed == true }}
