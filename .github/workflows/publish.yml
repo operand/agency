@@ -42,7 +42,7 @@ jobs:
         echo "${{ steps.check_version.outputs.result }}"
 
     - name: Install Poetry
-      if: ${{ steps.check_version.outputs.result.version_changed }}
+      if: ${{ steps.check_version.outputs.result.version_changed == true }}
       run: |
         echo "HELLLLOOOOOOO poetry"
       # uses: snok/install-poetry@v1
