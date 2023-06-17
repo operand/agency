@@ -34,6 +34,12 @@ jobs:
           console.log(`\n${result} = (${currentVersion}) !== (${previousVersion})`);
           return result;
 
+    - name: Install Poetry
+      if: steps.check_version.outputs.result == 'true'
+      uses: snok/install-poetry@v1
+      with:
+        version: 1.5.1
+
     - name: Build and publish (dry run)
       if: steps.check_version.outputs.result == 'true'
       run: |
