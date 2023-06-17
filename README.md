@@ -1,7 +1,6 @@
 # `agency`
 
-A fast and minimal actor model framework for integrating AI, human, and other
-computing systems
+A fast and minimal actor model framework for building agent-integrated systems
 
 
 ## What is `agency`?
@@ -89,7 +88,7 @@ starts a thread, so we simply keep the application alive with a while loop.
 
 if __name__ == '__main__':
 
-    space = Space("DemoSpace") 
+    space = Space("DemoSpace")
 
     space.add(
         WebApp("WebApp",
