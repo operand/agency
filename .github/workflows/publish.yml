@@ -32,25 +32,28 @@ jobs:
           const currentVersion = toml.parse(current).tool.poetry.version;
           const previousVersion = toml.parse(previous).tool.poetry.version;
           const versionChanged = currentVersion !== previousVersion;
-          const result = { version_changed: versionChanged, current_version: currentVersion };
-          console.log(`\nresult:\n${JSON.stringify(result, null, 2)}`);
-          return result;
+          if (versionChanged) {
+            console.log(`version changed from ${previousVersion} to ${currentVersion}`);
+            return currentVersion;
+          } else {
+            console.log(`version did not change from ${previousVersion}`);
+          }
 
     - name: Install Poetry
-      if: steps.check_version.outputs.result.version_changed == 'true'
+      if: ${{ steps.check_version.outputs.result }}
       uses: snok/install-poetry@v1
       with:
         version: 1.5.1
 
     - name: Build and publish
-      if: steps.check_version.outputs.result.version_changed == 'true'
+      if: ${{ steps.check_version.outputs.result }}
       run: |
         echo "Building and publishing package with Poetry"
         poetry build
         poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
     - name: Create tag
-      if: steps.check_version.outputs.result.version_changed == 'true'
+      if: ${{ steps.check_version.outputs.result }}
       run: |
-        git tag "v${{ steps.check_version.outputs.result.current_version }}"
-        git push origin "v${{ steps.check_version.outputs.result.current_version }}"
+        git tag "v${{ steps.check_version.outputs.result }}"
+        git push origin "v${{ steps.check_version.outputs.result }}"
