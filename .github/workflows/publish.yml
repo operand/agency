@@ -37,15 +37,12 @@ jobs:
     - name: Build and publish (dry run)
       if: steps.check_version.outputs.result == 'true'
       run: |
-        echo "Dry run: Building and publishing package with Poetry"
+        echo "Building and publishing package with Poetry"
+        poetry build
+        poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
-        # TODO Uncomment the following lines to actually build and publish the package
-        # poetry build
-        # poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
-
-    # TODO Uncomment the following as well when ready
-    # - name: Create tag
-    #   if: steps.check_version.outputs.result == 'true'
-    #   uses: mathieudutour/github-tag-action@v6.1
-    #   with:
-    #     github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create tag
+      if: steps.check_version.outputs.result == 'true'
+      uses: mathieudutour/github-tag-action@v6.1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
