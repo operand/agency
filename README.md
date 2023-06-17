@@ -92,13 +92,13 @@ if __name__ == '__main__':
     space = Space("DemoSpace")
 
     space.add(
+        ChattyAI("Chatty",
+            model="EleutherAI/gpt-neo-125m"))
+
+    space.add(
         WebApp("WebApp",
             demo_user_id="Dan", # hardcoded for simplicity
             port='8080'))
-
-    space.add(
-        ChattyAI("Chatty",
-            model="EleutherAI/gpt-neo-125m"))
 
     space.add(
         Host("Host"))
