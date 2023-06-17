@@ -73,14 +73,15 @@ Let's walk through a thorough example to see how this works in practice.
 
 # Example Walkthrough
 
-> Please note that the example agent classes used in this walkthrough are
-implemented for you to explore and try out, but should be considered "proof of
-concept" quality at this time.
+The snippet below can be used to run the full example detailed by the following
+walkthrough.
 
-The following snippet is the full resulting implementation (minus imports) of
-the example walkthrough that you can try out on your own, including two OpenAI
-agent examples and the HuggingFace based `ChattyAI`. Note that `Space.run()`
-starts a thread, so we simply keep the application alive with a while loop.
+It includes two OpenAI agent examples, the HuggingFace based `ChattyAI`,
+integrated operating system access, and a web application hosted at
+`http://localhost:8080`.
+
+Please note that the example agent classes should be considered "proof of
+concept" quality only.
 
 ```python
 # demo.py
@@ -122,10 +123,14 @@ if __name__ == '__main__':
         time.sleep(1)
 ```
 
+Note that `Space.run()` starts a thread, so we simply keep the application alive
+with a while loop.
+
 
 ## Creating a `Space`
 
-Let's start by instantiating a demo space.
+Now let's see how this is implemented. Let's start by instantiating the demo
+space.
 
 ```python
 space = Space("DemoSpace")
