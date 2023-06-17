@@ -34,7 +34,7 @@ jobs:
           const previousVersion = toml.parse(previous).tool.poetry.version;
           const versionChanged = currentVersion !== previousVersion;
           const result = { version_changed: versionChanged, currentVersion: currentVersion };
-          console.log(`\nresult:\n${result}`);
+          console.log(`\nresult:\n${JSON.stringify(result, null, 2)}`);
           return result;
 
     - name: Install Poetry
