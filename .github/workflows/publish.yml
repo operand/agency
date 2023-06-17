@@ -37,11 +37,17 @@ jobs:
           console.log(`\nresult:\n${JSON.stringify(result, null, 2)}`);
           return result;
 
+    - name: WTAF
+      run: |
+        echo "${{ steps.check_version.outputs.result }}"
+
     - name: Install Poetry
       if: steps.check_version.outputs.result.version_changed == 'true'
-      uses: snok/install-poetry@v1
-      with:
-        version: 1.5.1
+      run: |
+        echo "HELLLLOOOOOOO poetry"
+      # uses: snok/install-poetry@v1
+      # with:
+      #   version: 1.5.1
 
     # - name: Build and publish
     #   if: steps.check_version.outputs.result.version_changed == 'true'
