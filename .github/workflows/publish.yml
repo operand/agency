@@ -1,4 +1,5 @@
 name: publish
+
 on:
   push:
     branches:
@@ -32,7 +33,7 @@ jobs:
           const previousVersion = toml.parse(previous).tool.poetry.version;
           const result = currentVersion !== previousVersion;
           console.log(`\n${result} = (${currentVersion}) !== (${previousVersion})`);
-          return result;
+          return { result: result, current_version: currentVersion };
 
     - name: Install Poetry
       if: steps.check_version.outputs.result == 'true'
@@ -49,6 +50,6 @@ jobs:
 
     - name: Create tag
       if: steps.check_version.outputs.result == 'true'
-      uses: mathieudutour/github-tag-action@v6.1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git tag "v${{ steps.check_version.outputs.current_version }}"
+        git push origin "v${{ steps.check_version.outputs.current_version }}"
