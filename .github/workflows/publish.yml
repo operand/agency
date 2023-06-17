@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - wip # TEMP
 
 jobs:
   publish:
@@ -44,11 +45,11 @@ jobs:
       if: steps.check_version.outputs.result == 'true'
       run: |
         echo "Building and publishing package with Poetry"
-        poetry build
-        poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
+    #     poetry build
+    #     poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
-    - name: Create tag
-      if: steps.check_version.outputs.result == 'true'
-      uses: mathieudutour/github-tag-action@v6.1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+    # - name: Create tag
+    #   if: steps.check_version.outputs.result == 'true'
+    #   uses: mathieudutour/github-tag-action@v6.1
+    #   with:
+    #     github_token: ${{ secrets.GITHUB_TOKEN }}
