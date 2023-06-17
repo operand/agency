@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - wip # TEMPORARY!
 
 jobs:
   publish:
@@ -33,7 +32,7 @@ jobs:
           const currentVersion = toml.parse(current).tool.poetry.version;
           const previousVersion = toml.parse(previous).tool.poetry.version;
           const versionChanged = currentVersion !== previousVersion;
-          const result = { version_changed: versionChanged, currentVersion: currentVersion };
+          const result = { version_changed: versionChanged, current_version: currentVersion };
           console.log(`\nresult:\n${JSON.stringify(result, null, 2)}`);
           return result;
 
@@ -43,15 +42,15 @@ jobs:
       with:
         version: 1.5.1
 
-    # - name: Build and publish (dry run)
-    #   if: steps.check_version.outputs.result.version_changed == 'true'
-    #   run: |
-    #     echo "Building and publishing package with Poetry"
-    #     poetry build
-    #     poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
+    - name: Build and publish
+      if: steps.check_version.outputs.result.version_changed == 'true'
+      run: |
+        echo "Building and publishing package with Poetry"
+        poetry build
+        poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
-    # - name: Create tag
-    #   if: steps.check_version.outputs.result.version_changed == 'true'
-    #   run: |
-    #     git tag "v${{ steps.check_version.outputs.result.current_version }}"
-    #     git push origin "v${{ steps.check_version.outputs.result.current_version }}"
+    - name: Create tag
+      if: steps.check_version.outputs.result.version_changed == 'true'
+      run: |
+        git tag "v${{ steps.check_version.outputs.result.current_version }}"
+        git push origin "v${{ steps.check_version.outputs.result.current_version }}"
