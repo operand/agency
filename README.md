@@ -2,6 +2,7 @@
 
 A fast and minimal actor model framework for building agent-integrated systems
 
+
 ## What is `agency`?
 
 `agency` defines a common communication and action framework for integrating
@@ -77,7 +78,7 @@ The snippet below can be used to run the full example detailed by the following
 walkthrough.
 
 It includes two OpenAI agent examples, the HuggingFace based `ChattyAI`,
-integrated operating system access, and a web application hosted at
+operating system access, and a web application hosted at
 `http://localhost:8080`.
 
 Please note that the example agent classes should be considered "proof of
@@ -713,9 +714,8 @@ The test suite is currently set up to run on pull requests to the `main` branch.
 
 # Roadmap
 
-The goal is to maintain a minimal, natural, and practical API for bringing
-human, artificial, and other computing systems together, with the following
-priorities.
+The goal is to maintain a minimal and practical API for bringing human,
+artificial, and other computing systems together, with the following priorities.
 
 
 ## Priorities
