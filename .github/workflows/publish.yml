@@ -42,15 +42,15 @@ jobs:
       with:
         version: 1.5.1
 
-    - name: Build and publish
-      if: steps.check_version.outputs.result.version_changed == 'true'
-      run: |
-        echo "Building and publishing package with Poetry"
-        poetry build
-        poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
+    # - name: Build and publish
+    #   if: steps.check_version.outputs.result.version_changed == 'true'
+    #   run: |
+    #     echo "Building and publishing package with Poetry"
+    #     poetry build
+    #     poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
-    - name: Create tag
-      if: steps.check_version.outputs.result.version_changed == 'true'
-      run: |
-        git tag "v${{ steps.check_version.outputs.result.current_version }}"
-        git push origin "v${{ steps.check_version.outputs.result.current_version }}"
+    # - name: Create tag
+    #   if: steps.check_version.outputs.result.version_changed == 'true'
+    #   run: |
+    #     git tag "v${{ steps.check_version.outputs.result.current_version }}"
+    #     git push origin "v${{ steps.check_version.outputs.result.current_version }}"
