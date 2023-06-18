@@ -49,7 +49,7 @@ jobs:
     - name: Build and publish
       if: ${{ steps.check_version.outputs.result }}
       run: |
-        echo "Building and publishing v${{ steps.check_version.outputs.result }} ..."
+        echo "Building and publishing version ${{ steps.check_version.outputs.result }} ..."
         echo "skipped for now"
         # poetry build
         # poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
@@ -57,7 +57,8 @@ jobs:
     - name: Create tag
       if: ${{ steps.check_version.outputs.result }}
       run: |
-        echo "Creating tag v${{ steps.check_version.outputs.result }} ..."
+        version=v${{ steps.check_version.outputs.result }};
+        echo "Creating tag v${version} ..."
         echo "skipped for now"
         # git tag "v${{ steps.check_version.outputs.result }}"
         # git push origin "v${{ steps.check_version.outputs.result }}"
