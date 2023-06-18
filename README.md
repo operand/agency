@@ -665,8 +665,8 @@ imaginable.
   I/O does not block, so networked backends or services will execute in
   parallel.
 
-  Other forms of multiprocessing to avoid the GIL are in development. See the
-  issues page for details.
+  Other multiprocessing approaches to avoid the GIL are
+  [in development](https://github.com/operand/agency/issues/25).
 
 * This API does NOT assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.
