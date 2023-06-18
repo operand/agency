@@ -8,7 +8,7 @@ A fast and minimal actor model framework for building agent-integrated systems
 `agency` defines a common communication and action framework for integrating
 AI agents, humans, and traditional computing systems.
 
-`agency` allows you to establish shared environments called "spaces" where any
+`agency` allows you to create shared environments called "spaces" where any
 number of humans, artificial, or other computing systems may equally address
 each other as individual "agents" that you may perform "actions" on.
 
