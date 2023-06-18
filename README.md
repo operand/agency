@@ -60,10 +60,8 @@ monitor and control actions to ensure safety.
 A `Space` is also an `Agent` and is used to group multiple agents together. A
 space can be thought of as both a collection of agents and a facilitator for
 their communication. An agent cannot communicate with others until it is first
-added to a space.
-
-Spaces may be nested, allowing for namespacing and hierarchical organization of
-the agents in your application.
+added to a space. Spaces may be nested, allowing for namespacing and
+hierarchical organization of the agents in your application.
 
 To summarize, the two classes of `Agent` and `Space` together create a simple
 API for creating applications that may mix AI, human, and traditional computing
