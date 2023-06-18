@@ -89,15 +89,20 @@ jobs:
         version=${{ steps.check_version.outputs.result }}
         whl_file=$(ls dist/*.whl)
         tar_file=$(ls dist/*.tar.gz)
+        whl_name=$(basename $whl_file)
+        tar_name=$(basename $tar_file)
         echo "whl_file=$whl_file" >> $GITHUB_ENV
         echo "tar_file=$tar_file" >> $GITHUB_ENV
+        echo "whl_name=$whl_name" >> $GITHUB_ENV
+        echo "tar_name=$tar_name" >> $GITHUB_ENV
 
     - name: Print variables
       run: |
-        echo $whl_file
-        echo $tar_file
         echo ${{ env.whl_file }}
         echo ${{ env.tar_file }}
+        echo ${{ env.whl_name }}
+        echo ${{ env.tar_name }}
+
 
     # - name: Upload .whl asset to GitHub release
     #   if: ${{ steps.check_version.outputs.result }}
@@ -105,7 +110,7 @@ jobs:
     #   with:
     #     upload_url: ${{ steps.create_release.outputs.result }}
     #     asset_path: ${{ env.whl_file }}
-    #     asset_name: ${{ env.whl_file }}
+    #     asset_name: ${{ env.whl_name }}
     #     asset_content_type: application/octet-stream
     #   env:
     #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -116,7 +121,7 @@ jobs:
     #   with:
     #     upload_url: ${{ steps.create_release.outputs.result }}
     #     asset_path: ${{ env.tar_file }}
-    #     asset_name: ${{ env.tar_file }}
+    #     asset_name: ${{ env.tar_name }}
     #     asset_content_type: application/octet-stream
     #   env:
     #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
