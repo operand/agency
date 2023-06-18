@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - build # TEMPORARY!!!
 
 jobs:
   publish:
@@ -32,7 +33,7 @@ jobs:
           const currentVersion = toml.parse(current).tool.poetry.version;
           const previousVersion = toml.parse(previous).tool.poetry.version;
           const versionChanged = currentVersion !== previousVersion;
-          if (versionChanged) {
+          if (versionChanged || true) { // TEMPORARY!!!
             console.log(`version changed from ${previousVersion} to ${currentVersion}`);
             return currentVersion;
           } else {
@@ -48,12 +49,47 @@ jobs:
     - name: Build and publish
       if: ${{ steps.check_version.outputs.result }}
       run: |
-        echo "Building and publishing package with Poetry"
-        poetry build
-        poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
+        echo "Building and publishing v${{ steps.check_version.outputs.result }} ..."
+        echo "skipped for now"
+        # poetry build
+        # poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
     - name: Create tag
       if: ${{ steps.check_version.outputs.result }}
       run: |
-        git tag "v${{ steps.check_version.outputs.result }}"
-        git push origin "v${{ steps.check_version.outputs.result }}"
+        echo "Creating tag v${{ steps.check_version.outputs.result }} ..."
+        echo "skipped for now"
+        # git tag "v${{ steps.check_version.outputs.result }}"
+        # git push origin "v${{ steps.check_version.outputs.result }}"
+
+    - name: Create GitHub release
+      id: create_release
+      if: ${{ steps.check_version.outputs.result }}
+      uses: actions/github-script@v5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        script: |
+          const github = require('@actions/github');
+          const version = "${{ steps.check_version.outputs.result }}";
+          console.log(`Creating GitHub release for v${version} ...`)
+          console.log("skipped for now")
+          // const response = await github.getOctokit(process.env.GITHUB_TOKEN).repos.createRelease({
+          //   owner: context.repo.owner,
+          //   repo: context.repo.repo,
+          //   tag_name: `v${version}`,
+          //   name: `v${version}`,
+          //   body: `Release v${version}`,
+          // });
+          // return response.data.upload_url;
+
+    # - name: Upload built assets to GitHub release
+    #   if: ${{ steps.check_version.outputs.result }}
+    #   uses: actions/upload-release-asset@v1
+    #   with:
+    #     upload_url: ${{ steps.create_release.outputs.result }}
+    #     asset_path: ./dist/your-built-package.whl
+    #     asset_name: your-built-package.whl
+    #     asset_content_type: application/octet-stream
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
