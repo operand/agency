@@ -50,7 +50,6 @@ jobs:
       if: ${{ steps.check_version.outputs.result }}
       run: |
         echo "Building and publishing version ${{ steps.check_version.outputs.result }} ..."
-        echo "skipped for now"
         # poetry build
         # poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
@@ -59,7 +58,6 @@ jobs:
       run: |
         tag=v${{ steps.check_version.outputs.result }};
         echo "Creating tag ${tag} ..."
-        echo "skipped for now"
         # git tag "${tag}"
         # git push origin "${tag}"
 
@@ -73,7 +71,6 @@ jobs:
         script: |
           const version = ${{ steps.check_version.outputs.result }};
           console.log(`Creating GitHub release for v${version} ...`)
-          console.log("skipped for now")
           // const response = await github.getOctokit(process.env.GITHUB_TOKEN).repos.createRelease({
           //   owner: context.repo.owner,
           //   repo: context.repo.repo,
@@ -81,15 +78,37 @@ jobs:
           //   name: `v${version}`,
           //   body: `Release v${version}`,
           // });
+          // console.log(`Release created at ${response.data.html_url}`)
           // return response.data.upload_url;
 
-    # - name: Upload built assets to GitHub release
+    - name: Get built asset names
+      id: get_asset_names
+      if: ${{ steps.check_version.outputs.result }}
+      run: |
+        version=${{ steps.check_version.outputs.result }}
+        whl_file=$(ls dist/*.whl)
+        tar_file=$(ls dist/*.tar.gz)
+        echo "::set-output name=whl_file::$whl_file"
+        echo "::set-output name=tar_file::$tar_file"
+
+    # - name: Upload .whl asset to GitHub release
     #   if: ${{ steps.check_version.outputs.result }}
     #   uses: actions/upload-release-asset@v1
     #   with:
     #     upload_url: ${{ steps.create_release.outputs.result }}
-    #     asset_path: ./dist/your-built-package.whl
-    #     asset_name: your-built-package.whl
+    #     asset_path: ${{ steps.get_asset_names.outputs.whl_file }}
+    #     asset_name: ${{ steps.get_asset_names.outputs.whl_file }}
+    #     asset_content_type: application/octet-stream
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # - name: Upload .tar.gz asset to GitHub release
+    #   if: ${{ steps.check_version.outputs.result }}
+    #   uses: actions/upload-release-asset@v1
+    #   with:
+    #     upload_url: ${{ steps.create_release.outputs.result }}
+    #     asset_path: ${{ steps.get_asset_names.outputs.tar_file }}
+    #     asset_name: ${{ steps.get_asset_names.outputs.tar_file }}
     #     asset_content_type: application/octet-stream
     #   env:
     #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
