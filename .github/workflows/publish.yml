@@ -71,7 +71,7 @@ jobs:
       with:
         script: |
           # const github = require('@actions/github');
-          const version = "${{ steps.check_version.outputs.result }}";
+          const version = ${{ steps.check_version.outputs.result }};
           console.log(`Creating GitHub release for v${version} ...`)
           console.log("skipped for now")
           // const response = await github.getOctokit(process.env.GITHUB_TOKEN).repos.createRelease({
