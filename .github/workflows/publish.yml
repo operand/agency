@@ -52,7 +52,6 @@ jobs:
         echo "Building version ${{ steps.check_version.outputs.result }} ..."
         poetry build
         echo "Publishing version ${{ steps.check_version.outputs.result }} ..."
-        echo "skipping for now"
         # poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
     - name: Create tag
@@ -90,16 +89,23 @@ jobs:
         version=${{ steps.check_version.outputs.result }}
         whl_file=$(ls dist/*.whl)
         tar_file=$(ls dist/*.tar.gz)
-        echo "::set-output name=whl_file::$whl_file"
-        echo "::set-output name=tar_file::$tar_file"
+        echo "whl_file=$whl_file" >> $GITHUB_ENV
+        echo "tar_file=$tar_file" >> $GITHUB_ENV
+
+    - name: Print variables
+      run: |
+        echo $whl_file
+        echo $tar_file
+        echo ${{ env.whl_file }}
+        echo ${{ env.tar_file }}
 
     # - name: Upload .whl asset to GitHub release
     #   if: ${{ steps.check_version.outputs.result }}
     #   uses: actions/upload-release-asset@v1
     #   with:
     #     upload_url: ${{ steps.create_release.outputs.result }}
-    #     asset_path: ${{ steps.get_asset_names.outputs.whl_file }}
-    #     asset_name: ${{ steps.get_asset_names.outputs.whl_file }}
+    #     asset_path: ${{ env.whl_file }}
+    #     asset_name: ${{ env.whl_file }}
     #     asset_content_type: application/octet-stream
     #   env:
     #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -109,8 +115,8 @@ jobs:
     #   uses: actions/upload-release-asset@v1
     #   with:
     #     upload_url: ${{ steps.create_release.outputs.result }}
-    #     asset_path: ${{ steps.get_asset_names.outputs.tar_file }}
-    #     asset_name: ${{ steps.get_asset_names.outputs.tar_file }}
+    #     asset_path: ${{ env.tar_file }}
+    #     asset_name: ${{ env.tar_file }}
     #     asset_content_type: application/octet-stream
     #   env:
     #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
