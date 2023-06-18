@@ -49,8 +49,10 @@ jobs:
     - name: Build and publish
       if: ${{ steps.check_version.outputs.result }}
       run: |
-        echo "Building and publishing version ${{ steps.check_version.outputs.result }} ..."
-        # poetry build
+        echo "Building version ${{ steps.check_version.outputs.result }} ..."
+        poetry build
+        echo "Publishing version ${{ steps.check_version.outputs.result }} ..."
+        echo "skipping for now"
         # poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
     - name: Create tag
