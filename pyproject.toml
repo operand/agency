@@ -5,6 +5,8 @@ description = "A fast and minimal actor model framework for building agent-integ
 authors = ["Daniel Rodriguez"]
 license = "GPL-3.0"
 readme = "README.md"
+include = ["agency/**/*"]
+exclude = ["*"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
