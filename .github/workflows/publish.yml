@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - build # TEMPORARY!!!
 
 jobs:
   publish:
@@ -33,7 +32,7 @@ jobs:
           const currentVersion = toml.parse(current).tool.poetry.version;
           const previousVersion = toml.parse(previous).tool.poetry.version;
           const versionChanged = currentVersion !== previousVersion;
-          if (versionChanged || true) { // TEMPORARY!!!
+          if (versionChanged) {
             console.log(`version changed from ${previousVersion} to ${currentVersion}`);
             return currentVersion;
           } else {
@@ -51,16 +50,16 @@ jobs:
       run: |
         echo "Building version ${{ steps.check_version.outputs.result }} ..."
         poetry build
-        echo "Publishing version ${{ steps.check_version.outputs.result }} ..."
-        # poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
+        echo "Publishing ..."
+        poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
     - name: Create tag
       if: ${{ steps.check_version.outputs.result }}
       run: |
         tag=v${{ steps.check_version.outputs.result }};
         echo "Creating tag ${tag} ..."
-        # git tag "${tag}"
-        # git push origin "${tag}"
+        git tag "${tag}"
+        git push origin "${tag}"
 
     - name: Create GitHub release
       id: create_release
@@ -72,15 +71,15 @@ jobs:
         script: |
           const version = ${{ steps.check_version.outputs.result }};
           console.log(`Creating GitHub release for v${version} ...`)
-          // const response = await github.getOctokit(process.env.GITHUB_TOKEN).repos.createRelease({
-          //   owner: context.repo.owner,
-          //   repo: context.repo.repo,
-          //   tag_name: `v${version}`,
-          //   name: `v${version}`,
-          //   body: `Release v${version}`,
-          // });
-          // console.log(`Release created at ${response.data.html_url}`)
-          // return response.data.upload_url;
+          const response = await github.getOctokit(process.env.GITHUB_TOKEN).repos.createRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            tag_name: `v${version}`,
+            name: `v${version}`,
+            body: `Release v${version}`,
+          });
+          console.log(`Release created at ${response.data.html_url}`)
+          return response.data.upload_url;
 
     - name: Get built asset names
       id: get_asset_names
@@ -103,25 +102,24 @@ jobs:
         echo ${{ env.whl_name }}
         echo ${{ env.tar_name }}
 
+    - name: Upload .whl asset to GitHub release
+      if: ${{ steps.check_version.outputs.result }}
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.result }}
+        asset_path: ${{ env.whl_file }}
+        asset_name: ${{ env.whl_name }}
+        asset_content_type: application/octet-stream
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    # - name: Upload .whl asset to GitHub release
-    #   if: ${{ steps.check_version.outputs.result }}
-    #   uses: actions/upload-release-asset@v1
-    #   with:
-    #     upload_url: ${{ steps.create_release.outputs.result }}
-    #     asset_path: ${{ env.whl_file }}
-    #     asset_name: ${{ env.whl_name }}
-    #     asset_content_type: application/octet-stream
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    # - name: Upload .tar.gz asset to GitHub release
-    #   if: ${{ steps.check_version.outputs.result }}
-    #   uses: actions/upload-release-asset@v1
-    #   with:
-    #     upload_url: ${{ steps.create_release.outputs.result }}
-    #     asset_path: ${{ env.tar_file }}
-    #     asset_name: ${{ env.tar_name }}
-    #     asset_content_type: application/octet-stream
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload .tar.gz asset to GitHub release
+      if: ${{ steps.check_version.outputs.result }}
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.result }}
+        asset_path: ${{ env.tar_file }}
+        asset_name: ${{ env.tar_name }}
+        asset_content_type: application/octet-stream
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
