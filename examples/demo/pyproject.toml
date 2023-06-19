@@ -1,0 +1,9 @@
+[tool.poetry.dependencies]
+agency = {path = "../agency", develop = true}
+python = "^3.9"
+python-dotenv = "^1.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
