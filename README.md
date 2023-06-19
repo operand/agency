@@ -216,9 +216,6 @@ original message, passing the response as the `"content"` argument.
 
 ## The Common Message Schema
 
-> Please note that custom message schemas are possible but not yet implemented.
-[An issue has been created for it.](https://github.com/operand/agency/issues/46)
-
 In the example above, we see the format that is used when sending actions.
 
 In describing the messaging format, there are two terms that are used similarly:
