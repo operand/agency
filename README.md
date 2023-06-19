@@ -252,8 +252,8 @@ a natural language explanation to accompany any action, but as of this writing
 `ChattyAI` does not make use of it. `OpenAICompletionAgent` discussed below,
 does.
 
-For more details on the common message schema see
-[schema.py](./agency/schema.py).
+> Note that custom message schemas are possible but not yet implemented.
+[An issue has been created for it.](https://github.com/operand/agency/issues/46)
 
 
 ## Access Control
