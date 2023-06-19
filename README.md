@@ -218,7 +218,6 @@ original message, passing the response as the `"content"` argument.
 
 > Please note that custom message schemas are possible but not yet implemented.
 [An issue has been created for it.](https://github.com/operand/agency/issues/46)
-> The following details the currently supported schema.
 
 In the example above, we see the format that is used when sending actions.
 
