@@ -1,6 +1,6 @@
 from agency.agent import ACCESS_PERMITTED, access_policy
 from agency.agent import Agent
-from agents.prompt_methods import PromptMethods
+from .prompt_methods import PromptMethods
 from agency.schema import MessageSchema
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import os
