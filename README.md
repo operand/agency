@@ -29,12 +29,10 @@ The API accommodates agent integration with systems as varied as:
 
 
 # Install
-> **WARNING:**\
-> Running `agency` may result in exposing your computer to access by any connected `Agent` class. Please understand the risks before using this software and configure your environment safely.
+> ⚠️ **WARNING:**\
+> Running `agency` may result in exposing your computer to access by any connected `Agent` class. Please understand the risks before using this software and configure your environment safely. `agency` itself offers [access control](#access-control) for preventing or reviewing actions as needed.
 >
-> If, for example, you want to enable OS access, I HIGHLY RECOMMEND running your project within a Docker container to prevent direct access to your host, allowing you to limit the resources and directories that may be accessed.
->
-> If you need it, an example Dockerfile can be found in the [examples/demo](./examples/demo) directory.
+> If you want to enable OS access, I HIGHLY RECOMMEND running your project within a Docker container to prevent direct access to your host, allowing you to limit the resources and directories that may be accessed. If you need it, an example Dockerfile can be found in the [examples/demo](./examples/demo) directory.
 
 ```sh
 pip install agency
