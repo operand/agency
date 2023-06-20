@@ -522,7 +522,7 @@ For an implementation that uses a plain text completion API, see
 
 ## Running the Example
 
-If you run the python script provided at the beginning of this walkthrough,
+If you follow the directions at [examples/demo](./examples/demo/),
 after a short boot time you can visit the web app at `http://localhost:8080` and
 you should see a simple chat interface.
 
