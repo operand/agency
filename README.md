@@ -6,12 +6,11 @@ A fast and minimal actor model framework for building agent-integrated systems
 ## What is `agency`?
 
 `agency` defines a common communication and action framework for integrating
-AI agents with traditional computing systems, and even humans in a way where
-all can easily communicate.
+AI agents with computing systems and human users.
 
 `agency` allows you to create shared environments called "spaces" where any
-number of humans, artificial, or other computing systems may equally address
-each other as individual "agents" that you may perform "actions" on.
+number of humans, artificial, or traditional computing systems may equally
+address each other as individual "agents" that you may perform "actions" on.
 
 `agency` handles the details of the common messaging protocol and allows
 discovering and invoking actions across all parties, automatically handling
@@ -69,7 +68,7 @@ Let's walk through a thorough example to see how this works in practice.
 # Example Walkthrough
 
 The snippet below is an example application taken from the demo located at
-[./examples/demo/](./examples/demo/). A Dockerfile and basic instructions for
+[examples/demo/](./examples/demo/). A Dockerfile and basic instructions for
 how to run the demo are located in that directory.
 
 The demo includes two OpenAI agent classes, the HuggingFace based `ChattyAI`,
