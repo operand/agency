@@ -1,11 +1,11 @@
 import os
 import time
-from agency.agents.chattyai import ChattyAI
-from agency.agents.host import Host
-from agency.agents.openai_completion_agent import OpenAICompletionAgent
-from agency.agents.openai_function_agent import OpenAIFunctionAgent
+from agents.chattyai import ChattyAI
+from agents.host import Host
+from agents.openai_completion_agent import OpenAICompletionAgent
+from agents.openai_function_agent import OpenAIFunctionAgent
 from agency.space import Space
-from agency.spaces.web_app import WebApp
+from spaces.web_app import WebApp
 
 
 if __name__ == '__main__':
