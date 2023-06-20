@@ -2,7 +2,7 @@ from datetime import datetime
 from agency import util
 from agency.agent import ACCESS_PERMITTED, access_policy
 from agency.agent import Agent
-from agency.agents.prompt_methods import PromptMethods
+from agents.prompt_methods import PromptMethods
 import json
 import openai
 import textwrap

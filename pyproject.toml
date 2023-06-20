@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "agency"
-version = "1.0.3"
+version = "1.0.4"
 description = "A fast and minimal actor model framework for building agent-integrated systems"
 authors = ["Daniel Rodriguez"]
 license = "GPL-3.0"
@@ -13,11 +13,7 @@ python = "^3.9"
 asyncio = "^3.4"
 colorama = "^0.4"
 pydantic = "^1.8"
-transformers = "^4.29"
-torch = "^2.0"
-Flask-SocketIO = "^5.3"
-eventlet = "^0.33"
-openai = "^0.27.8"
+eventlet = "^0.33.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"
