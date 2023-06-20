@@ -610,7 +610,7 @@ Space([
 ## How does `agency` compare to agent libraries like LangChain?
 
 Though you could entirely create a simple agent using only the primitives in
-`agency` (see [`agents/`](./agency/agents/)), it is not intended to be a
+`agency` (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not intended to be a
 full-fledged agent toolset. It can be thought of as an "agent integration
 framework".
 
