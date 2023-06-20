@@ -5,7 +5,7 @@ FROM python:3.9
 WORKDIR /agency
 
 # Copy pyproject.toml file
-COPY pyproject.toml .
+COPY pyproject.toml poetry.lock ./
 
 # Install build dependencies
 RUN pip install poetry
@@ -20,4 +20,4 @@ EXPOSE 8080
 # Set runtime environment variables (if needed)
 
 # Specify the startup command
-CMD ["python", "demo.py"]
+CMD ["poetry", "run", "python", "demo.py"]

@@ -1,5 +1,5 @@
 import os
-from time import time
+import time
 from agency.agents.chattyai import ChattyAI
 from agency.agents.host import Host
 from agency.agents.openai_completion_agent import OpenAICompletionAgent
