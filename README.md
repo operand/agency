@@ -62,8 +62,6 @@ To summarize, the two classes of `Agent` and `Space` together create a simple
 API for creating applications that may mix AI, human, and traditional computing
 systems, in a way that is intended for all to equally understand and use.
 
-Let's walk through a thorough example to see how this works in practice.
-
 
 # Example Walkthrough
 
@@ -71,12 +69,11 @@ The snippet below is an example application taken from the demo located at
 [examples/demo/](./examples/demo/). A Dockerfile and basic instructions for
 how to run the demo are located in that directory.
 
-The demo includes two OpenAI agent classes, the HuggingFace based `ChattyAI`,
-operating system access, and a web application hosted at
-`http://localhost:8080`. Note that `Space.run()` starts a thread, so we simply
-keep the application alive with a while loop.
+The demo application includes two differenty OpenAI agent classes, the
+HuggingFace based `ChattyAI`, operating system access, and a Flask/React based
+web application hosted at `http://localhost:8080`, all integrated together into
+a single "space".
 
-The walkthrough that follows details how this demo application works.
 
 ```python
 # demo.py
@@ -113,7 +110,7 @@ if __name__ == '__main__':
 
     print("pop!")
 
-    # keep alive
+    # space.run() starts a thread, so we keep the app alive with a loop
     while True:
         time.sleep(1)
 ```
