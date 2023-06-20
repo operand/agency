@@ -72,15 +72,16 @@ Let's walk through a thorough example to see how this works in practice.
 
 # Example Walkthrough
 
-The snippet below can be used to run the full example detailed by the following
-walkthrough.
+The snippet below is an example application taken from the demo located at
+[./examples/demo/](./examples/demo/). A Dockerfile and basic instructions for
+how to run the demo are located in that directory.
 
-It includes two OpenAI agent examples, the HuggingFace based `ChattyAI`,
+The demo includes two OpenAI agent classes, the HuggingFace based `ChattyAI`,
 operating system access, and a web application hosted at
-`http://localhost:8080`.
+`http://localhost:8080`. Note that `Space.run()` starts a thread, so we simply
+keep the application alive with a while loop.
 
-Please note that the example agent classes should be considered "proof of
-concept" quality only.
+The walkthrough that follows details how this demo application works.
 
 ```python
 # demo.py
@@ -121,9 +122,6 @@ if __name__ == '__main__':
     while True:
         time.sleep(1)
 ```
-
-Note that `Space.run()` starts a thread, so we simply keep the application alive
-with a while loop.
 
 
 ## Creating a `Space`

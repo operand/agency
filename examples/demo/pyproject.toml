@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "demo"
+version = "0.0.1"
+description = ""
+authors = []
+readme = "README.md"
+
+[tool.poetry.dependencies]
+agency = "^1.0.0"
+python = "^3.9"
+python-dotenv = "^1.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
