@@ -4,7 +4,7 @@ from agents.chattyai import ChattyAI
 from agents.host import Host
 from agents.openai_completion_agent import OpenAICompletionAgent
 from agents.openai_function_agent import OpenAIFunctionAgent
-from space import Space
+from agency.space import Space
 from spaces.web_app import WebApp
 
 
@@ -12,9 +12,9 @@ if __name__ == '__main__':
 
     space = Space("DemoSpace")
 
-    space.add(
-        ChattyAI("Chatty",
-            model="EleutherAI/gpt-neo-125m"))
+    # space.add(
+    #     ChattyAI("Chatty",
+    #         model="EleutherAI/gpt-neo-125m"))
 
     space.add(
         WebApp("WebApp",
