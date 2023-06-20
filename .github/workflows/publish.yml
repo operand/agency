@@ -55,11 +55,10 @@ jobs:
 
     - name: Create tag
       if: ${{ steps.check_version.outputs.result }}
-      run: |
-        tag=v${{ steps.check_version.outputs.result }};
-        echo "Creating tag ${tag} ..."
-        git tag "${tag}"
-        git push origin "${tag}"
+      uses: mathieudutour/github-tag-action@v6.1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        custom_tag: v${{ steps.check_version.outputs.result }}
 
     - name: Create GitHub release
       id: create_release
