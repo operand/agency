@@ -7,7 +7,7 @@ To run this demo application:
 1. Type:
 
     ```sh
-    docker-compose run demo
+    docker-compose run --rm --service-ports demo
     ```
 
 1. Visit [http://localhost:8080](http://localhost:8080)
