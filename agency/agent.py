@@ -99,9 +99,7 @@ class Agent():
                 except Exception as e:
                     # Here we handle exceptions that occur while committing an
                     # action, including PermissionError's from access denial, by
-                    # reporting the error back to the sender. If an error occurs
-                    # here, indicating that basic _send() functionality is
-                    # broken, the application will exit.
+                    # reporting the error back to the sender.
                     self._send({
                       "to": message['from'],
                       "thoughts": "An error occurred",

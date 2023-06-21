@@ -12,9 +12,9 @@ if __name__ == '__main__':
 
     space = Space("DemoSpace")
 
-    space.add(
-        ChattyAI("Chatty",
-            model="EleutherAI/gpt-neo-125m"))
+    # space.add(
+    #     ChattyAI("Chatty",
+    #         model="EleutherAI/gpt-neo-125m"))
 
     space.add(
         WebApp("WebApp",
