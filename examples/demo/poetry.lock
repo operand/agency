@@ -2,24 +2,20 @@
 
 [[package]]
 name = "agency"
-version = "1.0.3"
+version = "1.0.4"
 description = "A fast and minimal actor model framework for building agent-integrated systems"
 optional = false
 python-versions = ">=3.9,<4.0"
 files = [
-    {file = "agency-1.0.3-py3-none-any.whl", hash = "sha256:2dcaeca869a72be750983e540284269d32adb32c9f7e1d44603cefcbbb2e1a19"},
-    {file = "agency-1.0.3.tar.gz", hash = "sha256:86cb0a1a9bd86dab9e73c1bf63c4d72ea4ecc8ce63a9b5599a2160f1c4dd3390"},
+    {file = "agency-1.0.4-py3-none-any.whl", hash = "sha256:af8f053db9bbec983e5ebfd178fc452c073ab536496744830eaadd0842702719"},
+    {file = "agency-1.0.4.tar.gz", hash = "sha256:6df4ece3e2a4da55dd79adb685b3e94ec61ce241de9f4ceb0977c76ea374ce99"},
 ]
 
 [package.dependencies]
 asyncio = ">=3.4,<4.0"
 colorama = ">=0.4,<0.5"
-eventlet = ">=0.33,<0.34"
-Flask-SocketIO = ">=5.3,<6.0"
-openai = ">=0.27.8,<0.28.0"
+eventlet = ">=0.33.3,<0.34.0"
 pydantic = ">=1.8,<2.0"
-torch = ">=2.0,<3.0"
-transformers = ">=4.29,<5.0"
 
 [[package]]
 name = "aiohttp"
@@ -1629,4 +1625,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "f3fa8508abb997f1750bb9a90d9629faade42c0c48b2841c2afa16cae3573db3"
+content-hash = "f5d8de85dde256856df3b7246f22f54bcd828d84e40acc27bd0061d40311e328"
