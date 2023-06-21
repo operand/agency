@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
 
-  main:
+  demo:
     build:
       context: .
     volumes:

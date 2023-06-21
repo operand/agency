@@ -7,5 +7,7 @@ To run this demo application:
 1. Type:
 
 ```sh
-docker-compose run main
+docker-compose run demo
 ```
+
+1. Visit [http://localhost:8080](http://localhost:8080)
