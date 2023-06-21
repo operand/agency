@@ -1,16 +1,10 @@
-from tests.conftest import space_context
-import time
-import unittest
 
 
-def test_create_destroy():
+
+
+def test_agent_not_found():
     """
-    Tests basic creation and destruction of a Space without Agents.
+    When an agent sends a message to an agent that does not exist, the sender
+    should receive an error message
     """
-    with space_context():
-        # Just wait for 1 second here and let the context handle the rest
-        time.sleep(1)
-
-
-if __name__ == '__main__':
-    unittest.main()
+    raise NotImplementedError()

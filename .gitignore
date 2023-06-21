@@ -4,6 +4,7 @@
 .env
 .pytest_cache
 .venv
+.vscode
 __pycache__/
 build/
 dist/

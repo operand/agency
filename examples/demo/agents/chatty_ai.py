@@ -11,7 +11,7 @@ import textwrap
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 
 
-class ChattyAI(Agent, PromptMethods):
+class ChattyAI(PromptMethods, Agent):
     """
     Encapsulates a simple chatting AI backed by a language model.
     Currently uses transformers library as a backend provider.
@@ -31,7 +31,7 @@ class ChattyAI(Agent, PromptMethods):
         """) + \
             self._message_log_to_list()
 
-    def _message_line(self, message: MessageSchema, indent: int = None) -> str:
+    def _message_line(self, message: dict, indent: int = None) -> str:
         pre_prompt = self._pre_prompt(message['from'].split('.')[0])
         # Here we format what a previous message looks like in the prompt
         # For "say" actions, we just present the content as a line of text
@@ -72,3 +72,6 @@ class ChattyAI(Agent, PromptMethods):
             "content": response_content,
           }
         })
+
+    def _after_add(self):
+        util.debug(f"*[{self.id()}] added")

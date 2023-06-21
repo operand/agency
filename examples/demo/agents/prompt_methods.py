@@ -1,23 +1,27 @@
-from abc import abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from datetime import datetime
 from agency import util
+from agency.agent import ACCESS_PERMITTED, access_policy
 from agency.schema import MessageSchema
 
 
-class PromptMethods:
+class PromptMethods(ABC, metaclass=ABCMeta):
     """
-    Contains methods for constructing prompts from message logs"""
+    A mixin containing utility methods for constructing prompts from the message
+    log
+    """
 
     def _full_prompt(self):
         """
-        Returns the full prompt, including the pre-prompt and the message log"""
+        Returns the full prompt, including the pre-prompt and the message log
+        """
         return self._prompt_head() + self._pre_prompt(agent_id=self.id())
 
-    def _message_log_to_list(self, indent=None):
+    def _message_log_to_list(self):
         """Convert an array of message_log entries to a prompt ready list"""
         promptable_list = ""
         for message in self._message_log:
-            promptable_list += self._message_line(message, indent)
+            promptable_list += self._message_line(message)
         return promptable_list
 
     @abstractmethod
@@ -25,7 +29,6 @@ class PromptMethods:
         """
         Returns the "head" of the prompt, the contents up to the pre-prompt
         """
-        raise NotImplementedError("Must implement _prompt_head")
 
     @abstractmethod
     def _pre_prompt(self, agent_id: str, timestamp=util.to_timestamp(datetime.now())):
@@ -33,11 +36,9 @@ class PromptMethods:
         Returns the "pre-prompt", the special string sequence that indicates it is
         ones turn to act: e.g. "### Assistant: "
         """
-        raise NotImplementedError("Must implement _pre_prompt")
 
     @abstractmethod
-    def _message_line(self, message: MessageSchema, indent=None) -> str:
+    def _message_line(self, message: MessageSchema) -> str:
         """
         Returns a single line for a prompt that represents a previous message
         """
-        raise NotImplementedError("Must implement _message_line")

@@ -1,42 +1,41 @@
-import os
-import time
-from agents.chattyai import ChattyAI
+from agency.space import AMQPSpace
 from agents.host import Host
 from agents.openai_completion_agent import OpenAICompletionAgent
 from agents.openai_function_agent import OpenAIFunctionAgent
-from agency.space import Space
-from spaces.web_app import WebApp
+from web_app import WebApp
+import os
+import time
 
 
 if __name__ == '__main__':
 
-    space = Space("DemoSpace")
+    # Create a space
+    space = AMQPSpace()
 
-    space.add(
-        ChattyAI("Chatty",
-            model="EleutherAI/gpt-neo-125m"))
+    # Add a host agent to the space, exposing access to the host system
+    space.add(Host("Host"))
 
-    space.add(
-        WebApp("WebApp",
-            demo_user_id="Dan", # hardcoded for simplicity
-            port='8080'))
-
-    space.add(
-        Host("Host"))
-
+    # Add an OpenAI function API agent to the space
     space.add(
         OpenAIFunctionAgent("FunctionAI",
-            model="gpt-3.5-turbo-16k",
-            openai_api_key=os.getenv("OPENAI_API_KEY"),
-            # user_id determines the "user" role in the OpenAI chat
-            user_id="Dan.WebApp.DemoSpace"))
+                            model="gpt-3.5-turbo-16k",
+                            openai_api_key=os.getenv("OPENAI_API_KEY"),
+                            # user_id determines the "user" role in the OpenAI chat API
+                            user_id="Dan"))
 
+    # Add another OpenAI agent based on the completion API
     space.add(
         OpenAICompletionAgent("CompletionAI",
             model="text-davinci-003",
             openai_api_key=os.getenv("OPENAI_API_KEY")))
 
-    space.run()
+    # Create and start a web app to connect human users to the space.
+    # As users connect they are added to the space as agents.
+    web_app = WebApp(space,
+                     port=os.getenv("WEB_APP_PORT"),
+                     # NOTE We're hardcoding a single demo user for simplicity
+                     demo_username="Dan")
+    web_app.start()
 
     print("pop!")
 

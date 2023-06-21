@@ -5,6 +5,8 @@ import os
 import re
 import subprocess
 
+from agency.schema import MessageSchema
+
 
 class Host(Agent):
     """
@@ -13,15 +15,14 @@ class Host(Agent):
 
     @access_policy(ACCESS_REQUESTED)
     def _action__shell_command(self, command: str):
-        """Execute a shell command from the application root directory (/app) in
-        a bash shell. Always use with caution."""
+        """Execute a shell command from the application root directory in a bash
+        shell. Always use with caution."""
         command = ["bash", "-l", "-c", command]
         result = subprocess.run(
           command,
           stdout=subprocess.PIPE,
           stderr=subprocess.PIPE,
           text=True,
-          cwd="/app" # TODO: make this configurable
         )
         output = result.stdout + result.stderr
         if result.returncode != 0:
@@ -54,11 +55,11 @@ class Host(Agent):
         files = os.listdir(directory_path)
         return f"{files}"
 
-    def _request_permission(self, proposed_message: dict) -> bool:
+    def _request_permission(self, proposed_message: MessageSchema) -> bool:
         """Asks for permission on the command line"""
         text = \
             f"{Fore.RED}***** Permission requested to execute: *****{Style.RESET_ALL}\n" + \
-            json.dumps(proposed_message, indent=2) + \
+            json.dumps(proposed_message.dict(by_alias=True), indent=2) + \
             f"\n{Fore.RED}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{Style.RESET_ALL}\n"
         print(text)
         permission_response = input("Allow? (y/n) ")

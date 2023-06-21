@@ -1,11 +1,8 @@
-from contextlib import contextmanager
-from agency.agent import ACCESS_REQUESTED, ACCESS_DENIED, ACCESS_PERMITTED, access_policy
-from agency.agent import Agent
-from agency.schema import MessageSchema
-from agency.space import Space
-from tests.conftest import space_context
+from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED,
+                          ACCESS_REQUESTED, Agent, access_policy)
+from agency.space import NativeSpace
+import pytest
 import time
-import unittest
 
 
 class Webster(Agent):
@@ -19,7 +16,7 @@ class Webster(Agent):
     # these are called correctly as well. They simply forward the messages as
     # "say" messages to the original sender (Webster)
     @access_policy(ACCESS_PERMITTED)
-    def _action__return(self, original_message: MessageSchema, return_value: str):
+    def _action__return(self, original_message: dict, return_value: str):
         self._receive({
           "from": original_message['to'],
           "to": self.id(),
@@ -31,7 +28,7 @@ class Webster(Agent):
         })
 
     @access_policy(ACCESS_PERMITTED)
-    def _action__error(self, original_message: MessageSchema, error: str):
+    def _action__error(self, original_message: dict, error: str):
         self._receive({
           "from": original_message['to'],
           "to": self.id(),
@@ -43,7 +40,7 @@ class Webster(Agent):
         })
 
 
-class FakeWebApp(Space):
+class FakeWebApp():
     """A fake webapp space that Webster is an agent within"""
 
 
@@ -51,85 +48,122 @@ class Chatty(Agent):
     """A fake AI agent"""
 
 
-def wait_for_messages(agent, count=2):
-    max_time = 2  # seconds
+def wait_for_messages(agent, count=1, max_seconds=2):
     start_time = time.time()
     while (
-        (time.time() - start_time) < max_time
+        (time.time() - start_time) < max_seconds
         and agent._message_log.__len__() < count
     ):
         time.sleep(0.1)
 
 
-@contextmanager
 def space_with_webster_and_chatty():
-    """Returns a Space with a Webster agent"""
-    with space_context() as space:
-        chatty = Chatty("Chatty")
-        # NOTE that webster is nested in the webapp space
-        webster = Webster("Webster")
-        webapp = FakeWebApp("TestWebApp")
-        webapp.add(webster)
+    """
+    Returns a space with a Webster agent and a Chatty agent
+    """
+    space = NativeSpace()
+    webster = Webster("Webster")
+    chatty = Chatty("Chatty")
+    space.add(webster)
+    space.add(chatty)
 
-        space.add(webapp)
-        space.add(chatty)
-
-        yield webster, chatty
+    return space, webster, chatty
 
 
+def test_id_validation():
+    """
+    Asserts ids are:
+    - 1 to 255 characters in length
+    - Cannot start with the reserved sequence `"amq."`
+    """
+    # Test valid id
+    valid_id = "valid_agent_id"
+    agent = Agent(valid_id)
+    assert agent.id() == valid_id
+
+    # Test id length
+    too_short_id = ""
+    too_long_id = "a" * 256
+    with pytest.raises(ValueError):
+        Agent(too_short_id)
+    with pytest.raises(ValueError):
+        Agent(too_long_id)
+
+    # Test reserved sequence
+    reserved_id = "amq.reserved"
+    with pytest.raises(ValueError):
+        Agent(reserved_id)
+
+
+@pytest.mark.skip
+def test_after_add_and_before_remove():
+    raise NotImplementedError()
+
+
+@pytest.mark.skip
+def test_after_action():
+    raise NotImplementedError()
+
+
+@pytest.mark.focus
 def test_send_and_receive():
     """Tests sending a basic "say" message receiving a "return"ed reply"""
-    with space_with_webster_and_chatty() as (webster, chatty):
+    space, webster, chatty = space_with_webster_and_chatty()
 
-        # We use callable class to dynamically define the _say action for chatty
-        class ChattySay():
-            def __init__(self, agent) -> None:
-                self.agent = agent
-                self.access_policy = ACCESS_PERMITTED
+    # We use callable class to dynamically define the _say action for chatty
+    class ChattySay():
+        def __init__(self, agent) -> None:
+            self.agent = agent
+            self.access_policy = ACCESS_PERMITTED
 
-            def __call__(self, content):
-                return 'Hello, Webster!'
+        def __call__(self, content):
+            return 'Hello, Webster!'
 
-        chatty._action__say = ChattySay(chatty)
+    chatty._action__say = ChattySay(chatty)
 
-        # Send the first message and wait for a response
-        first_action = {
-            'action': 'say',
-            'to': chatty.id(),
-            'thoughts': 'I wonder how Chatty is doing.',
-            'args': {
-                'content': 'Hello, Chatty!'
-            }
+    # Send the first message and wait for a response
+    first_action = {
+        'action': 'say',
+        'to': chatty.id(),
+        'thoughts': 'I wonder how Chatty is doing.',
+        'args': {
+            'content': 'Hello, Chatty!'
         }
-        webster._send(first_action)
-        wait_for_messages(webster)
+    }
+    webster._send(first_action)
+    wait_for_messages(webster, count=3)
 
-        first_message = {
-            'from': 'Webster.TestWebApp.TestSpace',
-            **first_action
-        }
-        assert webster._message_log == [
-            first_message,
-            {
-                "to": "Webster.TestWebApp.TestSpace",
-                "thoughts": "A value was returned for your action",
-                "action": "return",
-                "args": {
-                    "original_message": first_message,
-                    "return_value": "Hello, Webster!"
-                },
-                "from": "Chatty.TestSpace"
+    first_message = {
+        'from': 'Webster',
+        **first_action
+    }
+    print(webster._message_log)
+    assert webster._message_log == [
+        first_message,
+        {
+            "to": "Webster",
+            "thoughts": "A value was returned for your action",
+            "action": "return",
+            "args": {
+                "original_message": first_message,
+                "return_value": "Hello, Webster!"
             },
-            {
-                "to": "Webster.TestWebApp.TestSpace",
-                "thoughts": "A value was returned for your action",
-                "action": "say",
-                "args": {
-                    "content": "Hello, Webster!"
-                },
-                "from": "Chatty.TestSpace"
+            "from": "Chatty"
+        },
+        {
+            "to": "Webster",
+            "thoughts": "A value was returned for your action",
+            "action": "say",
+            "args": {
+                "content": "Hello, Webster!"
             },
-        ]
+            "from": "Chatty"
+        },
+    ]
+
+
+def test_broadcast():
+    raise NotImplementedError()
 
 
 def test_send_undefined_action():
@@ -354,10 +388,3 @@ def test_send_request_rejected_action():
                 "from": "Chatty.TestSpace"
             }
         ]
-
-
-# TODO: test broadcasting
-
-
-if __name__ == '__main__':
-    unittest.main()
