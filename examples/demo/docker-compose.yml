@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+
+  demo:
+    build:
+      context: .
+    volumes:
+      # mounts models dir into container for reuse
+      - $BASE_MODELS_PATH:/models
+      # mounts source into container for development
+      - .:/app
+    env_file: .env
+    environment:
+      TRANSFORMERS_CACHE: /models/transformers_cache
+    ports:
+      - '8080:8080' # web
+    tty: true
+    stdin_open: true

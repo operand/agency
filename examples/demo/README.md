@@ -1,7 +1,13 @@
 To run this demo application:
 
+1. Ensure you have Docker installed.
+
+1. Copy `.env.example` as `.env` and fill in appropriate environment values.
+
+1. Type:
+
 ```sh
-OPENAI_API_KEY=_YOUR_API_KEY_HERE_
-docker build -t demo .
-docker run -it -p 8080:8080 -e OPENAI_API_KEY=$OPENAI_API_KEY --rm demo
+docker-compose run demo
 ```
+
+1. Visit [http://localhost:8080](http://localhost:8080)
