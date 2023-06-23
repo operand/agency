@@ -69,9 +69,9 @@ The snippet below is an example application taken from the demo located at
 [examples/demo/](./examples/demo/). A Dockerfile and basic instructions for
 how to run the demo are located in that directory.
 
-The demo application includes two differenty OpenAI agent classes, the
+The demo application includes two different OpenAI agent classes, the
 HuggingFace based `ChattyAI`, operating system access, and a Flask/React based
-web application hosted at `http://localhost:8080`, all integrated together into
+web application hosted at `http://localhost:8080`, all integrated in
 a single "space".
 
 
