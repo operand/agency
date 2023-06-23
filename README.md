@@ -1,12 +1,7 @@
-# `agency`
+# Summary
 
-A fast and minimal actor model framework for building agent-integrated systems
-
-
-## What is `agency`?
-
-`agency` defines a common communication and action framework for integrating
-AI agents with computing systems and human users.
+`agency` defines a common communication and action framework for applications
+that integrate AI agents with computing systems and human users.
 
 `agency` allows you to create shared environments called "spaces" where any
 number of humans, artificial, or traditional computing systems may equally
@@ -27,17 +22,6 @@ The API accommodates agent integration with systems as varied as:
 - anything
 
 
-# Install
-> ⚠️ **WARNING:**\
-> Using `agency` may result in exposing your computer to access by any connected `Agent` class. Please understand the risks before using this software and configure your environment safely. The `agency` library itself offers [access control](#access-control) for preventing or reviewing actions as needed.
->
-> If you want to enable OS access, I HIGHLY RECOMMEND running your application within a Docker container to prevent direct access to your host, allowing you to limit the resources and directories that may be accessed. If you need it, an example Dockerfile can be found in the [examples/demo](./examples/demo) directory.
-
-```sh
-pip install agency
-```
-
-
 # API Overview
 
 `agency` is an implementation of the [Actor
@@ -50,23 +34,40 @@ of the `Agent` class. This includes all humans, software, and AI-driven agents.
 The `Agent` class is a base class similar to "Object" in many object-oriented
 languages. All agents may expose "actions" that other agents can discover and
 invoke at run time. Actions also specify an access policy, allowing you to
-monitor and control actions to ensure safety.
+monitor and control behavior to ensure safety.
 
 A `Space` is also an `Agent` and is used to group multiple agents together. A
 space can be thought of as both a collection of agents and a facilitator for
 their communication. An agent cannot communicate with others until it is first
 added to a space. Spaces may be nested, allowing for namespacing and
-hierarchical organization of the agents in your application.
+organization of the agents in your application.
 
 To summarize, the two classes of `Agent` and `Space` together create a simple
 API for creating applications that may mix AI, human, and traditional computing
 systems, in a way that is intended for all to equally understand and use.
 
 
+# Install
+> ⚠️ **WARNING:**\
+> Using `agency` may result in exposing your computer to access by any connected
+> `Agent` class. Please understand the risks before using this software and
+> configure your environment safely. The `agency` library itself offers
+> [access control](#access-control) for preventing or reviewing actions as needed.
+>
+> If you want to enable OS access, I HIGHLY RECOMMEND running your application
+> within a Docker container to prevent direct access to your host, allowing you to
+> limit the resources and directories that may be accessed. If you need it, an
+> example Dockerfile can be found in the [examples/demo](./examples/demo) directory.
+
+```sh
+pip install agency
+```
+
+
 # Example Walkthrough
 
-The snippet below is an example application taken from the demo located at
-[examples/demo/](./examples/demo/). A Dockerfile and basic instructions for
+The snippet below is a taken from the demo application located at
+[examples/demo/](./examples/demo/). Basic instructions for
 how to run the demo are located in that directory.
 
 The demo application includes two different OpenAI agent classes, the
