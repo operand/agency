@@ -141,11 +141,12 @@ def test_after_add_and_before_remove(space):
     agent._before_remove.assert_called_once()
 
 
-def test_after_action():
+def test_before_and_after_action():
     """
     Tests that the _after_action method is called after an action is performed
     """
     agent = Webster("Webster")
+    agent._before_action = MagicMock()
     agent._after_action = MagicMock()
     agent._receive({
         "from": "Chatty",
@@ -156,6 +157,7 @@ def test_after_action():
             "content": "Hello, Webster!",
         },
     })
+    agent._before_action.assert_called_once()
     agent._after_action.assert_called_once()
 
 

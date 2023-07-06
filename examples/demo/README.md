@@ -2,7 +2,7 @@
 
 This demo application is maintained as an experimental development environment
 as well as a showcase of library features. You are encouraged to use the source
-as a reference point for your own projects but be aware that the quality of the
+as a reference point for your own projects but be aware that the quality of this
 demo application is proof-of-concept only and should not be considered
 production ready.
 
