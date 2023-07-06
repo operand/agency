@@ -53,10 +53,6 @@ class Chatty(Agent):
     """A fake AI agent"""
 
 
-
-
-
-
 # Used for tests that should be run for both NativeSpace and AMQPSpace
 def parametrize_spaces(test_func):
     # amqp_space = AMQPSpace()
@@ -64,12 +60,17 @@ def parametrize_spaces(test_func):
     # amqp_chatty = Chatty("Chatty")
     # amqp_space.add(amqp_webster)
     # amqp_space.add(amqp_chatty)
+
     native_space = NativeSpace()
     native_webster = Webster("Webster")
     native_chatty = Chatty("Chatty")
     native_space.add(native_webster)
     native_space.add(native_chatty)
-    return pytest.mark.parametrize('webster, chatty', [(native_webster, native_chatty)])(test_func)
+
+    return pytest.mark.parametrize('webster, chatty', [
+        (native_webster, native_chatty),
+        # (amqp_webster, amqp_chatty),
+    ])(test_func)
 
 
 # -----------
