@@ -1,3 +1,4 @@
+from unittest.mock import MagicMock
 from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED,
                           ACCESS_REQUESTED, Agent, access_policy)
 from agency.space import AMQPSpace, NativeSpace
@@ -55,12 +56,28 @@ class Chatty(Agent):
 
 def parametrize_spaces(test_func):
     """
+    Used for tests that should be run for both NativeSpace and AMQPSpace.
+    """
+    # amqp_space = AMQPSpace()
+    native_space = NativeSpace()
+
+    return pytest.mark.parametrize('space', [
+        native_space,
+        # amqp_space,
+    ])(test_func)
+
+
+
+def parametrize_space_with_agents(test_func):
+    """
     Used for tests that should be run for both NativeSpace and AMQPSpace. This
-    does not add the agents to the space, that must be done in the test itself.
+    decorator also adds the two agents to the space: Webster and Chatty.
     """
     # amqp_space = AMQPSpace()
     # amqp_webster = Webster("Webster")
     # amqp_chatty = Chatty("Chatty")
+    # amqp_space.add(amqp_webster)
+    # amqp_space.add(amqp_chatty)
 
     native_space = NativeSpace()
     native_webster = Webster("Webster")
@@ -105,14 +122,39 @@ def test_id_validation():
 
 
 @parametrize_spaces
-@pytest.mark.skip
-def test_after_add_and_before_remove(space, webster, chatty):
-    raise NotImplementedError()
+def test_after_add_and_before_remove(space):
+    """
+    Tests that the _after_add and _before_remove methods are called when an
+    agent is added to and removed from a space.
+    """
+    agent = Chatty("Chatty")
+    agent._after_add = MagicMock()
+    space.add(agent)
+    agent._after_add.assert_called_once()
+
+    agent._before_remove = MagicMock()
+    space.remove(agent)
+    agent._before_remove.assert_called_once()
 
 
-@pytest.mark.skip
+
 def test_after_action():
-    raise NotImplementedError()
+    """
+    Tests that the _after_action method is called after an action is performed
+    """
+    agent = Webster("Webster")
+    agent._after_action = MagicMock()
+    agent._receive({
+        "from": "Chatty",
+        "to": "Webster",
+        "thoughts": "I wonder how Chatty is doing.",
+        "action": "say",
+        "args": {
+            "content": "Hello, Webster!",
+        },
+    })
+    agent._after_action.assert_called_once()
+
 
 
 @pytest.mark.skip
@@ -133,7 +175,7 @@ def test_broadcast():
     raise NotImplementedError()
 
 
-@parametrize_spaces
+@parametrize_space_with_agents
 def test_send_and_receive(space, webster, chatty):
     """Tests sending a basic "say" message receiving a "return"ed reply"""
 
@@ -189,7 +231,7 @@ def test_send_and_receive(space, webster, chatty):
     ]
 
 
-@parametrize_spaces
+@parametrize_space_with_agents
 def test_send_undefined_action(space, webster, chatty):
     """Tests sending an undefined action and receiving an error response"""
 
@@ -235,7 +277,7 @@ def test_send_undefined_action(space, webster, chatty):
     ]
 
 
-@parametrize_spaces
+@parametrize_space_with_agents
 def test_send_unpermitted_action(space, webster, chatty):
     """Tests sending an unpermitted action and receiving an error response"""
 
@@ -290,7 +332,7 @@ def test_send_unpermitted_action(space, webster, chatty):
     ]
 
 
-@parametrize_spaces
+@parametrize_space_with_agents
 def test_send_request_permitted_action(space, webster, chatty):
     """Tests sending an action, granting permission, and returning response"""
 
@@ -351,7 +393,7 @@ def test_send_request_permitted_action(space, webster, chatty):
     ]
 
 
-@parametrize_spaces
+@parametrize_space_with_agents
 def test_send_request_rejected_action(space, webster, chatty):
     """Tests sending an action, rejecting permission, and returning error"""
 
