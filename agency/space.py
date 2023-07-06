@@ -88,6 +88,8 @@ class NativeSpace(Space):
             for recipient in recipients:
                 recipient._receive(message)
 
+        return message
+
 
 class AMQPSpace(Space):
     """

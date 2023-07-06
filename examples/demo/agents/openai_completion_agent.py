@@ -45,9 +45,9 @@ class OpenAICompletionAgent(HelpMethods, PromptMethods, Agent):
     def _pre_prompt(self, agent_id, timestamp=util.to_timestamp(datetime.now())):
         return f"\n[{timestamp}] {agent_id}:"
 
-    def _message_line(self, message: MessageSchema):
-        pre_prompt = self._pre_prompt(message.from_field)
-        return f"{pre_prompt} {json.dumps(message.dict(by_alias=True))}/END"
+    def _message_line(self, message: dict):
+        pre_prompt = self._pre_prompt(message['from'])
+        return f"{pre_prompt} {json.dumps(message)}/END"
 
     @access_policy(ACCESS_PERMITTED)
     def _action__say(self, content: str) -> bool:

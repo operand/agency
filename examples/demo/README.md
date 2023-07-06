@@ -9,7 +9,7 @@ production ready.
 
 # Running the demo
 
-First ensure you have Docker installed on your system, then:
+1. Ensure you have Docker installed on your system.
 
 1. Run:
 
@@ -20,15 +20,14 @@ First ensure you have Docker installed on your system, then:
 1. Open and populate the demo directory's `.env` file with appropriate
 environment values.
 
-1. Decide which application you'd like to run AMQP or native
-    1. To run the AMQP based application:
-        ```sh
-        ...
-        ```
+1. Decide which application you'd like to run AMQP or native, then:
 
-    1. To run the native (single process) application:
-        ```sh
-        ...
-        ```
+      ```sh
+      demo run native
+      ```
+      or
+      ```sh
+      demo run amqp
+      ```
 
-1. Visit [http://localhost:8080](http://localhost:8080) and try chatting!
+1. Visit [http://localhost:8080](http://localhost:8080) and try it out!

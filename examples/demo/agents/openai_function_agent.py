@@ -47,28 +47,28 @@ class OpenAIFunctionAgent(HelpMethods, Agent):
         # best to translate to them here.
         for message in self._message_log:
             # "return" and "error" are converted by default to "say" so ignore
-            if message.action not in ["return", "error"]:
+            if message['action'] not in ["return", "error"]:
                 # "say" actions are converted to messages using the content arg
-                if message.action == "say":
+                if message['action'] == "say":
                     # assistant
-                    if message.from_field == self.id():
+                    if message['from'] == self.id():
                         open_ai_messages.append({
                             "role": "assistant",
-                            "content": message.args["content"],
+                            "content": message["args"]["content"],
                         })
                     # user
-                    elif message.from_field == self.__kwargs['user_id']:
+                    elif message['from'] == self.__kwargs['user_id']:
                         open_ai_messages.append({
                             "role": "user",
-                            "content": message.args["content"],
+                            "content": message["args"]["content"],
                         })
 
                     # a "say" from anyone else is considered a function message
                     else:
                         open_ai_messages.append({
                             "role": "function",
-                            "name": f"{'-'.join(message.from_field.split('.'))}-{message.action}",
-                            "content": message.args["content"],
+                            "name": f"{'-'.join(message['from'].split('.'))}-{message['action']}",
+                            "content": message["args"]["content"],
                         })
 
                 # all other actions are considered a function_call
@@ -84,7 +84,7 @@ class OpenAIFunctionAgent(HelpMethods, Agent):
                     # during inference.
                     open_ai_messages.append({
                         "role": "system",
-                        "content": f"""{message.from_field} called function "{message.action}" with args {message.args}""",
+                        "content": f"""{message['from']} called function "{message['action']}" with args {message['args']}""",
                     })
 
         return open_ai_messages

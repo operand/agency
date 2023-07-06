@@ -55,11 +55,11 @@ class Host(Agent):
         files = os.listdir(directory_path)
         return f"{files}"
 
-    def _request_permission(self, proposed_message: MessageSchema) -> bool:
+    def _request_permission(self, proposed_message: dict) -> bool:
         """Asks for permission on the command line"""
         text = \
             f"{Fore.RED}***** Permission requested to execute: *****{Style.RESET_ALL}\n" + \
-            json.dumps(proposed_message.dict(by_alias=True), indent=2) + \
+            json.dumps(proposed_message, indent=2) + \
             f"\n{Fore.RED}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{Style.RESET_ALL}\n"
         print(text)
         permission_response = input("Allow? (y/n) ")

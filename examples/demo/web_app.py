@@ -112,14 +112,14 @@ class WebUser(Agent):
         Sends a message to the user
         """
         self.app.socketio.server.emit(
-            'message', self._current_message.dict(by_alias=True), room=self._connected_sid)
+            'message', self._current_message, room=self._connected_sid)
 
     @access_policy(ACCESS_PERMITTED)
     def _action__return(self, original_message: dict, return_value):
         self.app.socketio.server.emit(
-            'message', self._current_message.dict(by_alias=True), room=self._connected_sid)
+            'message', self._current_message, room=self._connected_sid)
 
     @access_policy(ACCESS_PERMITTED)
     def _action__error(self, original_message: dict, error: str):
         self.app.socketio.server.emit(
-            'message', self._current_message.dict(by_alias=True), room=self._connected_sid)
+            'message', self._current_message, room=self._connected_sid)

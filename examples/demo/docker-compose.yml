@@ -1,9 +1,8 @@
 version: '3.8'
 
-# docker-compose -f examples/demo/docker-compose.yml run --build --rm --service-ports demo
-
 # shared config for the main demo container and chatty
-x-demo-base: &demo-base
+x-demo-base:
+  &demo-base
   build:
     context: ../.. # root of the repo
     dockerfile: examples/demo/Dockerfile
@@ -15,7 +14,6 @@ x-demo-base: &demo-base
   env_file: .env
   environment:
     TRANSFORMERS_CACHE: /models/transformers_cache
-
 
 services:
 

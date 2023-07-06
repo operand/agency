@@ -1,3 +1,5 @@
+import os
+import traceback
 from agency import util
 from agency.schema import ActionSchema, MessageSchema
 from colorama import Fore, Style
@@ -70,6 +72,8 @@ class Agent():
             # Here we handle exceptions that occur while committing an
             # action, including PermissionError's from access denial, by
             # reporting the error back to the sender.
+            util.debug(f"*[{self.id()}] error:", traceback.format_exc())
+            os._exit(1)
             self._send({
                 "to": message['from'],
                 "thoughts": "An error occurred",
