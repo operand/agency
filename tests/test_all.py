@@ -105,6 +105,15 @@ def test_after_action():
     raise NotImplementedError()
 
 
+@pytest.mark.skip
+def test_agent_not_found():
+    """
+    When an agent sends a message to an agent that does not exist, the sender
+    should receive an error message
+    """
+    raise NotImplementedError()
+
+
 @pytest.mark.focus
 def test_send_and_receive():
     """Tests sending a basic "say" message receiving a "return"ed reply"""
