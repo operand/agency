@@ -21,7 +21,7 @@ class HelpMethods():
         util.debug(f"*[{self.id()}] added")
         self._available_actions = []
         self._send({
-            "thoughts": "I should announce my available commands.",
+            "thoughts": "Here is a list of actions you can take on me.",
             "action": "return",
             "args": {
                 "original_message": {
@@ -31,7 +31,7 @@ class HelpMethods():
             }
         })
         self._send({
-            "thoughts": "I should see what commands are available.",
+            "thoughts": "I should see what actions are available.",
             "action": "help",
             "args": {},
         })

@@ -64,3 +64,15 @@ class Host(Agent):
         print(text)
         permission_response = input("Allow? (y/n) ")
         return re.search(r"^y(es)?$", permission_response)
+
+    def _after_add(self):
+        self._send({
+            "thoughts": "Here is a list of actions you can perform on the Host",
+            "action": "return",
+            "args": {
+                "original_message": {
+                    "action": "help",
+                },
+                "return_value": self._help(),
+            }
+        })

@@ -132,7 +132,7 @@ class Agent():
                     })
             else:
                 raise PermissionError(
-                  f"\"{self.id()}.{message.action}\" not permitted")
+                  f"\"{self.id()}.{message['action']}\" not permitted")
         except Exception as e:
             # If an error occurs, we reraise it to be handled by the process loop
             error = e
