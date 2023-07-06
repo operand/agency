@@ -103,12 +103,16 @@ class CalculatorAgent(Agent):
     # Called after any action is attempted
 
   def _request_permission(self, proposed_message: dict)
-    # Called before any ACCESS_REQUESTED action is attempted, allowing rejection
+    # Called before an ACCESS_REQUESTED action is attempted for run-time review
 ```
 
 A `Space` is how you connect your agents together. An agent cannot communicate
-with others until it is added to a common space. There are two included `Space`
-implementations to choose from: `NativeSpace` and `AMQPSpace`.
+with others until it is added to a common "space".
+
+There are two included `Space` implementations to choose from:
+* `NativeSpace` - which connects agents within the same python process
+* `AMQPSpace` - which connects agents across processes and systems using an AMQP
+  server like RabbitMQ.
 
 Here is an example of creating a `NativeSpace` and adding two agents to it.
 
@@ -141,8 +145,8 @@ To run the demo, please follow the directions at
 
 After a short boot time you can visit the web app at `http://localhost:8080` and
 you should see a simple chat interface. The following is a screenshot of a
-conversation that demonstrates multiple demo agents intelligently interacting
-and following orders.
+conversation that demonstrates multiple agents intelligently interacting and
+following orders.
 
 There are two OpenAI based agents: `"FunctionAI"` and `"CompletionAI"`, named
 for the API's they use, and `"Chatty"` a simple chat agent who uses a small
@@ -239,10 +243,10 @@ poetry install
 See [the demo directory](./examples/demo/) for instructions on how to run the
 demo.
 
-The demo application is written to showcase both native and AMQP spaces, and it
-can also be used for experimentation and development.
+The demo application is written to showcase both native and AMQP spaces and
+several agent examples. It can also be used for experimentation and development.
 
-The application is configured to read the agency library source when running
+The application is configured to read the agency library source when running,
 allowing changes to be tested manually.
 
 
