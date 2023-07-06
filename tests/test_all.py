@@ -67,7 +67,6 @@ def parametrize_spaces(test_func):
     ])(test_func)
 
 
-
 def parametrize_space_with_agents(test_func):
     """
     Used for tests that should be run for both NativeSpace and AMQPSpace. This
@@ -137,7 +136,6 @@ def test_after_add_and_before_remove(space):
     agent._before_remove.assert_called_once()
 
 
-
 def test_after_action():
     """
     Tests that the _after_action method is called after an action is performed
@@ -156,14 +154,46 @@ def test_after_action():
     agent._after_action.assert_called_once()
 
 
-
-@pytest.mark.skip
-def test_agent_not_found():
+@parametrize_space_with_agents
+def test_agent_not_found(space, webster, chatty):
     """
     When an agent sends a message to an agent that does not exist, the sender
     should receive an error message
     """
-    raise NotImplementedError()
+    first_message = {
+        "from": "Webster",
+        "to": "NonExistentAgent",
+        "thoughts": "I wonder how NonExistentAgent is doing.",
+        "action": "say",
+        "args": {
+            "content": "Hello, NonExistentAgent!",
+        },
+    }
+    webster._send(first_message)
+    webster.wait_for_messages(count=3)
+    assert webster._message_log == [
+        first_message,
+        {
+            "to": "Webster",
+            "thoughts": "An error occurred",
+            "action": "error",
+            "args": {
+                "original_message": first_message,
+                "error": "\"NonExistentAgent\" not found"
+            },
+            "from": "NonExistentAgent"
+        },
+        {
+            "to": "Webster",
+            "thoughts": "An error occurred",
+            "action": "say",
+            "args": {
+                "content": "ERROR: \"NonExistentAgent\" not found"
+            },
+            "from": "NonExistentAgent"
+        },
+    ]
+
 
 
 @pytest.mark.skip
@@ -206,7 +236,6 @@ def test_send_and_receive(space, webster, chatty):
         'from': 'Webster',
         **first_action
     }
-    print(webster._message_log)
     assert webster._message_log == [
         first_message,
         {

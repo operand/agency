@@ -92,14 +92,13 @@ class NativeSpace(Space):
 
         if not broadcast and len(recipients) == 0:
             # route an error back to the sender
-            self._route({
-                'from': message['to'],
+            self._route(Agent(message['to']), {
                 'to': sender.id(),
                 'thoughts': 'An error occurred',
                 'action': 'error',
                 'args': {
                     'original_message': message,
-                    'error': f"\"{message['to']}\" agent not found"
+                    'error': f"\"{message['to']}\" not found"
                 }
             })
         else:
