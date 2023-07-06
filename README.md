@@ -4,29 +4,18 @@
 AI agent integrated applications.
 
 `agency` provides a simple means for connecting systems and defining actions,
-callbacks, and access policies that you can use to monitor and ensure safety for
-the systems you expose to your agents.
+callbacks, and access policies that you can use to monitor, control, and
+interact with your agents.
 
+`agency` allows you to connect systems into shared application environments
+called "spaces", allowing discovery and interaction across all parties,
+providing callbacks for observation and control, and automatically handling
+things such as reporting exceptions, enforcing access restrictions, and more.
 
-`agency` allows you to create shared application environments called "spaces"
-where you can connect any number of AI, traditional systems, or human users, in
-a way where all may equally interact with each other as individual "agents" that
-you may perform "actions" on.
-
-
-`agency` handles the details of the underlying messaging system and allows
-discovering and invoking actions across all parties, providing callbacks for
-observation and control, and automatically handling things such as reporting
-exceptions, enforcing access restrictions, and more.
-
-
-`agency`'s purpose is to provide an interface through which agents can freely
-act given the tools, systems, or users in their environment, and to provide the
-means for observability and control that is necessary for safety.
-
-
-An additional benefit of its general design is that `agency` may also simplify
-some agent development workflows. See the hypothetical examples above.
+In a word. `agency`'s purpose is "control". To provide an interface through
+which agents can freely act given the tools, systems, or users in their
+environment, and to provide the means for observability and control as they do
+so.
 
 
 ## Features
@@ -52,9 +41,9 @@ some agent development workflows. See the hypothetical examples above.
 model](https://en.wikipedia.org/wiki/Actor_model) for building AI agent
 integrated systems.
 
-In `agency`, all entities represented as instances of the `Agent` class. This
-includes all humans, software, and AI-driven agents that may communicate as part
-of your application.
+In `agency`, all entities are represented as instances of the `Agent` class.
+This includes all humans, software, and AI-driven agents that may communicate as
+part of your application.
 
 All agents may expose "actions" that other agents can discover and invoke at run
 time. An example of a simple agent implemention could be:
@@ -140,19 +129,19 @@ To run the demo, please follow the directions at
 [examples/demo](./examples/demo/).
 
 After a short boot time you can visit the web app at `http://localhost:8080` and
-you should see a simple chat interface.
+you should see a simple chat interface. The following is a screenshot of a
+conversation that demonstrates the multiple demo agents intelligently
+interacting and following orders.
 
-The following is a screenshot of a conversation that demonstrates multiple
-agents intelligently interacting and following orders. There are two OpenAI
-based agents: `"FunctionAI"` and `"CompletionAI"`, named for the API's they use,
-and `"Chatty"` a simple chat agent who uses a small local transformers based
-model for demonstration.
+There are two OpenAI based agents: `"FunctionAI"` and `"CompletionAI"`, named
+for the API's they use, and `"Chatty"` a simple chat agent who uses a small
+local transformers based model for demonstration.
 
-I also demonstrate the results of rejecting an action and directing an agent to
-use a different approach. After I explained my rejection of the `read_file`
-action (which happened behind the scenes on the terminal), `"FunctionAI"`
-appropriately used the `shell_command` action with `wc -l Dockerfile`. The
-Dockerfile indeed had 73 lines.
+The screenshot also demonstrates the results of rejecting an action and
+directing an agent to use a different approach in real time. After I explained
+my rejection of the `read_file` action (which happened behind the scenes on the
+terminal), `"FunctionAI"` appropriately used the `shell_command` action with `wc
+-l Dockerfile`. The Dockerfile indeed had 73 lines.
 
 <p align="center">
   <img src="https://i.ibb.co/nbvLJvg/Screenshot-2023-06-14-at-3-59-01-AM.png"
@@ -174,14 +163,15 @@ agents that solve diverse problems using tools.
 `agency` is focused on the problems surrounding agent integration, and can be
 thought of as an application framework for creating agent integrated systems.
 
-So more likely you would use LangChain or other libraries for defining agent
+More likely you would use LangChain or other libraries for defining agent
 behavior, and rely on `agency` to provide the connective fabric for bringing
 custom agent applications together in a way where you can observe, control and
 ensure safety.
 
-So, `agency` is a more general framework intended to support agent development
-and to ultimately enable agents to freely act and safely integrate with
-anything.
+So `agency` is a smaller but more general framework intended to support agent
+development and to ultimately enable agents to freely act and safely integrate
+with anything.
+
 
 ## What are some known limitations or issues?
 
