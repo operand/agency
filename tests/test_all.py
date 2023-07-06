@@ -1,9 +1,12 @@
+from re import M
 from unittest.mock import MagicMock
+from agency import util
 from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED,
                           ACCESS_REQUESTED, Agent, access_policy)
 from agency.space import AMQPSpace, NativeSpace
 import pytest
 import time
+
 
 
 class Webster(Agent):
@@ -40,18 +43,21 @@ class Webster(Agent):
           },
         })
 
-    # A utility method used by tests to wait for messages to be processed
-    def wait_for_messages(self, count=1, max_seconds=2):
-        start_time = time.time()
-        while (
-            (time.time() - start_time) < max_seconds
-            and self._message_log.__len__() < count
-        ):
-            time.sleep(0.1)
-
 
 class Chatty(Agent):
     """A fake AI agent"""
+
+
+# A utility method used by tests to wait for messages to be processed
+def wait_for_messages(agent, count=1, max_seconds=2):
+    start_time = time.time()
+    while ((time.time() - start_time) < max_seconds):
+        time.sleep(0.01)
+        if len(agent._message_log) > count:
+            util.debug("*", agent._message_log)
+            raise Exception(f"too many messages received: {len(agent._message_log)} expected: {count}")
+        if len(agent._message_log) == count:
+            return
 
 
 def parametrize_spaces(test_func):
@@ -170,7 +176,7 @@ def test_agent_not_found(space, webster, chatty):
         },
     }
     webster._send(first_message)
-    webster.wait_for_messages(count=3)
+    wait_for_messages(webster, count=3)
     assert webster._message_log == [
         first_message,
         {
@@ -195,14 +201,30 @@ def test_agent_not_found(space, webster, chatty):
     ]
 
 
-
-@pytest.mark.skip
-def test_broadcast():
+@parametrize_space_with_agents
+def test_broadcast(space, webster, chatty):
     """
     When an agent broadcasts a message, all other agents should receive the
     message
     """
-    raise NotImplementedError()
+    chatty._action__say = MagicMock()
+    chatty._action__say.access_policy = ACCESS_PERMITTED
+    chatty._action__say.return_value = None
+
+    first_message = {
+        "to": None, # makes it a broadcast
+        "from": "Webster",
+        "thoughts": "I wonder how everyone is doing.",
+        "action": "say",
+        "args": {
+            "content": "Hello, everyone!",
+        },
+    }
+    webster._send(first_message)
+    wait_for_messages(webster, count=1)
+    wait_for_messages(chatty, count=1)
+    assert webster._message_log == [first_message]
+    assert chatty._message_log == [first_message]
 
 
 @parametrize_space_with_agents
@@ -230,7 +252,7 @@ def test_send_and_receive(space, webster, chatty):
         }
     }
     webster._send(first_action)
-    webster.wait_for_messages(count=3)
+    wait_for_messages(webster, count=3)
 
     first_message = {
         'from': 'Webster',
@@ -276,7 +298,7 @@ def test_send_undefined_action(space, webster, chatty):
         }
     }
     webster._send(first_action)
-    webster.wait_for_messages(count=3)
+    wait_for_messages(webster, count=3)
 
     first_message = {
         'from': 'Webster',
@@ -331,7 +353,7 @@ def test_send_unpermitted_action(space, webster, chatty):
         }
     }
     webster._send(first_action)
-    webster.wait_for_messages(count=3)
+    wait_for_messages(webster, count=3)
 
     first_message = {
         'from': 'Webster',
@@ -392,7 +414,7 @@ def test_send_request_permitted_action(space, webster, chatty):
         }
     }
     webster._send(first_action)
-    webster.wait_for_messages(count=3)
+    wait_for_messages(webster, count=3)
 
     first_message = {
         'from': 'Webster',
@@ -453,7 +475,7 @@ def test_send_request_rejected_action(space, webster, chatty):
         }
     }
     webster._send(first_action)
-    webster.wait_for_messages(count=3)
+    wait_for_messages(webster, count=3)
 
     first_message = {
         'from': 'Webster',

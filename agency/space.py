@@ -87,7 +87,7 @@ class NativeSpace(Space):
 
         recipients = []
         for agent in self.agents:
-            if broadcast or agent.id() == message['to']:
+            if broadcast and message['from'] != agent.id() or not broadcast and message['to'] == agent.id():
                 recipients.append(agent)
 
         if not broadcast and len(recipients) == 0:
@@ -164,7 +164,8 @@ class AMQPSpace(Space):
             def _on_message(channel, method, properties, body):
                 message = MessageSchema(
                     **json.loads(body)).dict(by_alias=True)  # validate
-                if 'to' not in message or message['to'] in [None, ""] or message['to'] == agent.id():
+                broadcast = 'to' not in message or message['to'] in [None, ""]
+                if broadcast and message['from'] != agent.id() or not broadcast and message['to'] == agent.id():
                     agent._receive(message)
 
             # bind callback to queues
