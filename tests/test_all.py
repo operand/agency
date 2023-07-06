@@ -1,12 +1,10 @@
-from re import M
 from unittest.mock import MagicMock
 from agency import util
 from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED,
                           ACCESS_REQUESTED, Agent, access_policy)
-from agency.space import AMQPSpace, NativeSpace
+from agency.space import NativeSpace
 import pytest
 import time
-
 
 
 class Webster(Agent):
@@ -55,7 +53,8 @@ def wait_for_messages(agent, count=1, max_seconds=2):
         time.sleep(0.01)
         if len(agent._message_log) > count:
             util.debug("*", agent._message_log)
-            raise Exception(f"too many messages received: {len(agent._message_log)} expected: {count}")
+            raise Exception(
+                f"too many messages received: {len(agent._message_log)} expected: {count}")
         if len(agent._message_log) == count:
             return
 
@@ -212,7 +211,7 @@ def test_broadcast(space, webster, chatty):
     chatty._action__say.return_value = None
 
     first_message = {
-        "to": None, # makes it a broadcast
+        "to": None,  # makes it a broadcast
         "from": "Webster",
         "thoughts": "I wonder how everyone is doing.",
         "action": "say",
