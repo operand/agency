@@ -1,25 +1,49 @@
 # Summary
 
 `agency` defines a common communication and action framework for creating AI
-agent integrated applications. The library provides a simple means for
-connecting systems and defining actions, callbacks, and access policies that you
-can use to monitor, control, and interact with your agents.
+agent integrated applications.
+
+The library provides a low-level means for connecting agents, systems, and human
+users by defining actions, callbacks, and access policies that you can use to
+monitor, control, and interact with your agents.
+
+`agency` handles the details of the common messaging system and allows
+discovering and invoking actions across parties, automatically handling things
+such as reporting exceptions, enforcing access restrictions, and more.
+
+`agency`'s purpose is to support agent development and integration by allowing
+you to create dynamic environments for your agents to freely work in a safe and
+controllable way, and to leave all other details up to you.
+
+Set your agents free (or just as much as you want) with `agency`!
+
 
 ## Features
 
-* Low-Level API Flexibility
-  * Straightforward method based action definition
+### Low-Level API Flexibility
+  * Straightforward class/method based agent and action definition
   * Supports defining single process applications or networked agent systems
-    using AMQP
-* Observability and Control
-  * before/after action callbacks
-  * access policies and permission callbacks for access control
-* Performance
-  * Multithreaded (although python's GIL is a bottleneck for single process apps)
+  using AMQP
+
+### Observability and Control
+  * Before/After action callbacks for observability or other needs
+  * Access policies and permission callbacks for access control
+
+### Performance
+  * Multithreaded (though python's GIL is a bottleneck for single process apps)
   * AMQP support for multiprocess and networked systems (avoids GIL)
-  * _Python multiprocess support is planned_
-* _Multimodal support (image/audio) planned_
-* Full demo available at [`examples/demo`](./examples/demo/)
+  * [_Python multiprocess support is planned for better scalability on
+    single-host systems_](https://github.com/operand/agency/issues/33)
+
+### Multimodal (image/audio) support
+  * [_Not yet developed, but is planned_](https://github.com/operand/agency/issues/27)
+
+### Full demo available at [`examples/demo`](./examples/demo/)
+  * Two OpenAI agent examples
+  * HuggingFace transformers agent example
+  * Simple Flask/React web interface included
+  * Direct host access for agents
+  * Docker configuration for reference and development
 
 
 # API Overview
@@ -49,12 +73,12 @@ with:
 ```python
 other_agent._send({
   'to': 'CalcAgent',
+  'thoughts': 'Optionally explain here',
   'action': 'add',
   'args': {
     'a': 1,
     'b': 2,
   },
-  'thoughts': 'Optionally explain here',
 })
 ```
 
@@ -95,7 +119,7 @@ space.add(AIAgent("AIAgent"))
 # The agents above can now communicate
 ```
 
-These are just some the main `agency` features. For more detailed information
+These are just some of the main `agency` features. For more detailed information
 please see [the docs directory](./docs/).
 
 
@@ -117,8 +141,8 @@ To run the demo, please follow the directions at
 
 After a short boot time you can visit the web app at `http://localhost:8080` and
 you should see a simple chat interface. The following is a screenshot of a
-conversation that demonstrates the multiple demo agents intelligently
-interacting and following orders.
+conversation that demonstrates multiple demo agents intelligently interacting
+and following orders.
 
 There are two OpenAI based agents: `"FunctionAI"` and `"CompletionAI"`, named
 for the API's they use, and `"Chatty"` a simple chat agent who uses a small
@@ -154,15 +178,16 @@ behavior and rely on `agency` to provide the connective layer for bringing
 agents and other systems together.
 
 So in comparison, `agency` is a smaller but more general purpose application
-framework compared to libraries like LangChain that focus on defining single
+framework compared to libraries like LangChain that focus on enabling single
 agent behavior.
 
 
 ## What are some known limitations or issues?
 
-* It's a new project, so keep that in mind in terms of completeness, but see
-  [the issues page](https://github.com/operand/agency/issues) for what is
-  currently planned, and the Roadmap just below for the high level plan.
+* It's still a fairly new project, so keep that in mind in terms of
+  completeness, but see [the issues
+  page](https://github.com/operand/agency/issues) for what is currently planned,
+  and the Roadmap just below for the high level plan.
 
 * This library makes use of threads for each individual agent. Multithreading
   is limited by [python's
@@ -231,16 +256,17 @@ poetry run pytest
 
 # Roadmap
 
-- Multiprocess Support:
+- **Multiprocess Support**:
 An additional space type utilizing python multiprocessing, as another
 parallelism option for single-host systems.
 
-- Multimodal Support:
+- **Multimodal Support**:
 Image/audio transfer for use with multimodal models or other multimedia
 services.
 
-- More Demos
-More examples of integrations with popular AI libraries
+- **More Examples**:
+More examples of integrations with popular AI libraries and tools such as
+Langchain and oobabooga.
 
 
 ## Planned Work
