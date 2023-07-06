@@ -1,33 +1,29 @@
 # Summary
 
-`agency` defines a common communication and action framework for applications
-that integrate AI agents with computing systems or human users.
+`agency` defines a common communication and action framework for creating
+AI agent integrated applications.
+
+`agency` provides a simple means for connecting systems and defining actions,
+callbacks, and access policies that you can use to monitor and ensure safety for
+the systems you expose to your agents.
+
 
 `agency` allows you to create shared application environments called "spaces"
 where you can connect any number of AI, traditional systems, or human users, in
 a way where all may equally interact with each other as individual "agents" that
 you may perform "actions" on.
 
+
 `agency` handles the details of the underlying messaging system and allows
 discovering and invoking actions across all parties, providing callbacks for
 observation and control, and automatically handling things such as reporting
 exceptions, enforcing access restrictions, and more.
 
+
 `agency`'s purpose is to provide an interface through which agents can freely
-act given the tools, systems, or users at their disposal, and to provide the
+act given the tools, systems, or users in their environment, and to provide the
 means for observability and control that is necessary for safety.
 
-
-
-
-`agency` provides a simple means for defining actions, callbacks, and access
-policies that you can use to monitor and ensure safety for the systems you
-expose to your agents.
-
-A central part of the design is that humans and other systems can easily
-integrate as well, using a simple common format for messages. You can even use
-`agency` to set up a basic chat room to use with friends or other systems and
-not use AI-driven agents at all!
 
 An additional benefit of its general design is that `agency` may also simplify
 some agent development workflows. See the hypothetical examples above.
@@ -35,17 +31,17 @@ some agent development workflows. See the hypothetical examples above.
 
 ## Features
 
-* API Flexibility
+* Low-Level API Flexibility
   * Straightforward method based action definition
   * Supports defining single process applications or networked agent systems
     using AMQP
 * Observability and Control
   * before/after action callbacks
-  * access policies and permission callbacks for real-time access control
+  * access policies and permission callbacks for access control
 * Performance
-  * Multithreaded (though python's GIL is a bottleneck for single process apps)
+  * Multithreaded (although python's GIL is a bottleneck for single process apps)
   * AMQP support for multiprocess and networked systems (avoids GIL)
-  * _Direct multiprocess support is planned_
+  * _Python multiprocess support is planned_
 * _Multimodal support (image/audio) planned_
 * Full demo available at [`examples/demo`](./examples/demo/)
 
@@ -110,10 +106,11 @@ class CalculatorAgent(Agent):
     # Called before any ACCESS_REQUESTED action is attempted, allowing rejection
 ```
 
-A `Space` is used to connect your agents together. An agent cannot communicate
+A `Space` is how you connect your agents together. An agent cannot communicate
 with others until it is added to a common space. There are two included `Space`
-classes to choose from: `NativeSpace` and `AMQPSpace`. Here is an example of
-creating a `NativeSpace` and adding two agents to it.
+implementations to choose from: `NativeSpace` and `AMQPSpace`.
+
+Here is an example of creating a `NativeSpace` and adding two agents to it.
 
 ```python
 space = NativeSpace()
@@ -122,8 +119,8 @@ space.add(AIAgent("AIAgent"))
 # The agents above can now communicate
 ```
 
-These are just some the main features `agency` provides. For more detailed
-information please see [the docs directory](./docs/).
+These are just some the main `agency` features. For more detailed information
+please see [the docs directory](./docs/).
 
 
 # Install
@@ -153,7 +150,7 @@ model for demonstration.
 
 I also demonstrate the results of rejecting an action and directing an agent to
 use a different approach. After I explained my rejection of the `read_file`
-action (which happened behind the scenes on the terminal), "FunctionAI"
+action (which happened behind the scenes on the terminal), `"FunctionAI"`
 appropriately used the `shell_command` action with `wc -l Dockerfile`. The
 Dockerfile indeed had 73 lines.
 
@@ -169,55 +166,57 @@ Dockerfile indeed had 73 lines.
 
 Though you could entirely create a simple agent using only the primitives in
 `agency` (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
-intended to be an agent development toolset. It can be thought of instead as an
-"agent integration framework".
+intended to be a full-fledged agent toolset.
 
 Projects like LangChain and others are exploring how to create purpose-built
 agents that solve diverse problems using tools.
 
-`agency` is concerned with creating a safe and dynamic _environment_ for these
-types of agents to work, where they can freely discover and communicate with the
-tools, each other, and any humans available in their environment.
+`agency` is focused on the problems surrounding agent integration, and can be
+thought of as an application framework for creating agent integrated systems.
+
+So more likely you would use LangChain or other libraries for defining agent
+behavior, and rely on `agency` to provide the connective fabric for bringing
+custom agent applications together in a way where you can observe, control and
+ensure safety.
 
 So, `agency` is a more general framework intended to support agent development
-and to ultimately enable agents to safely integrate with anything, in any way
-imaginable.
+and to ultimately enable agents to freely act and safely integrate with
+anything.
 
 ## What are some known limitations or issues?
 
 * It's a new project, so keep that in mind in terms of completeness, but see
   [the issues page](https://github.com/operand/agency/issues) for what is
-  currently planned. Core functionality is pretty well tested at the moment.
+  currently planned, and the Roadmap just below for the high level plan.
 
 * This library makes use of threads for each individual agent. Multithreading
-  is limited by python's GIL, meaning if you run a CPU bound model other agents
-  will have to wait for their "turn". This goes for anything else you might
-  define as an "agent", if it is CPU heavy it will block other agents. Note that
-  I/O does not block, so networked backends or services will execute in
-  parallel.
-
-  Other multiprocessing approaches to avoid the GIL are
-  [in development](https://github.com/operand/agency/issues/25).
+  is limited by [python's
+  GIL](https://wiki.python.org/moin/GlobalInterpreterLock), meaning that if you
+  run a local model in the same process as other agents, they may have to wait
+  for their "turn". This goes for anything else you might define as an "agent".
+  Note that I/O does not block, so networked backends or services will execute
+  in parallel. For blocking processes, it's recommended to use the `AMQPSpace`
+  class and run blocking agents in isolation to avoid blocking other agents.
 
 * This API does NOT assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.
 
   `agency` is intended to allow potentially large numbers of agents, systems,
   and people to come together. A small predefined set of roles gets in the way
-  of representing many things uniquely and independently. This is a core feature
-  of `agency`: that all things are treated the same and may be interacted with
-  through common means.
+  of representing many things generally. This is a core feature of `agency`:
+  that all things are treated the same and may be interacted with through common
+  means.
 
-  The lack of roles introduces some challenges in integrating with role based
+  The lack of roles introduces some extra work in integrating with role based
   APIs. See the implementation of
-  [`OpenAIFunctionAgent`](./agency/agents/openai_function_agent.py) for an
-  example.
+  [`OpenAIFunctionAgent`](./examples/demo/agents/openai_function_agent.py) for
+  an example.
 
 * There is not much by way of storage support. That is mostly left up to you and
   I'd suggest looking at the many technologies that focus on that. The `Agent`
   class implements a simple `_message_log` array which you can make use of or
   overwrite to back it with longer term storage. More direct support for storage
-  APIs may be considered in the future.
+  APIs will likely be considered in the future.
 
 
 # Contributing
@@ -234,6 +233,18 @@ poetry install
 ```
 
 
+## Developing with the Demo Application
+
+See [the demo directory](./examples/demo/) for instructions on how to run the
+demo.
+
+The demo application is written to showcase both native and AMQP spaces, and it
+can also be used for experimentation and development.
+
+The application is configured to read the agency library source when running
+allowing changes to be tested manually.
+
+
 ## Test Suite
 
 You can run the test suite with:
@@ -241,28 +252,11 @@ You can run the test suite with:
 poetry run pytest
 ```
 
-The test suite is currently set up to run on pull requests to the `main` branch.
-
 
 # Roadmap
 
-
-## Development Priorities
-- **Speed**:
-  Performance is always a concern. If it's not performant, it's not practical.
-  Currently the limitations of python multi-threading are a bottleneck and a
-  priority to address.
-- **Access Control and Safety**:
-  An effective access control solution for agent-integrated systems is
-  fundamental to ensure safety. I believe I've included a sane first step at
-  such a pattern, but further development will be a focus of this project.
-- **Compatibility and Usability**:
-  In general, I believe this is a fair start in defining a set of patterns for
-  creating agent systems. I hope to ensure the API is kept small, and compatible
-  with a wide variety of use cases.
-- **Documentation**:
-  I hope to ensure documentation is kept organized, clear, and accurate. This
-  readme serves as a start.
+- Multiprocess Support
+- Multimodal Support
 
 
 ## Planned Work
