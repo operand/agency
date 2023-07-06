@@ -1,22 +1,9 @@
 # Summary
 
-`agency` defines a common communication and action framework for creating
-AI agent integrated applications.
-
-`agency` provides a simple means for connecting systems and defining actions,
-callbacks, and access policies that you can use to monitor, control, and
-interact with your agents.
-
-`agency` allows you to connect systems into shared application environments
-called "spaces", allowing discovery and interaction across all parties,
-providing callbacks for observation and control, and automatically handling
-things such as reporting exceptions, enforcing access restrictions, and more.
-
-In a word. `agency`'s purpose is "control". To provide an interface through
-which agents can freely act given the tools, systems, or users in their
-environment, and to provide the means for observability and control as they do
-so.
-
+`agency` defines a common communication and action framework for creating AI
+agent integrated applications. The library provides a simple means for
+connecting systems and defining actions, callbacks, and access policies that you
+can use to monitor, control, and interact with your agents.
 
 ## Features
 
@@ -141,7 +128,7 @@ The screenshot also demonstrates the results of rejecting an action and
 directing an agent to use a different approach in real time. After I explained
 my rejection of the `read_file` action (which happened behind the scenes on the
 terminal), `"FunctionAI"` appropriately used the `shell_command` action with `wc
--l Dockerfile`. The Dockerfile indeed had 73 lines.
+-l Dockerfile`.
 
 <p align="center">
   <img src="https://i.ibb.co/nbvLJvg/Screenshot-2023-06-14-at-3-59-01-AM.png"
@@ -158,19 +145,17 @@ Though you could entirely create a simple agent using only the primitives in
 intended to be a full-fledged agent toolset.
 
 Projects like LangChain and others are exploring how to create purpose-built
-agents that solve diverse problems using tools.
+agents that solve diverse problems using tools. `agency` is focused on the
+problems surrounding agent/tool integration, such as observability and access
+control.
 
-`agency` is focused on the problems surrounding agent integration, and can be
-thought of as an application framework for creating agent integrated systems.
+More likely, you would use LangChain and other libraries for defining agent
+behavior and rely on `agency` to provide the connective layer for bringing
+agents and other systems together.
 
-More likely you would use LangChain or other libraries for defining agent
-behavior, and rely on `agency` to provide the connective fabric for bringing
-custom agent applications together in a way where you can observe, control and
-ensure safety.
-
-So `agency` is a smaller but more general framework intended to support agent
-development and to ultimately enable agents to freely act and safely integrate
-with anything.
+So in comparison, `agency` is a smaller but more general purpose application
+framework compared to libraries like LangChain that focus on defining single
+agent behavior.
 
 
 ## What are some known limitations or issues?
@@ -184,30 +169,31 @@ with anything.
   GIL](https://wiki.python.org/moin/GlobalInterpreterLock), meaning that if you
   run a local model in the same process as other agents, they may have to wait
   for their "turn". This goes for anything else you might define as an "agent".
+
   Note that I/O does not block, so networked backends or services will execute
   in parallel. For blocking processes, it's recommended to use the `AMQPSpace`
   class and run blocking agents in isolation to avoid blocking other agents.
 
-* This API does NOT assume or enforce predefined roles like "user", "system",
+* This API does not assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.
 
   `agency` is intended to allow potentially large numbers of agents, systems,
   and people to come together. A small predefined set of roles gets in the way
   of representing many things generally. This is a core feature of `agency`:
-  that all things are treated the same and may be interacted with through common
-  means.
+  that all entities are treated the same and may be interacted with through
+  common means.
 
-  The lack of roles introduces some extra work in integrating with role based
-  APIs. See the implementation of
+  The lack of roles may require extra translation code when integrating with
+  role based APIs. See the implementation of
   [`OpenAIFunctionAgent`](./examples/demo/agents/openai_function_agent.py) for
   an example.
 
-* There is not much by way of storage support. That is mostly left up to you and
-  I'd suggest looking at the many technologies that focus on that. The `Agent`
-  class implements a simple `_message_log` array which you can make use of or
-  overwrite to back it with longer term storage. More direct support for storage
-  APIs will likely be considered in the future.
-
+* There is currently not much by way of storage support. That is mostly left up
+  to you and I'd suggest looking at the many technologies that focus on that.
+  The `Agent` class implements a simple `_message_log` array which you can make
+  use of or overwrite to back it with longer term storage. More direct support
+  for storage APIs will likely be considered in the future.
+  
 
 # Contributing
 
@@ -245,8 +231,16 @@ poetry run pytest
 
 # Roadmap
 
-- Multiprocess Support
-- Multimodal Support
+- Multiprocess Support:
+An additional space type utilizing python multiprocessing, as another
+parallelism option for single-host systems.
+
+- Multimodal Support:
+Image/audio transfer for use with multimodal models or other multimedia
+services.
+
+- More Demos
+More examples of integrations with popular AI libraries
 
 
 ## Planned Work
