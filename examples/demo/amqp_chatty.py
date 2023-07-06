@@ -7,6 +7,7 @@ if __name__ == '__main__':
 
     space = AMQPSpace()
 
+    # Add a simple HF chat agent to the space
     space.add(
         ChattyAI("Chatty",
                  model="EleutherAI/gpt-neo-125m"))

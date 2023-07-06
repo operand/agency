@@ -144,8 +144,9 @@ class AMQPSpace(Space):
 
             # define callback for incoming messages
             def _on_message(channel, method, properties, body):
-                message = MessageSchema(**json.loads(body))
-                if message.to == agent.id() or (message.to is None and message.from_field != agent.id()):
+                message = MessageSchema(
+                    **json.loads(body)).dict(by_alias=True)  # validate
+                if 'to' not in message or message['to'] in [None, ""] or message['to'] == agent.id():
                     agent._receive(message)
 
             # bind callback to queues
@@ -179,9 +180,9 @@ class AMQPSpace(Space):
           "from": sender.id(),
         }).dict(by_alias=True)
 
-        routing_key = self.BROADCAST_KEY # broadcast
+        routing_key = self.BROADCAST_KEY  # broadcast
         if 'to' in message and message['to'] not in [None, ""]:
-            routing_key = message['to'] # point to point
+            routing_key = message['to']  # point to point
             # TODO route an error back to sender if point to point and the recipient is not found
         body = json.dumps(message)
         sender._out_channel.basic_publish(

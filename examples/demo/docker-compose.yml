@@ -17,6 +17,7 @@ x-demo-base:
 
 services:
 
+  # This container runs all example classes in a single native space
   native:
     <<: *demo-base
     ports:
@@ -25,22 +26,38 @@ services:
     tty: true
     stdin_open: true
 
+  # This and the following containers run the same example classes
+  # across containers in an amqp space
   amqp:
     <<: *demo-base
     depends_on:
       - rabbitmq
-      - amqp_2
-    ports:
-      - '$WEB_APP_PORT:$WEB_APP_PORT'
-    command: poetry run python amqp_demo_1.py
+      - amqp_chatty
+      - amqp_openai
+      - amqp_web
+    command: poetry run python amqp_main.py
     tty: true
     stdin_open: true
 
-  amqp_2:
+  amqp_chatty:
     <<: *demo-base
     depends_on:
       - rabbitmq
-    command: poetry run python amqp_demo_2.py
+    command: poetry run python amqp_chatty.py
+
+  amqp_openai:
+    <<: *demo-base
+    depends_on:
+      - rabbitmq
+    command: poetry run python amqp_openai.py
+
+  amqp_web:
+    <<: *demo-base
+    depends_on:
+      - rabbitmq
+    ports:
+      - '$WEB_APP_PORT:$WEB_APP_PORT'
+    command: poetry run python amqp_web.py
 
   rabbitmq:
     image: rabbitmq:3-management-alpine

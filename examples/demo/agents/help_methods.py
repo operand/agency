@@ -46,8 +46,8 @@ class HelpMethods():
         else:
             # convert to a "say"
             self._receive({
-                "from": self._current_message.from_field,
-                "to": self._current_message.to,
+                "from": self._current_message['from'],
+                "to": self._current_message['to'],
                 "thoughts": f"A value was returned for your action '{original_message['action']}'",
                 "action": "say",
                 "args": {
@@ -58,8 +58,8 @@ class HelpMethods():
     @access_policy(ACCESS_PERMITTED)
     def _action__error(self, original_message: dict, error: str):
         self._receive({
-            "from": self._current_message.from_field,
-            "to": self._current_message.to,
+            "from": self._current_message['from'],
+            "to": self._current_message['to'],
             "thoughts": "An error occurred",
             "action": "say",
             "args": {

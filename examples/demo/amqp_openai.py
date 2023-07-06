@@ -9,11 +9,7 @@ import time
 
 if __name__ == '__main__':
 
-    # Create a space. Uses env vars to configure AMQP connection.
     space = AMQPSpace()
-
-    # Add a host agent to the space, exposing access to the host system
-    space.add(Host("Host"))
 
     # Add an OpenAI function API agent to the space
     space.add(
@@ -28,16 +24,6 @@ if __name__ == '__main__':
         OpenAICompletionAgent("CompletionAI",
             model="text-davinci-003",
             openai_api_key=os.getenv("OPENAI_API_KEY")))
-
-    # Create and start a web app to connect human users to the space.
-    # As users connect they are added to the space as agents.
-    web_app = WebApp(space,
-                     port=os.getenv("WEB_APP_PORT"),
-                     # NOTE We're hardcoding a single demo user for simplicity
-                     demo_username="Dan")
-    web_app.start()
-
-    print("pop!")
 
     # keep alive
     while True:
