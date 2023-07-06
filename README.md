@@ -188,7 +188,7 @@ agent behavior.
 
 ## What are some known limitations or issues?
 
-* It's still a fairly new project, so keep that in mind in terms of
+* It's a new project, so keep that in mind in terms of
   completeness, but see [the issues
   page](https://github.com/operand/agency/issues) for what is currently planned,
   and the Roadmap just below for the high level plan.
