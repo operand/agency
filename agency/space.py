@@ -1,4 +1,5 @@
 from abc import ABC, ABCMeta, abstractmethod
+import queue
 from typing import List
 from agency.agent import Agent
 from agency.schema import ActionSchema, MessageSchema
@@ -47,8 +48,26 @@ class NativeSpace(Space):
 
     def add(self, agent: Agent):
         self.agents.append(agent)
-        agent._space = self
-        agent._after_add()
+        # add a thread to process messages
+
+        def _consume_messages():
+            # create queue for agent
+            agent._queue = queue.Queue()
+            agent._space = self
+            agent._after_add()
+            while True:
+                try:
+                    message_dict = agent._queue.get(block=False)
+                    message = MessageSchema(
+                        **message_dict).dict(by_alias=True)  # validate
+                    if 'to' not in message or message['to'] in [None, ""] or message['to'] == agent.id():
+                        agent._receive(message)
+                except queue.Empty:
+                    pass
+                time.sleep(0.01)  # cooperate
+
+        threading.Thread(target=_consume_messages).start()
+        time.sleep(0.01)  # cooperate
 
     def remove(self, agent: Agent):
         agent._before_remove()
@@ -86,7 +105,7 @@ class NativeSpace(Space):
         else:
             # enqueue message for recipients
             for recipient in recipients:
-                recipient._receive(message)
+                recipient._queue.put(message)
 
         return message
 
