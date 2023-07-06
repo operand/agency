@@ -53,13 +53,14 @@ class Chatty(Agent):
     """A fake AI agent"""
 
 
-# Used for tests that should be run for both NativeSpace and AMQPSpace
 def parametrize_spaces(test_func):
+    """
+    Used for tests that should be run for both NativeSpace and AMQPSpace. This
+    does not add the agents to the space, that must be done in the test itself.
+    """
     # amqp_space = AMQPSpace()
     # amqp_webster = Webster("Webster")
     # amqp_chatty = Chatty("Chatty")
-    # amqp_space.add(amqp_webster)
-    # amqp_space.add(amqp_chatty)
 
     native_space = NativeSpace()
     native_webster = Webster("Webster")
@@ -67,9 +68,9 @@ def parametrize_spaces(test_func):
     native_space.add(native_webster)
     native_space.add(native_chatty)
 
-    return pytest.mark.parametrize('webster, chatty', [
-        (native_webster, native_chatty),
-        # (amqp_webster, amqp_chatty),
+    return pytest.mark.parametrize('space,webster,chatty', [
+        (native_space, native_webster, native_chatty),
+        # (amqp_space, amqp_webster, amqp_chatty),
     ])(test_func)
 
 
@@ -103,8 +104,9 @@ def test_id_validation():
         Agent(reserved_id)
 
 
+@parametrize_spaces
 @pytest.mark.skip
-def test_after_add_and_before_remove():
+def test_after_add_and_before_remove(space, webster, chatty):
     raise NotImplementedError()
 
 
@@ -122,8 +124,17 @@ def test_agent_not_found():
     raise NotImplementedError()
 
 
+@pytest.mark.skip
+def test_broadcast():
+    """
+    When an agent broadcasts a message, all other agents should receive the
+    message
+    """
+    raise NotImplementedError()
+
+
 @parametrize_spaces
-def test_send_and_receive(webster, chatty):
+def test_send_and_receive(space, webster, chatty):
     """Tests sending a basic "say" message receiving a "return"ed reply"""
 
     # We use callable class to dynamically define the _say action for chatty
@@ -178,13 +189,8 @@ def test_send_and_receive(webster, chatty):
     ]
 
 
-@pytest.mark.skip
-def test_broadcast():
-    raise NotImplementedError()
-
-
 @parametrize_spaces
-def test_send_undefined_action(webster, chatty):
+def test_send_undefined_action(space, webster, chatty):
     """Tests sending an undefined action and receiving an error response"""
 
     # In this test we skip defining a _say action on chatty in order to test the
@@ -230,7 +236,7 @@ def test_send_undefined_action(webster, chatty):
 
 
 @parametrize_spaces
-def test_send_unpermitted_action(webster, chatty):
+def test_send_unpermitted_action(space, webster, chatty):
     """Tests sending an unpermitted action and receiving an error response"""
 
     class ChattySay():
@@ -285,7 +291,7 @@ def test_send_unpermitted_action(webster, chatty):
 
 
 @parametrize_spaces
-def test_send_request_permitted_action(webster, chatty):
+def test_send_request_permitted_action(space, webster, chatty):
     """Tests sending an action, granting permission, and returning response"""
 
     # We use callable classes to dynamically define _action__say and
@@ -346,7 +352,7 @@ def test_send_request_permitted_action(webster, chatty):
 
 
 @parametrize_spaces
-def test_send_request_rejected_action(webster, chatty):
+def test_send_request_rejected_action(space, webster, chatty):
     """Tests sending an action, rejecting permission, and returning error"""
 
     # We use callable classes to dynamically define _action__say and
