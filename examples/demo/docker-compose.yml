@@ -1,5 +1,6 @@
 version: '3.8'
 
+# docker-compose -f examples/demo/docker-compose.yml run --build --rm --service-ports demo
 
 # shared config for the main demo container and chatty
 x-demo-base: &demo-base
@@ -18,22 +19,30 @@ x-demo-base: &demo-base
 
 services:
 
-  demo:
+  native:
     <<: *demo-base
-    depends_on:
-      - rabbitmq
-      - demo_2
     ports:
       - '$WEB_APP_PORT:$WEB_APP_PORT'
-    command: poetry run python demo.py
+    command: poetry run python native_demo.py
     tty: true
     stdin_open: true
 
-  demo_2:
+  amqp:
     <<: *demo-base
     depends_on:
       - rabbitmq
-    command: poetry run python demo_2.py
+      - amqp_2
+    ports:
+      - '$WEB_APP_PORT:$WEB_APP_PORT'
+    command: poetry run python amqp_demo_1.py
+    tty: true
+    stdin_open: true
+
+  amqp_2:
+    <<: *demo-base
+    depends_on:
+      - rabbitmq
+    command: poetry run python amqp_demo_2.py
 
   rabbitmq:
     image: rabbitmq:3-management-alpine

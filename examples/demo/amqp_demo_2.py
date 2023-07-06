@@ -1,6 +1,6 @@
 import time
 from agents.chatty_ai import ChattyAI
-from agency.space import AMQPSpace, Space
+from agency.space import AMQPSpace
 
 
 if __name__ == '__main__':

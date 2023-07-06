@@ -9,7 +9,7 @@ import time
 
 if __name__ == '__main__':
 
-    # Create a space
+    # Create a space. Uses env vars to configure AMQP connection.
     space = AMQPSpace()
 
     # Add a host agent to the space, exposing access to the host system
