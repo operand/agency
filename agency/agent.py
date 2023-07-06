@@ -101,6 +101,7 @@ class Agent():
                 # broadcasts will not raise an error
                 return
 
+        self._before_action(message)
         return_value = None
         error = None
         try:
@@ -222,7 +223,6 @@ class Agent():
         default this action simply replaces it with an incoming "say".
         """
         print(f"{Fore.YELLOW}WARNING: Data was returned from an action. Implement _action__return to handle it.{Style.RESET_ALL}")
-        pass
 
     @access_policy(ACCESS_PERMITTED)
     def _action__error(self, original_message: dict, error: str):
@@ -230,17 +230,18 @@ class Agent():
         Implement this action to handle errors from an action.
         """
         print(f"{Fore.YELLOW}WARNING: An error occurred in an action. Implement _action__error to handle it.{Style.RESET_ALL}")
-        pass
+
+    def _before_action(self, message: dict):
+        """
+        Called before every action. Override and use this method for logging or
+        other situations where you may want to pass through all actions.
+        """
 
     def _after_action(self, original_message: dict, return_value: str, error: str):
         """
         Called after every action. Override and use this method for logging or other
         situations where you may want to pass through all actions.
-
-        Note that this is only called if the action was actually attempted, meaning
-        BOTH the action exists AND is permitted.
         """
-        pass
 
     def _request_permission(self, proposed_message: dict) -> bool:
         """
@@ -256,11 +257,9 @@ class Agent():
         Called after the agent is added to a space. Override this method to
         perform any additional setup.
         """
-        pass
 
     def _before_remove(self):
         """
         Called before the agent is removed from a space. Override this method to
         perform any cleanup.
         """
-        pass
