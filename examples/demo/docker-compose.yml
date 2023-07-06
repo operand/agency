@@ -31,10 +31,14 @@ services:
   amqp:
     <<: *demo-base
     depends_on:
-      - rabbitmq
-      - amqp_chatty
-      - amqp_openai
-      - amqp_web
+      rabbitmq:
+        condition: service_healthy
+      amqp_chatty:
+        condition: service_started
+      amqp_openai:
+        condition: service_started
+      amqp_web:
+        condition: service_started
     command: poetry run python amqp_main.py
     tty: true
     stdin_open: true
@@ -42,19 +46,22 @@ services:
   amqp_chatty:
     <<: *demo-base
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     command: poetry run python amqp_chatty.py
 
   amqp_openai:
     <<: *demo-base
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     command: poetry run python amqp_openai.py
 
   amqp_web:
     <<: *demo-base
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     ports:
       - '$WEB_APP_PORT:$WEB_APP_PORT'
     command: poetry run python amqp_web.py
@@ -68,3 +75,8 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
