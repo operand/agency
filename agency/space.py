@@ -208,11 +208,11 @@ class AMQPSpace(Space):
         routing_key = self.BROADCAST_KEY  # broadcast
         if 'to' in message and message['to'] not in [None, ""]:
             routing_key = message['to']  # point to point
-            util.debug(f"* Routing message to {routing_key}")
+            util.debug(f"* Routing p2p to {routing_key}", message)
             # route an error back to sender if point to point and the queue is not found
             if not self.__check_queue_exists(sender, routing_key):
                 util.debug(f"* Queue {routing_key} not found")
-                return self._route(sender, {
+                self._route(sender, {
                     'to': sender.id(),
                     'thoughts': 'An error occurred',
                     'action': 'error',
@@ -221,9 +221,11 @@ class AMQPSpace(Space):
                         'error': f"\"{message['to']}\" not found"
                     }
                 })
+                return message
         body = json.dumps(message)
         sender._out_channel.basic_publish(
             exchange=self.__exchange, routing_key=routing_key, body=body)
+        util.debug(f"* Message routed to {routing_key}", message)
         return message
 
     def __check_queue_exists(self, agent: Agent, queue_name: str) -> bool:

@@ -209,6 +209,7 @@ def test_agent_not_found(webster_and_chatty):
     }
     webster._send(first_message)
     wait_for_messages(webster, count=3)
+    util.debug("*", webster._message_log)
     assert webster._message_log == [
         first_message,
         {
