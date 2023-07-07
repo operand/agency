@@ -262,7 +262,6 @@ def test_broadcast(webster_and_chatty):
     assert chatty._message_log == [first_message]
 
 
-@pytest.mark.focus
 def test_send_and_receive(webster_and_chatty):
     """Tests sending a basic "say" message receiving a "return"ed reply"""
     webster, chatty = webster_and_chatty
