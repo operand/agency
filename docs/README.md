@@ -6,7 +6,9 @@ suggestions for how to improve the documentation.
 
 ## Table of Contents
 
-- 
+* [API Walkthrough](#api-walkthrough)
+* [List of Callbacks](#list-of-callbacks)
+* [Using `AMQPSpace`](#using-amqpspace)
 
 
 # API Walkthrough
@@ -391,7 +393,7 @@ For an implementation that uses a plain text completion API, see
 * 
 
 
-# Important Note on Using `AMQPSpace` and the `amqp` Protocol
+# Using `AMQPSpace`
 
 When using AMQP, you have many options for connectivity that may affect your
 experience. By default, the `AMQPSpace` class will read the environment
