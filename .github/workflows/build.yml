@@ -10,11 +10,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      rabbitmq:
-        image: rabbitmq:3-management
-        ports:
-          - 5672:5672
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
@@ -25,9 +20,3 @@ jobs:
         poetry install
     - name: Run tests
       run: poetry run pytest -vv
-      env:
-        RABBITMQ_HOST: localhost
-        RABBITMQ_PORT: 5672
-        RABBITMQ_USERNAME: guest
-        RABBITMQ_PASSWORD: guest
-        RABBITMQ_VHOST: /

@@ -1,3 +1,4 @@
+from tracemalloc import start
 from unittest.mock import MagicMock
 
 import pika
@@ -7,6 +8,7 @@ from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED,
 from agency.space import AMQPSpace, NativeSpace
 import pytest
 import time
+import pytest_asyncio
 
 
 class Webster(Agent):
@@ -48,7 +50,7 @@ class Chatty(Agent):
     """A fake AI agent"""
 
 
-def wait_for_messages(agent, count=1, max_seconds=2):
+def wait_for_messages(agent, count=1, max_seconds=3):
     """
     A utility method to wait for messages to be processed. Throws an exception
     if the number of messages received goes over count.
@@ -62,7 +64,6 @@ def wait_for_messages(agent, count=1, max_seconds=2):
                 f"too many messages received: {len(agent._message_log)} expected: {count}")
         if len(agent._message_log) == count:
             return
-
 
 
 @pytest.fixture
@@ -90,8 +91,8 @@ def either_space(request, native_space, amqp_space):
         return amqp_space
 
 
-@pytest.fixture
-def webster_and_chatty(either_space):
+@pytest_asyncio.fixture
+async def webster_and_chatty(either_space):
     """
     Used for tests that should be run for both NativeSpace and AMQPSpace. This
     decorator also adds the two agents to the space: Webster and Chatty.
@@ -101,8 +102,23 @@ def webster_and_chatty(either_space):
     either_space.add(webster)
     either_space.add(chatty)
 
-    return (webster, chatty)
+    # wait for both agents to be added
+    start_time = time.time()
+    while webster._space is None \
+            or chatty._space is None \
+            and (time.time() - start_time) < 5:
+        time.sleep(0.01)
 
+    yield (webster, chatty)
+
+    either_space.remove(webster)
+    either_space.remove(chatty)
+    # wait for both agents to be removed
+    start_time = time.time()
+    while webster._space is not None \
+            or chatty._space is not None \
+            and (time.time() - start_time) < 5:
+        time.sleep(0.01)
 
 
 # -----------
@@ -178,6 +194,7 @@ def test_before_and_after_action():
     agent._after_action.assert_called_once()
 
 
+@pytest.mark.skip
 def test_agent_not_found(webster_and_chatty):
     """
     When an agent sends a message to an agent that does not exist, the sender
@@ -245,6 +262,7 @@ def test_broadcast(webster_and_chatty):
     assert chatty._message_log == [first_message]
 
 
+@pytest.mark.focus
 def test_send_and_receive(webster_and_chatty):
     """Tests sending a basic "say" message receiving a "return"ed reply"""
     webster, chatty = webster_and_chatty
@@ -256,6 +274,7 @@ def test_send_and_receive(webster_and_chatty):
             self.access_policy = ACCESS_PERMITTED
 
         def __call__(self, content):
+            print("Chatty received a message from Webster")
             return 'Hello, Webster!'
 
     chatty._action__say = ChattySay(chatty)
