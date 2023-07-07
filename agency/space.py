@@ -1,6 +1,7 @@
 from abc import ABC, ABCMeta, abstractmethod
 import queue
 from typing import List
+from agency import util
 from agency.agent import Agent
 from agency.schema import ActionSchema, MessageSchema
 import json
@@ -146,6 +147,7 @@ class AMQPSpace(Space):
         )
 
     def add(self, agent: Agent) -> None:
+        util.debug(f"* Adding agent {agent.id()} to space")
         def _consume_messages():
             # create in/out channels for agent
             out_connection = pika.BlockingConnection(self.__connection_params)
@@ -177,6 +179,7 @@ class AMQPSpace(Space):
             # start consuming messages
             agent._space = self
             agent._after_add()
+            util.debug(f"* Agent {agent.id()} added to space")
             agent._in_channel.start_consuming()
 
         threading.Thread(target=_consume_messages).start()

@@ -7,7 +7,6 @@ from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED,
 from agency.space import AMQPSpace, NativeSpace
 import pytest
 import time
-from pytest_rabbitmq import factories
 
 
 class Webster(Agent):
@@ -72,13 +71,12 @@ def native_space():
 
 
 @pytest.fixture
-def amqp_space(rabbitmq):
+def amqp_space():
     connection_params = pika.ConnectionParameters(
-        host=rabbitmq["host"],
-        port=rabbitmq["port"],
-        virtual_host=rabbitmq["vhost"],
+        host='localhost',
+        port='5672',
         credentials=pika.PlainCredentials(
-            rabbitmq["username"], rabbitmq["password"]
+            'guest', 'guest'
         ),
     )
     return AMQPSpace(pika_connection_params=connection_params)
@@ -92,8 +90,8 @@ def either_space(request, native_space, amqp_space):
         return amqp_space
 
 
-@pytest.fixture()
-def agents(either_space):
+@pytest.fixture
+def webster_and_chatty(either_space):
     """
     Used for tests that should be run for both NativeSpace and AMQPSpace. This
     decorator also adds the two agents to the space: Webster and Chatty.
@@ -145,10 +143,18 @@ def test_after_add_and_before_remove(either_space):
     agent = Chatty("Chatty")
     agent._after_add = MagicMock()
     either_space.add(agent)
+    # wait for 5 secs until ._space is set
+    start_time = time.time()
+    while agent._space is None and (time.time() - start_time) < 5:
+        time.sleep(0.01)
     agent._after_add.assert_called_once()
 
     agent._before_remove = MagicMock()
     either_space.remove(agent)
+    # wait for 5 secs until ._space is unset
+    start_time = time.time()
+    while agent._space is not None and (time.time() - start_time) < 5:
+        time.sleep(0.01)
     agent._before_remove.assert_called_once()
 
 
@@ -172,12 +178,12 @@ def test_before_and_after_action():
     agent._after_action.assert_called_once()
 
 
-def test_agent_not_found(agents):
+def test_agent_not_found(webster_and_chatty):
     """
     When an agent sends a message to an agent that does not exist, the sender
     should receive an error message
     """
-    webster, chatty = agents
+    webster, chatty = webster_and_chatty
     first_message = {
         "from": "Webster",
         "to": "NonExistentAgent",
@@ -213,12 +219,12 @@ def test_agent_not_found(agents):
     ]
 
 
-def test_broadcast(agents):
+def test_broadcast(webster_and_chatty):
     """
     When an agent broadcasts a message, all other agents should receive the
     message
     """
-    webster, chatty = agents
+    webster, chatty = webster_and_chatty
     chatty._action__say = MagicMock()
     chatty._action__say.access_policy = ACCESS_PERMITTED
     chatty._action__say.return_value = None
@@ -239,9 +245,9 @@ def test_broadcast(agents):
     assert chatty._message_log == [first_message]
 
 
-def test_send_and_receive(agents):
+def test_send_and_receive(webster_and_chatty):
     """Tests sending a basic "say" message receiving a "return"ed reply"""
-    webster, chatty = agents
+    webster, chatty = webster_and_chatty
 
     # We use callable class to dynamically define the _say action for chatty
     class ChattySay():
@@ -294,9 +300,9 @@ def test_send_and_receive(agents):
     ]
 
 
-def test_send_undefined_action(agents):
+def test_send_undefined_action(webster_and_chatty):
     """Tests sending an undefined action and receiving an error response"""
-    webster, chatty = agents
+    webster, chatty = webster_and_chatty
 
     # In this test we skip defining a _say action on chatty in order to test the
     # error response
@@ -340,9 +346,9 @@ def test_send_undefined_action(agents):
     ]
 
 
-def test_send_unpermitted_action(agents):
+def test_send_unpermitted_action(webster_and_chatty):
     """Tests sending an unpermitted action and receiving an error response"""
-    webster, chatty = agents
+    webster, chatty = webster_and_chatty
 
     class ChattySay():
         def __init__(self, agent) -> None:
@@ -395,9 +401,9 @@ def test_send_unpermitted_action(agents):
     ]
 
 
-def test_send_request_permitted_action(agents):
+def test_send_request_permitted_action(webster_and_chatty):
     """Tests sending an action, granting permission, and returning response"""
-    webster, chatty = agents
+    webster, chatty = webster_and_chatty
 
     # We use callable classes to dynamically define _action__say and
     # _request_permission
@@ -456,9 +462,9 @@ def test_send_request_permitted_action(agents):
     ]
 
 
-def test_send_request_rejected_action(agents):
+def test_send_request_rejected_action(webster_and_chatty):
     """Tests sending an action, rejecting permission, and returning error"""
-    webster, chatty = agents
+    webster, chatty = webster_and_chatty
 
     # We use callable classes to dynamically define _action__say and
     # _request_permission
