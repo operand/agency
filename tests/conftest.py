@@ -14,17 +14,17 @@ def rabbitmq_container():
         "-p", "5672:5672",
         "-p", "15672:15672",
         "--user", "rabbitmq:rabbitmq",
-        # "-e", "RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=\"-rabbit log_levels [{debug}]\""
-        "rabbitmq:3-management"
+        "rabbitmq:3-management",
     ], start_new_session=True)
     wait_for_rabbitmq()
     yield container
     subprocess.run(["docker", "stop", "rabbitmq-test"])
+    # subprocess.run(["docker", "rm", "rabbitmq-test"])
 
 
 def wait_for_rabbitmq():
     print("Waiting for RabbitMQ server to start...")
-    retries = 30
+    retries = 20
     for _ in range(retries):
         try:
             result = subprocess.run([

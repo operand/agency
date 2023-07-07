@@ -252,10 +252,15 @@ allowing changes to be tested manually.
 
 ## Test Suite
 
+Ensure you have Docker installed. A small RabbitMQ container will be
+automatically created.
+
 You can run the test suite with:
+
 ```bash
 poetry run pytest
 ```
+
 
 
 # Roadmap
