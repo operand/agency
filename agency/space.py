@@ -1,12 +1,12 @@
 from abc import ABC, ABCMeta, abstractmethod
-import queue
-from typing import List
 from agency import util
 from agency.agent import Agent
-from agency.schema import ActionSchema, MessageSchema
+from agency.schema import MessageSchema
+from typing import List
 import json
 import os
 import pika
+import queue
 import threading
 import time
 
@@ -93,7 +93,7 @@ class NativeSpace(Space):
 
         if not broadcast and len(recipients) == 0:
             # route an error back to the sender
-            self._route(Agent(message['to']), {
+            self._route(sender, {
                 'to': sender.id(),
                 'thoughts': 'An error occurred',
                 'action': 'error',
@@ -148,6 +148,7 @@ class AMQPSpace(Space):
 
     def add(self, agent: Agent) -> None:
         util.debug(f"* Adding agent {agent.id()} to space")
+
         def _consume_messages():
             # create in/out channels for agent
             out_connection = pika.BlockingConnection(self.__connection_params)
@@ -197,7 +198,6 @@ class AMQPSpace(Space):
         agent._out_channel = None
         agent._space = None
 
-
     def _route(self, sender: Agent, action: dict) -> dict:
         # Define and validate message
         message = MessageSchema(**{
@@ -208,8 +208,38 @@ class AMQPSpace(Space):
         routing_key = self.BROADCAST_KEY  # broadcast
         if 'to' in message and message['to'] not in [None, ""]:
             routing_key = message['to']  # point to point
-            # TODO route an error back to sender if point to point and the recipient is not found
+            util.debug(f"* Routing message to {routing_key}")
+            # route an error back to sender if point to point and the queue is not found
+            if not self.__check_queue_exists(sender, routing_key):
+                util.debug(f"* Queue {routing_key} not found")
+                return self._route(sender, {
+                    'to': sender.id(),
+                    'thoughts': 'An error occurred',
+                    'action': 'error',
+                    'args': {
+                        'original_message': message,
+                        'error': f"\"{message['to']}\" not found"
+                    }
+                })
         body = json.dumps(message)
         sender._out_channel.basic_publish(
             exchange=self.__exchange, routing_key=routing_key, body=body)
         return message
+
+    def __check_queue_exists(self, agent: Agent, queue_name: str) -> bool:
+        """
+        Returns true if the queue exists, false otherwise
+        """
+        connection = pika.BlockingConnection(self.__connection_params)
+        channel = connection.channel()
+        try:
+            channel.queue_declare(queue=queue_name, passive=True)
+            return True
+        except pika.exceptions.ChannelClosedByBroker as e:
+            if e.reply_code == 404:
+                return False
+            else:
+                raise e
+        finally:
+            connection.close()
+        raise Exception("Should not reach here")

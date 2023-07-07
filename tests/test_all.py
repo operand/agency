@@ -1,14 +1,12 @@
-from tracemalloc import start
-from unittest.mock import MagicMock
-
-import pika
 from agency import util
 from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED,
                           ACCESS_REQUESTED, Agent, access_policy)
 from agency.space import AMQPSpace, NativeSpace
+from unittest.mock import MagicMock
+import pika
 import pytest
-import time
 import pytest_asyncio
+import time
 
 
 class Webster(Agent):
@@ -24,8 +22,8 @@ class Webster(Agent):
     @access_policy(ACCESS_PERMITTED)
     def _action__return(self, original_message: dict, return_value: str):
         self._receive({
-          "from": original_message['to'],
-          "to": self.id(),
+          "from": self._current_message['from'],
+          "to": self._current_message['to'],
           "thoughts": "A value was returned for your action",
           "action": "say",
           "args": {
@@ -36,8 +34,8 @@ class Webster(Agent):
     @access_policy(ACCESS_PERMITTED)
     def _action__error(self, original_message: dict, error: str):
         self._receive({
-          "from": original_message['to'],
-          "to": self.id(),
+          "from": self._current_message['from'],
+          "to": self._current_message['to'],
           "thoughts": "An error occurred",
           "action": "say",
           "args": {
@@ -194,7 +192,6 @@ def test_before_and_after_action():
     agent._after_action.assert_called_once()
 
 
-@pytest.mark.skip
 def test_agent_not_found(webster_and_chatty):
     """
     When an agent sends a message to an agent that does not exist, the sender
@@ -222,7 +219,7 @@ def test_agent_not_found(webster_and_chatty):
                 "original_message": first_message,
                 "error": "\"NonExistentAgent\" not found"
             },
-            "from": "NonExistentAgent"
+            "from": "Webster"
         },
         {
             "to": "Webster",
@@ -231,7 +228,7 @@ def test_agent_not_found(webster_and_chatty):
             "args": {
                 "content": "ERROR: \"NonExistentAgent\" not found"
             },
-            "from": "NonExistentAgent"
+            "from": "Webster"
         },
     ]
 
