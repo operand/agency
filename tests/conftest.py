@@ -1,5 +1,4 @@
 import subprocess
-from tracemalloc import start
 import pytest
 import time
 
@@ -8,7 +7,6 @@ import time
 
 @pytest.fixture(scope="session", autouse=True)
 def rabbitmq_container():
-    subprocess.run(["docker", "rm", "rabbitmq-test"])
     container = subprocess.Popen([
         "docker", "run", "--name", "rabbitmq-test",
         "-p", "5672:5672",
@@ -19,7 +17,7 @@ def rabbitmq_container():
     wait_for_rabbitmq()
     yield container
     subprocess.run(["docker", "stop", "rabbitmq-test"])
-    # subprocess.run(["docker", "rm", "rabbitmq-test"])
+    subprocess.run(["docker", "rm", "rabbitmq-test"])
 
 
 def wait_for_rabbitmq():

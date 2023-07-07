@@ -5,18 +5,20 @@ from agency.agent import ACCESS_PERMITTED, access_policy
 class HelpMethods():
     """
     A utility mixin containing:
-    - default implementations of return/error actions
-    - after_add callback for sending a help message on agent add
+    - default implementations of return/error actions for converting into
+      "say" messages.
+    - _after_add callback for sending a help message on agent addition,
       available as self._available_actions
     """
 
     def _after_add(self):
         """
         Sends two messages on add:
-        1. a help message to the space to receive available actions
-        2. a broadcast to announce its actions
-        This allows all agents to discover actions upon addition.
-        NOTE this approach does not handle agent removal
+        1. a broadcast to announce its actions to other agents
+        2. a help message to the space to receive available actions
+
+        This allows all agents to auto-discover actions upon addition.
+        NOTE this does not handle agent removal
         """
         self._available_actions = []
         self._send({

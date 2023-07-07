@@ -39,10 +39,6 @@ class ChattyAI(PromptMethods, Agent):
             return f"\n{pre_prompt} {message['args']['content']}"
         else:
             return ""
-        # For all other actions, we present the full JSON message. This
-        # is more useful for Agents, but is here just as a demonstration.
-        # A chatting AI would probably only deal with "say" actions.
-        # return f"\n{pre_prompt} {message}"
 
     def _pre_prompt(self, agent_id: str, timestamp=util.to_timestamp()) -> str:
         return f"\n### {agent_id.split('.')[0]}: "

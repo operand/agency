@@ -67,8 +67,7 @@ class CalculatorAgent(Agent):
 
 This defines an agent with a single action: `"add"`. Other agents will be able
 to call this method by sending a message to an instance of `CalculatorAgent` and
-specifying the `"add"` action. This action could be invoked from another agent
-with:
+specifying the `"add"` action.
 
 ```python
 other_agent._send({
@@ -102,7 +101,7 @@ class CalculatorAgent(Agent):
   def _after_action(self, original_message: dict, return_value: str, error: str):
     # Called after any action is attempted
 
-  def _request_permission(self, proposed_message: dict)
+  def _request_permission(self, proposed_message: dict) -> bool:
     # Called before an ACCESS_REQUESTED action is attempted for run-time review
 ```
 
@@ -182,7 +181,7 @@ behavior and rely on `agency` to provide the connective layer for bringing
 agents and other systems together.
 
 So in comparison, `agency` is a smaller but more general purpose application
-framework compared to libraries like LangChain that focus on enabling single
+framework compared to libraries like LangChain that focus on enabling individual
 agent behavior.
 
 
@@ -191,17 +190,17 @@ agent behavior.
 * It's a new project, so keep that in mind in terms of
   completeness, but see [the issues
   page](https://github.com/operand/agency/issues) for what is currently planned,
-  and the Roadmap just below for the high level plan.
+  and the [Roadmap](#roadmap) below for the high level plan.
 
 * This library makes use of threads for each individual agent. Multithreading
   is limited by [python's
   GIL](https://wiki.python.org/moin/GlobalInterpreterLock), meaning that if you
-  run a local model in the same process as other agents, they may have to wait
-  for their "turn". This goes for anything else you might define as an "agent".
-
-  Note that I/O does not block, so networked backends or services will execute
-  in parallel. For blocking processes, it's recommended to use the `AMQPSpace`
-  class and run blocking agents in isolation to avoid blocking other agents.
+  run a local model or other heavy computation in the same process as other
+  agents, they may have to wait for their "turn". Note that I/O does not block,
+  so networked backends or services will execute in parallel.
+  
+  For blocking processes, it's recommended to use the `AMQPSpace` class and run
+  heavy computations in isolation to avoid blocking other agents.
 
 * This API does not assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.

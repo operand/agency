@@ -173,7 +173,7 @@ def test_after_add_and_before_remove(either_space):
 
 def test_before_and_after_action():
     """
-    Tests that the _after_action method is called after an action is performed
+    Tests the before and after action callbacks
     """
     agent = Webster("Webster")
     agent._before_action = MagicMock()
