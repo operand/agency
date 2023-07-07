@@ -1,7 +1,18 @@
+# Documentation
+
+The following could be better organized. Please open an issue if you have
+suggestions for how to improve the documentation.
+
+
+## Table of Contents
+
+- 
+
+
 # API Walkthrough
 
-This walkthrough will guide you through the basic concepts of `agency`'s API,
-and how to use them to build your own agents.
+The following walkthrough will guide you through the basic concepts of
+`agency`'s API, and how to use it to build your own agent systems.
 
 ## Creating an `agency` Application
 
@@ -70,9 +81,6 @@ if __name__ == '__main__':
 
 ## Creating a `Space`
 
-Now let's see how this is implemented. Let's start simply by instantiating the
-space.
-
 ```python
 space = NativeSpace()
 ```
@@ -80,23 +88,19 @@ space = NativeSpace()
 
 ## Adding an `Agent` to a `Space`
 
-Now, let's add our first agent to the space, a simple transformers library
-backed chatbot named `ChattyAI`. You can browse the source code for `ChattyAI`
-[here](./agency/agents/chattyai.py).
-
 ```python
 space.add(ChattyAI("Chatty", model="EleutherAI/gpt-neo-125m"))
 ```
 
 The line above adds a new `ChattyAI` instance to the space, with the `id` of
-`"Chatty"`. It also passes the `model` argument to the constructor, which is
-used to initialize the HuggingFace transformers language model.
+`"Chatty"`. The `model` argument is used to initialize the HuggingFace
+transformers language model.
 
-The `id` parameter is used to identify the agent within the space. Other agents
-may send messages to Chatty by using that `id`, as we'll see later.
+An agent's `id` is used to identify the agent within the space. Other agents may
+send messages to Chatty by using that `id`, as we'll see later.
 
-Note that `id`'s are not unique. Two agents may declare the same `id` and would
-receive duplicate messages.
+`id`'s are not necessarily unique. Two agents may declare the same `id` and
+will receive duplicate messages.
 
 
 ## Defining Actions
@@ -104,8 +108,7 @@ receive duplicate messages.
 Looking at `ChattyAI`'s source code, you'll see that it is a subclass of
 `Agent`, and that it exposes a single action called `say`.
 
-The `say` action is defined as a method on the `ChattyAI` class, using the
-following signature:
+The following is a typical action method implementation taken from `ChattyAI`.
 
 ```python
 def _action__say(self, content: str):
@@ -126,9 +129,8 @@ underlying language model, and return the result to the sender.
 
 ## Invoking Actions
 
-At the end of the `ChattyAI._action__say()` method, we see an example of using
-`agency`'s messaging protocol. `ChattyAI` returns a response to the sender
-by calling:
+An example of invoking an action can be seen here, taken from the same
+`ChattyAI._action__say()` method.
 
 ```python
 ...
@@ -153,41 +155,25 @@ So here we see that Chatty is invoking the `say` action on the sender of the
 original message, passing the response as the `"content"` argument. This way,
 the original sender and Chatty can have a conversation.
 
+This is an example of the schema that is used for sending messages in `agency`.
+This format is intended to be simple and extensible enough to support most use
+cases while remaining human readable.
 
-## The Common Message Format
-
-In the example above, we see the format that is used when sending actions.
-
-In describing the messaging format, there are two terms that are used similarly:
-"action" and "message".
-
-An "action" is the format you use when sending, as seen in the `_send()` call
-above. You do not specify the `"from"` field, as it will be set when routing.
-
-A "message" then, is a "received action" which includes the additional `"from"`
-field containing the sender's `id`.
-
-Continuing the example above, the original sender would receive a response
-message from Chatty that would look something like:
-
-```python
-{
-    "from": "Chatty",
-    "to": "Sender",
-    "thoughts": "Chatty's thoughts",
-    "action": "say",
-    "args": {
-      "content": "Whatever Chatty said",
-    }
-}
-```
-
-This is an example of the full message schema that is used for all messages sent
-between agents in `agency`. This format is intended to be simple and extensible
-enough to support most use cases while remaining human readable.
-
-Custom message format are a possibility in the future. If you'd like to see
+Custom message formats are a possibility in the future. If you'd like to see
 support for custom message formats, please open an issue.
+
+
+
+## Special Actions
+
+There are three special actions present on all agents:
+
+* `help`: Sends back to the sender, a list of all actions on the agent.
+* `return`: Receives the return value of the last action invoked on an agent.
+* `error`: Receives an error message if the last action invoked on an agent
+  raised an exception.
+
+Override or extend these actions to customize the behavior of your agent.
 
 
 ## Access Control
@@ -231,96 +217,44 @@ example if you allow terminal access, you may want to review commands before
 they are invoked.
 
 
-## Adding Human Users With the `WebApp` Class
+## The `WebApp` Class
 
-A single chatting AI wouldn't be useful without someone to chat with, so now
-let's add humans into the space so that they can chat with "Chatty". To do this,
-we'll use the `WebApp` class.
-
-
-
-Why choose to subclass `Space` and not `Agent`? This is an arbitrary choice up
-to the developer, and may depend on what they want to accomplish.
-
-We could implement `WebApp` as a subclass of `Agent`. This would represent the
-web application as a single agent within the system. Users of the web
-application would not be able to be addressed individually by other agents.
-
-But since a typical web application serves multiple users, it may make sense to
-implement it as a `Space` subclass, so that individual users of the web
-application can be addressed by other agents using a namespace associated with
-the web application, as we'll see below.
-
-So this is _not_ the only way this could be accomplished but is intended as a
-complex example to showcase why one might want to define a `Space` subclass to
-group agents when it makes sense.
-
-
-### Examining the `WebApp` Class
-
-The implementation located [here](./agency/spaces/web_app.py) defines a simple
-`Flask` based web application that hosts a single page `React` based chat UI.
-
-The implementation takes some shortcuts, but in it you'll see that we actually
-define two classes, one for the web application which extends `Space`, called
-`WebApp`, and a second class to represent users of the web app which extends
-`Agent` and is called `WebAppUser`.
-
-The `WebAppUser` class is where we define the actions that an individual web app
-user may expose to others.
-
-Using the `asyncio` library you'll see that we simply forward messages as-is to
-the `React` frontend, and allow the client code to handle rendering and parsing
-of input as actions back to the `Flask` application, which forwards them to
-their intended receiver in the space.
-
-
-## Namespacing and Adding the Web Application
-
-Now that we've defined our new `WebApp` class, we can add it to the space
-with:
+The `WebApp` class is a simple web application that allows human users to
+connect to the space and chat with agents.
 
 ```python
-space.add(
-    WebApp("WebApp", port='8080'))
+web_app = WebApp(space,
+                  port=os.getenv("WEB_APP_PORT"),
+                  # NOTE We're hardcoding a single demo user for simplicity
+                  demo_username="Dan")
+web_app.start()
 ```
 
-Whenever any agent is added to a space, its fully qualified `id` becomes
-namespaced with the space's `id`.
+Note that the `WebApp` class is not an agent. It is a separate process that adds
+users to the space as agents.
 
-For example, after running the line above the `WebApp` being an agent as well,
-receives an `id` of `"WebApp"`.
+To see the web application in action, open a browser and navigate to
+`http://localhost:8080`.
 
-At this point, we have integrated the following agents listed using their fully
-qualified `id`'s:
+To broadcast a message to all other agents, simply type without a format. The
+simple javascript client is written to automatically convert text to a `"say"`
+action. For example, simply writing:
+```
+Hello, world!
+```
+... will be broadcast to all agents.
 
-- `"DemoSpace"` - The root space
-- `"ChattyAI.DemoSpace"` - ChattyAI's fully qualified `id`
-- `"WebApp.DemoSpace"` - the root of the `"WebApp"` space
+To send a point to point message or specific action, use the following format:
+```
+/action to:AgentID arg1:"value 1" arg2:"value 2"
+```
 
-Users of the web application, as they log in or out, may be added dynamically
-under the `"WebApp"` namespace allowing them to be addressed with a fully
-qualified `id` of, for example:
-
-- `"Dan.WebApp.DemoSpace"`.
-
-This way, we allow individual web users to appear as individual agents to others
-in the space.
-
-_(Note that login/out functionality is not implemented as of this writing.)_
-
-
+Please note that this application is for demonstration purposes only, so it
+currently only supports a single user.
 
 
 
 ## Adding OS Access with the `Host` class
-
-At this point, we have a system where human users of the web application can
-chat with `ChattyAI`, using just a single action called `"say"` that both
-`Agent` classes implement.
-
-Now we'll add an agent that exposes many different actions, the
-[`Host`](../examples/demo/agents/host.py) class.
 
 ```python
 space.add(Host("Host"))
@@ -353,15 +287,8 @@ human to review from elsewhere.
 At this point, we can demonstrate how discovery works from the perspective of
 a human user of the web application.
 
-Once added to a space, each agent may send a `help` message to discover other
-agents and actions that are available in the space.
-
-The `WebApp` application hosts a simple chat UI that supports a "slash" syntax
-summarized here:
-
-```python
-/actionname arg1:val1 arg2:val2 ...
-```
+Once added to a space, each agent may broadcast a `help` message to discover
+other agents and actions that are available in the space.
 
 So a person using the chat UI can discover available actions by typing:
 
@@ -436,12 +363,6 @@ agents who do not implement the given action.
 
 ## Adding an Environment-Aware Agent
 
-Finally we get to the good part!
-
-We'll now add an intelligent agent into the environment and see that it is able
-to understand and interact with any of the systems or humans we've connected
-thus far.
-
 > Note that the following `OpenAIFunctionAgent` class uses the [openai function
 calling API](https://platform.openai.com/docs/guides/gpt/function-calling).
 
@@ -464,7 +385,13 @@ For an implementation that uses a plain text completion API, see
 [`OpenAICompletionAgent`](./agency/agents/openai_completion_agent.py).
 
 
-# Important Notes on Using `AMQPSpace` and the `amqp` Protocol
+
+# List of Callbacks
+
+* 
+
+
+# Important Note on Using `AMQPSpace` and the `amqp` Protocol
 
 When using AMQP, you have many options for connectivity that may affect your
 experience. By default, the `AMQPSpace` class will read the environment
