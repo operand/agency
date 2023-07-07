@@ -125,7 +125,11 @@ def test_id_validation():
 #         # amqp_space,
 #     ])(test_func)
 
-rabbitmq_proc = factories.rabbitmq_proc(host='localhost', port=5672)
+
+@pytest.fixture(scope="session")
+def rabbitmq_proc():
+    return factories.RabbitMQConnectionParameters(host='localhost', port=5672)
+
 
 @pytest.fixture(scope="function")
 def rabbitmq_ready(rabbitmq_proc, rabbitmq):
