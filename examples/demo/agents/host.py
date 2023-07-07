@@ -5,6 +5,8 @@ import os
 import re
 import subprocess
 
+from agency.schema import MessageSchema
+
 
 class Host(Agent):
     """
@@ -13,15 +15,14 @@ class Host(Agent):
 
     @access_policy(ACCESS_REQUESTED)
     def _action__shell_command(self, command: str):
-        """Execute a shell command from the application root directory (/app) in
-        a bash shell. Always use with caution."""
+        """Execute a shell command from the application root directory in a bash
+        shell. Always use with caution."""
         command = ["bash", "-l", "-c", command]
         result = subprocess.run(
           command,
           stdout=subprocess.PIPE,
           stderr=subprocess.PIPE,
           text=True,
-          cwd="/app" # TODO: make this configurable
         )
         output = result.stdout + result.stderr
         if result.returncode != 0:
@@ -63,3 +64,15 @@ class Host(Agent):
         print(text)
         permission_response = input("Allow? (y/n) ")
         return re.search(r"^y(es)?$", permission_response)
+
+    def _after_add(self):
+        self._send({
+            "thoughts": "Here is a list of actions you can perform on the Host",
+            "action": "return",
+            "args": {
+                "original_message": {
+                    "action": "help",
+                },
+                "return_value": self._help(),
+            }
+        })

@@ -14,9 +14,11 @@ asyncio = "^3.4"
 colorama = "^0.4"
 pydantic = "^1.8"
 eventlet = "^0.33.3"
+pika = "^1.3.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"
+pytest-asyncio = "^0.21.0"
 
 
 [build-system]

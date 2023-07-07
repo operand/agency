@@ -45,7 +45,7 @@
 <body>
   <div id="root"></div>
   <script>
-    this.window.__agent_id = "{{ agent_id }}";
+    this.window.__username = "{{ username }}";
   </script>
 
   {% raw %}
@@ -167,8 +167,7 @@
         if (content.trim() !== '') {
           const action = this.parseSlashSyntaxAction(content);
           const newMessage = {
-            from: window.__agent_id,
-            to: "Space",
+            from: window.__username,
             thoughts: "",
             ...action
           }

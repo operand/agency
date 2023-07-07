@@ -121,17 +121,3 @@ def debug_text(name, object=None):
             pass
         debug_value = f"{debug_object_value}\n{END_STYLE}{'_'*5} {name} {'_'*5}"
     return f"\n{START_STYLE}{'>'*5} {name} {'<'*5}{Style.RESET_ALL}\n{debug_value}{Style.RESET_ALL}".replace("\\n", "\n")
-
-
-def parse_json_response(response_text, stopping_string) -> dict:
-    """
-    Parses a json command string into a valid action object
-    """
-    try:
-        message_json = json.loads(
-          # try to parse everything up to the first stopping string found
-          response_text.split(stopping_string)[0].strip()
-        )
-        return message_json
-    except Exception as e:
-        raise f"{e}: Could not parse command from: \"{response_text}\""

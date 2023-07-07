@@ -1,12 +1,11 @@
+from agency.agent import ACCESS_PERMITTED, Agent, access_policy
+from agents.help_methods import HelpMethods
 import json
-from agency import util
-from agency.agent import ACCESS_PERMITTED, access_policy
-from agency.agent import Agent
 import openai
 import textwrap
 
 
-class OpenAIFunctionAgent(Agent):
+class OpenAIFunctionAgent(HelpMethods, Agent):
     """
     An agent which uses OpenAI's function calling API
     """
@@ -19,8 +18,8 @@ class OpenAIFunctionAgent(Agent):
 
     def __system_prompt(self):
         return textwrap.dedent(f"""
-        You are "{self.id(fully_qualified=False)}". You are a prototype of an
-        "agent" system which can freely interact with its environment.
+        You are "{self.id()}". You are a prototype of an "agent" system which
+        can freely interact with its environment.
 
         Your creator has recently open-sourced your codebase intended to allow
         others to easily create their own AI integrated systems. He is
@@ -40,7 +39,8 @@ class OpenAIFunctionAgent(Agent):
         OpenAI
         """
         # start with the system message
-        open_ai_messages = [{ "role": "system", "content": self.__system_prompt() }]
+        open_ai_messages = [
+            {"role": "system", "content": self.__system_prompt()}]
 
         # format and add the rest of the messages
         # NOTE: the chat api limits to only four predefined roles so we do our
@@ -51,13 +51,13 @@ class OpenAIFunctionAgent(Agent):
                 # "say" actions are converted to messages using the content arg
                 if message['action'] == "say":
                     # assistant
-                    if message["from"] == self.id():
+                    if message['from'] == self.id():
                         open_ai_messages.append({
                             "role": "assistant",
                             "content": message["args"]["content"],
                         })
                     # user
-                    elif message["from"] == self.__kwargs['user_id']:
+                    elif message['from'] == self.__kwargs['user_id']:
                         open_ai_messages.append({
                             "role": "user",
                             "content": message["args"]["content"],
@@ -84,7 +84,7 @@ class OpenAIFunctionAgent(Agent):
                     # during inference.
                     open_ai_messages.append({
                         "role": "system",
-                        "content": f"""{"-".join(message["from"].split("."))} called function "{message["action"]}" with args {message["args"]}""",
+                        "content": f"""{message['from']} called function "{message['action']}" with args {message['args']}""",
                     })
 
         return open_ai_messages
@@ -98,7 +98,7 @@ class OpenAIFunctionAgent(Agent):
             {
                 # note that we send a fully qualified name for the action and
                 # convert '.' to '-' since openai doesn't allow '.'
-                "name": f"{action_help['to']}.{action_help['action']}".replace('.', '-'),
+                "name": f"{action_help['to']}-{action_help['action']}",
                 "description": action_help['thoughts'],
                 "parameters": {
                     "type": "object",
@@ -116,7 +116,7 @@ class OpenAIFunctionAgent(Agent):
                     ],
                 }
             }
-            for action_help in self.space._get_help__sync()
+            for action_help in self._available_actions
             if not (action_help['to'] == self.__kwargs['user_id'] and action_help['action'] == "say")
             # the openai chat api handles "say" specially to the main user, by
             # treating it as a normal chat message
@@ -143,8 +143,7 @@ class OpenAIFunctionAgent(Agent):
     @access_policy(ACCESS_PERMITTED)
     def _action__say(self, content: str) -> bool:
         """
-        Sends a message to the openai chatcompletion api, translates the
-        response, and sends the resulting action
+        Sends a message to this agent
         """
         completion = openai.ChatCompletion.create(
           model=self.__model,
@@ -166,12 +165,14 @@ class OpenAIFunctionAgent(Agent):
         response_message = completion['choices'][0]['message']
         if 'function_call' in response_message:
             # extract receiver and action
-            function_parts = response_message['function_call']['name'].split('-')
-            action['to'] = ".".join(function_parts[:-1]) # all but last
-            action['action'] = function_parts[-1] # last
+            function_parts = response_message['function_call']['name'].split(
+                '-')
+            action['to'] = "-".join(function_parts[:-1])  # all but last
+            action['action'] = function_parts[-1]  # last
             # arguments comes as a string when it probably should be an object
             if isinstance(response_message['function_call']['arguments'], str):
-                action['args'] = json.loads(response_message['function_call']['arguments'])
+                action['args'] = json.loads(
+                    response_message['function_call']['arguments'])
             else:
                 action['args'] = response_message['function_call']['arguments']
         else:

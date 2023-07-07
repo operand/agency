@@ -11,7 +11,7 @@ import textwrap
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 
 
-class ChattyAI(Agent, PromptMethods):
+class ChattyAI(PromptMethods, Agent):
     """
     Encapsulates a simple chatting AI backed by a language model.
     Currently uses transformers library as a backend provider.
@@ -31,16 +31,14 @@ class ChattyAI(Agent, PromptMethods):
         """) + \
             self._message_log_to_list()
 
-    def _message_line(self, message: MessageSchema, indent: int = None) -> str:
+    def _message_line(self, message: dict, indent: int = None) -> str:
         pre_prompt = self._pre_prompt(message['from'].split('.')[0])
         # Here we format what a previous message looks like in the prompt
         # For "say" actions, we just present the content as a line of text
         if message['action'] == 'say':
             return f"\n{pre_prompt} {message['args']['content']}"
-        # For all other actions, we present the full JSON message. This
-        # is more useful for Agents, but is here just as a demonstration.
-        # A chatting AI would probably only deal with "say" actions.
-        return f"\n{pre_prompt} {message}"
+        else:
+            return ""
 
     def _pre_prompt(self, agent_id: str, timestamp=util.to_timestamp()) -> str:
         return f"\n### {agent_id.split('.')[0]}: "

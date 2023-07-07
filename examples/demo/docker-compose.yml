@@ -1,19 +1,82 @@
 version: '3.8'
 
+# shared config for the main demo container and chatty
+x-demo-base:
+  &demo-base
+  build:
+    context: ../.. # root of the repo
+    dockerfile: examples/demo/Dockerfile
+  volumes:
+    # mounts models dir into container for reuse
+    - $MODELS_PATH:/models
+    # mounts source into container for development
+    - ../..:/agency
+  env_file: .env
+  environment:
+    TRANSFORMERS_CACHE: /models/transformers_cache
+
 services:
 
-  demo:
-    build:
-      context: .
-    volumes:
-      # mounts models dir into container for reuse
-      - $BASE_MODELS_PATH:/models
-      # mounts source into container for development
-      - .:/app
-    env_file: .env
-    environment:
-      TRANSFORMERS_CACHE: /models/transformers_cache
+  # This container runs all example classes in a single native space
+  native:
+    <<: *demo-base
     ports:
-      - '8080:8080' # web
+      - '$WEB_APP_PORT:$WEB_APP_PORT'
+    command: poetry run python native_demo.py
     tty: true
     stdin_open: true
+
+  # This and the following containers run the same example classes
+  # across containers in an amqp space
+  amqp:
+    <<: *demo-base
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      amqp_chatty:
+        condition: service_started
+      amqp_openai:
+        condition: service_started
+      amqp_web:
+        condition: service_started
+    command: poetry run python amqp_main.py
+    tty: true
+    stdin_open: true
+
+  amqp_chatty:
+    <<: *demo-base
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    command: poetry run python amqp_chatty.py
+
+  amqp_openai:
+    <<: *demo-base
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    command: poetry run python amqp_openai.py
+
+  amqp_web:
+    <<: *demo-base
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - '$WEB_APP_PORT:$WEB_APP_PORT'
+    command: poetry run python amqp_web.py
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+      - 5672:5672 # broker
+      - 15672:15672 # management
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

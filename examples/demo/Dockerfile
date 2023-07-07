@@ -1,23 +1,38 @@
 # Set base image
-FROM python:3.9
+FROM python:3.9 as base
 
-# Set working directory
 WORKDIR /agency
 
-# Copy pyproject.toml file
-COPY pyproject.toml poetry.lock ./
-
 # Install build dependencies
-RUN pip install poetry
+RUN pip install setuptools wheel poetry
+ENV POETRY_VIRTUALENVS_PATH=/venv
 
-# Install project dependencies
-RUN poetry install --no-dev
+# Install agency dependencies
+FROM base as agency_deps
+COPY ./pyproject.toml ./poetry.lock /agency/
+RUN poetry install --no-root
 
-# Add application files
+# Install demo app dependencies
+FROM base as demo_deps
+
+# Copy venv from agency_deps stage
+COPY --from=agency_deps /venv /venv
+
+# Install demo dependencies without full agency source
+COPY examples/demo/pyproject.toml examples/demo/poetry.lock ./examples/demo/
+COPY pyproject.toml poetry.lock README.md ./
+COPY agency/__init__.py ./agency/__init__.py
+RUN cd examples/demo && poetry install
+
+# Build demo image
+FROM base
+
+# Copy venv from demo_deps stage
+COPY --from=demo_deps /venv /venv
+
+# Copy full source
 COPY . .
 
-EXPOSE 8080
-# Set runtime environment variables (if needed)
-
-# Specify the startup command
-CMD ["poetry", "run", "python", "demo.py"]
+# Go
+WORKDIR /agency/examples/demo
+CMD ["python", "native_demo.py"]
