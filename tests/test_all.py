@@ -57,7 +57,6 @@ def wait_for_messages(agent, count=1, max_seconds=3):
     while ((time.time() - start_time) < max_seconds):
         time.sleep(0.01)
         if len(agent._message_log) > count:
-            util.debug("*", agent._message_log)
             raise Exception(
                 f"too many messages received: {len(agent._message_log)} expected: {count}")
         if len(agent._message_log) == count:
@@ -209,7 +208,6 @@ def test_agent_not_found(webster_and_chatty):
     }
     webster._send(first_message)
     wait_for_messages(webster, count=3)
-    util.debug("*", webster._message_log)
     assert webster._message_log == [
         first_message,
         {

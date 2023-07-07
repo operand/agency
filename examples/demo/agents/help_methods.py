@@ -18,7 +18,6 @@ class HelpMethods():
         This allows all agents to discover actions upon addition.
         NOTE this approach does not handle agent removal
         """
-        util.debug(f"*[{self.id()}] added")
         self._available_actions = []
         self._send({
             "thoughts": "Here is a list of actions you can take on me.",

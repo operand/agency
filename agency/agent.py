@@ -50,7 +50,6 @@ class Agent():
         """
         Sends (out) an action
         """
-        util.debug(f"*[{self.id()}] sending:", action)
         action = ActionSchema(**action).dict(by_alias=True)  # validate
         message = self._space._route(sender=self, action=action)
         self._message_log.append(message)
@@ -59,7 +58,6 @@ class Agent():
         """
         Receives and processes an incoming message
         """
-        util.debug(f"*[{self.id()}] received:", message)
         message = MessageSchema(**message).dict(by_alias=True)  # validate
         try:
             # Record message and commit action

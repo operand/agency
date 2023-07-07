@@ -53,7 +53,6 @@ class ChattyAI(PromptMethods, Agent):
         Use this action to say something to Chatty
         """
         full_prompt = self._full_prompt()
-        util.debug(f"*[{self.id()}] full_prompt:", full_prompt)
         input_ids = self.tokenizer.encode(full_prompt, return_tensors="pt")
         output = self.model.generate(
           input_ids,
@@ -75,6 +74,3 @@ class ChattyAI(PromptMethods, Agent):
             "content": response_content,
           }
         })
-
-    def _after_add(self):
-        util.debug(f"*[{self.id()}] added")

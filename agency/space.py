@@ -147,8 +147,6 @@ class AMQPSpace(Space):
         )
 
     def add(self, agent: Agent) -> None:
-        util.debug(f"* Adding agent {agent.id()} to space")
-
         def _consume_messages():
             # create in/out channels for agent
             out_connection = pika.BlockingConnection(self.__connection_params)
@@ -180,7 +178,6 @@ class AMQPSpace(Space):
             # start consuming messages
             agent._space = self
             agent._after_add()
-            util.debug(f"* Agent {agent.id()} added to space")
             agent._in_channel.start_consuming()
 
         threading.Thread(target=_consume_messages).start()
@@ -208,10 +205,8 @@ class AMQPSpace(Space):
         routing_key = self.BROADCAST_KEY  # broadcast
         if 'to' in message and message['to'] not in [None, ""]:
             routing_key = message['to']  # point to point
-            util.debug(f"* Routing p2p to {routing_key}", message)
             # route an error back to sender if point to point and the queue is not found
             if not self.__check_queue_exists(sender, routing_key):
-                util.debug(f"* Queue {routing_key} not found")
                 self._route(sender, {
                     'to': sender.id(),
                     'thoughts': 'An error occurred',
@@ -225,7 +220,6 @@ class AMQPSpace(Space):
         body = json.dumps(message)
         sender._out_channel.basic_publish(
             exchange=self.__exchange, routing_key=routing_key, body=body)
-        util.debug(f"* Message routed to {routing_key}", message)
         return message
 
     def __check_queue_exists(self, agent: Agent, queue_name: str) -> bool:
