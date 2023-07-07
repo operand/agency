@@ -7,7 +7,7 @@ suggestions for how to improve the documentation.
 ## Table of Contents
 
 * [API Walkthrough](#api-walkthrough)
-* [List of Callbacks](#list-of-callbacks)
+* [Agent Callbacks](#agent-callbacks)
 * [Using `AMQPSpace`](#using-amqpspace)
 
 
@@ -387,10 +387,14 @@ For an implementation that uses a plain text completion API, see
 [`OpenAICompletionAgent`](./agency/agents/openai_completion_agent.py).
 
 
+# Agent Callbacks
 
-# List of Callbacks
-
-* 
+* `Agent._before_action` - Called before an action is attempted
+* `Agent._after_action` - Called after an action is attempted
+* `Agent._after_add` - Called after an agent is added to a space and may begin
+  sending/receiving messages
+* `Agent._before_remove` - Called before an agent is removed from a space and
+  will no longer send/receive messages
 
 
 # Using `AMQPSpace`
