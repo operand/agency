@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 from agency import util
 from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED,
                           ACCESS_REQUESTED, Agent, access_policy)
-from agency.space import NativeSpace
+from agency.space import AMQPSpace, NativeSpace
 import pytest
 import time
 
@@ -59,19 +59,6 @@ def wait_for_messages(agent, count=1, max_seconds=2):
             return
 
 
-def parametrize_spaces(test_func):
-    """
-    Used for tests that should be run for both NativeSpace and AMQPSpace.
-    """
-    # amqp_space = AMQPSpace()
-    native_space = NativeSpace()
-
-    return pytest.mark.parametrize('space', [
-        native_space,
-        # amqp_space,
-    ])(test_func)
-
-
 def parametrize_space_with_agents(test_func):
     """
     Used for tests that should be run for both NativeSpace and AMQPSpace. This
@@ -123,6 +110,34 @@ def test_id_validation():
     reserved_id = "amq.reserved"
     with pytest.raises(ValueError):
         Agent(reserved_id)
+
+
+# def parametrize_spaces(test_func):
+#     """
+#     Used for tests that should be run for both NativeSpace and AMQPSpace.
+#     """
+#     # amqp_space = AMQPSpace()
+#     native_space = NativeSpace()
+# 
+#     return pytest.mark.parametrize('space', [
+#         native_space,
+#         # amqp_space,
+#     ])(test_func)
+
+@pytest.fixture(scope="function")
+def rabbitmq_ready(rabbitmq_proc, rabbitmq):
+    pass
+
+
+def parametrize_spaces(test_func):
+    def wrapper(*args, **kwargs):
+        native_space = NativeSpace()
+        test_func(*args, space=native_space, **kwargs)
+
+        amqp_space = AMQPSpace(kwargs['rabbitmq'])
+        test_func(*args, space=amqp_space, **kwargs)
+
+    return pytest.mark.usefixtures('rabbitmq_ready')(wrapper)
 
 
 @parametrize_spaces

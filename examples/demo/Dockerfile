@@ -35,4 +35,4 @@ COPY . .
 
 # Go
 WORKDIR /agency/examples/demo
-CMD ["python", "demo.py"]
+CMD ["python", "native_demo.py"]
