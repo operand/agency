@@ -10,8 +10,11 @@ import time
 def rabbitmq_container():
     subprocess.run(["docker", "rm", "rabbitmq-test"])
     container = subprocess.Popen([
-        "docker", "run", "-d", "--name", "rabbitmq-test", "-p", "5672:5672",
-        "-p", "15672:15672", "--user", "rabbitmq:rabbitmq",
+        "docker", "run", "--name", "rabbitmq-test",
+        "-p", "5672:5672",
+        "-p", "15672:15672",
+        "--user", "rabbitmq:rabbitmq",
+        # "-e", "RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=\"-rabbit log_levels [{debug}]\""
         "rabbitmq:3-management"
     ], start_new_session=True)
     wait_for_rabbitmq()

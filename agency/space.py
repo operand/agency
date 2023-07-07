@@ -188,15 +188,10 @@ class AMQPSpace(Space):
     def remove(self, agent: Agent) -> None:
         agent._before_remove()
 
-        # Close the connections
         agent._in_channel.connection.add_callback_threadsafe(
             agent._in_channel.connection.close)
-        while not agent._in_channel.connection.is_closed:
-            time.sleep(0.1)
         agent._out_channel.connection.add_callback_threadsafe(
             agent._out_channel.connection.close)
-        while not agent._out_channel.connection.is_closed:
-            time.sleep(0.1)
 
         agent._in_channel = None
         agent._out_channel = None
