@@ -5,6 +5,7 @@ from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED,
 from agency.space import AMQPSpace, NativeSpace
 import pytest
 import time
+from pytest_rabbitmq import factories
 
 
 class Webster(Agent):
@@ -123,6 +124,8 @@ def test_id_validation():
 #         native_space,
 #         # amqp_space,
 #     ])(test_func)
+
+rabbitmq_proc = factories.rabbitmq_proc(host='localhost', port=5672)
 
 @pytest.fixture(scope="function")
 def rabbitmq_ready(rabbitmq_proc, rabbitmq):
