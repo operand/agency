@@ -1,4 +1,6 @@
 from unittest.mock import MagicMock
+
+import pika
 from agency import util
 from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED,
                           ACCESS_REQUESTED, Agent, access_policy)
@@ -112,42 +114,35 @@ def test_id_validation():
     with pytest.raises(ValueError):
         Agent(reserved_id)
 
-
-# def parametrize_spaces(test_func):
-#     """
-#     Used for tests that should be run for both NativeSpace and AMQPSpace.
-#     """
-#     # amqp_space = AMQPSpace()
-#     native_space = NativeSpace()
-# 
-#     return pytest.mark.parametrize('space', [
-#         native_space,
-#         # amqp_space,
-#     ])(test_func)
+#################
+# WIP
 
 
-@pytest.fixture(scope="session")
-def rabbitmq_proc():
-    return factories.RabbitMQConnectionParameters(host='localhost', port=5672)
+@pytest.fixture
+def native_space():
+    return NativeSpace()
 
 
-@pytest.fixture(scope="function")
-def rabbitmq_ready(rabbitmq_proc, rabbitmq):
-    pass
+@pytest.fixture
+def amqp_space(rabbitmq):
+    connection_params = pika.ConnectionParameters(
+        host=rabbitmq["host"],
+        port=rabbitmq["port"],
+        virtual_host=rabbitmq["vhost"],
+        credentials=pika.PlainCredentials(
+            rabbitmq["username"], rabbitmq["password"]
+        ),
+    )
+    return AMQPSpace(pika_connection_params=connection_params)
+
+@pytest.fixture(params=['native_space', 'amqp_space'])
+def space(request, native_space, amqp_space):
+    if request.param == 'native_space':
+        return native_space
+    elif request.param == 'amqp_space':
+        return amqp_space
 
 
-def parametrize_spaces(test_func):
-    def wrapper(*args, **kwargs):
-        native_space = NativeSpace()
-        test_func(*args, space=native_space, **kwargs)
-
-        amqp_space = AMQPSpace(kwargs['rabbitmq'])
-        test_func(*args, space=amqp_space, **kwargs)
-
-    return pytest.mark.usefixtures('rabbitmq_ready')(wrapper)
-
-
-@parametrize_spaces
 def test_after_add_and_before_remove(space):
     """
     Tests that the _after_add and _before_remove methods are called when an
@@ -161,6 +156,9 @@ def test_after_add_and_before_remove(space):
     agent._before_remove = MagicMock()
     space.remove(agent)
     agent._before_remove.assert_called_once()
+
+
+#############
 
 
 def test_before_and_after_action():
