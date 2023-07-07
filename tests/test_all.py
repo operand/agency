@@ -262,17 +262,10 @@ def test_send_and_receive(webster_and_chatty):
     """Tests sending a basic "say" message receiving a "return"ed reply"""
     webster, chatty = webster_and_chatty
 
-    # We use callable class to dynamically define the _say action for chatty
-    class ChattySay():
-        def __init__(self, agent) -> None:
-            self.agent = agent
-            self.access_policy = ACCESS_PERMITTED
-
-        def __call__(self, content):
-            print("Chatty received a message from Webster")
-            return 'Hello, Webster!'
-
-    chatty._action__say = ChattySay(chatty)
+    # Using MagicMock
+    chatty._action__say = MagicMock()
+    chatty._action__say.access_policy = ACCESS_PERMITTED
+    chatty._action__say.return_value = 'Hello, Webster!'
 
     # Send the first message and wait for a response
     first_action = {
@@ -364,17 +357,9 @@ def test_send_unpermitted_action(webster_and_chatty):
     """Tests sending an unpermitted action and receiving an error response"""
     webster, chatty = webster_and_chatty
 
-    class ChattySay():
-        def __init__(self, agent) -> None:
-            self.agent = agent
-            self.access_policy = ACCESS_DENIED
-
-        def __call__(self, content):
-            # Note that we are also testing the default "return" impl which converts a
-            # returned value into an incoming "say" action, by returning a string here.
-            return 'Hello, Webster!'
-
-    chatty._action__say = ChattySay(chatty)
+    chatty._action__say = MagicMock()
+    chatty._action__say.access_policy = ACCESS_DENIED
+    chatty._action__say.return_value = 'Hello, Webster!'
 
     first_action = {
         'action': 'say',
@@ -419,23 +404,12 @@ def test_send_request_permitted_action(webster_and_chatty):
     """Tests sending an action, granting permission, and returning response"""
     webster, chatty = webster_and_chatty
 
-    # We use callable classes to dynamically define _action__say and
-    # _request_permission
-    class ChattySay():
-        def __init__(self, agent) -> None:
-            self.agent = agent
-            self.access_policy = ACCESS_REQUESTED
+    chatty._action__say = MagicMock()
+    chatty._action__say.access_policy = ACCESS_REQUESTED
+    chatty._action__say.return_value = '42'
 
-        def __call__(self, content):
-            return '42'
-
-    chatty._action__say = ChattySay(chatty)
-
-    class ChattyAsk():
-        def __call__(self, proposed_message):
-            return True
-
-    chatty._request_permission = ChattyAsk()
+    chatty._request_permission = MagicMock()
+    chatty._request_permission.return_value = True
 
     first_action = {
         'action': 'say',
@@ -480,23 +454,12 @@ def test_send_request_rejected_action(webster_and_chatty):
     """Tests sending an action, rejecting permission, and returning error"""
     webster, chatty = webster_and_chatty
 
-    # We use callable classes to dynamically define _action__say and
-    # _request_permission
-    class ChattySay():
-        def __init__(self, agent) -> None:
-            self.agent = agent
-            self.access_policy = ACCESS_REQUESTED
+    chatty._action__say = MagicMock()
+    chatty._action__say.access_policy = ACCESS_REQUESTED
+    chatty._action__say.return_value = '42'
 
-        def __call__(self, content):
-            return '42'
-
-    chatty._action__say = ChattySay(chatty)
-
-    class ChattyAsk():
-        def __call__(self, proposed_message):
-            return False
-
-    chatty._request_permission = ChattyAsk()
+    chatty._request_permission = MagicMock()
+    chatty._request_permission.return_value = False
 
     first_action = {
         'action': 'say',
