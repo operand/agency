@@ -2,9 +2,8 @@
 
 This demo application is maintained as an experimental development environment
 as well as a showcase of library features. You are encouraged to use the source
-as a reference point for your own projects but be aware that the quality of this
-demo application is proof-of-concept only and should not be considered
-production ready.
+as a reference point but beware that the quality is proof-of-concept only and
+should not be considered production ready.
 
 
 # Running the demo
@@ -17,15 +16,16 @@ production ready.
         cd agency/examples/demo
         cp .env.example .env
 
-1. Open and populate the demo directory's `.env` file with appropriate
-environment values.
+1. Open and populate the `.env` file with appropriate values.
 
-1. Decide which application you'd like to run AMQP or native, then:
+1. Start the application.
 
+      To run the single-container `NativeSpace` application:
       ```sh
       demo run native
       ```
-      or
+
+      To run the multi-container `AMQPSpace` application:
       ```sh
       demo run amqp
       ```

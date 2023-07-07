@@ -168,28 +168,32 @@ support for custom message formats, please open an issue.
 
 ## Special Actions
 
-There are three special actions present on all agents:
+There are three special actions present on all agents by default:
 
-* `help`: Sends back to the sender, a list of all actions on the agent.
-* `return`: Receives the return value of the last action invoked on an agent.
-* `error`: Receives an error message if the last action invoked on an agent
-  raised an exception.
+* `help`\
+Sends back to the sender, a list of all actions on this agent. This is used by
+agents for action discovery.
+
+* `return`\
+Receives the return value of the last action invoked on an agent.
+
+* `error`\
+Receives an error message if the last action invoked on an agent raised an
+exception.
 
 Override or extend these actions to customize the behavior of your agent.
 
 
 ## Access Control
 
+Access policies are used to control when actions can be invoked by other agents.
 All actions must declare an access policy like the following example:
 
 ```python
 @access_policy(ACCESS_PERMITTED)
-def _action__say(self, content: str):
-    """Use this action to say something to Chatty"""
+def _action__myaction(self):
     ...
 ```
-
-Access policies are used to control when actions can be invoked by other agents.
 
 An access policy can currently be one of three values:
 
@@ -207,7 +211,7 @@ If any actions require permission, you must implement the
 permission requests.
 
 ```python
-def _request_permission(self, proposed_message: MessageSchema) -> bool:
+def _request_permission(self, proposed_message: dict) -> bool:
     ...
 ```
 
@@ -222,7 +226,8 @@ they are invoked.
 ## The `WebApp` Class
 
 The `WebApp` class is a simple web application that allows human users to
-connect to the space and chat with agents.
+connect to the space and chat with agents. _Please note that this application is
+for demonstration purposes, so it currently only supports a single user._
 
 ```python
 web_app = WebApp(space,
@@ -232,28 +237,30 @@ web_app = WebApp(space,
 web_app.start()
 ```
 
-Note that the `WebApp` class is not an agent. It is a separate process that adds
-users to the space as agents.
+Note that the `WebApp` class is not an agent or space. It is implemented as a
+separate process that adds users to the space dynamically as agents.
 
-To see the web application in action, open a browser and navigate to
-`http://localhost:8080`.
+To see the web application, first run the demo, then open a browser and navigate
+to `http://localhost:8080`.
 
-To broadcast a message to all other agents, simply type without a format. The
-simple javascript client is written to automatically convert text to a `"say"`
-action. For example, simply writing:
+The web UI hosts a simple chat interface that allows you to chat with agents in
+the space. You can also invoke actions on agents using a custom "slash" syntax
+for finer-grained commands.
+
+To broadcast a message to all other agents in the space, simply type without a
+format. The javascript client will automatically convert unformatted text to a
+`"say"` action. For example, simply writing:
+
 ```
 Hello, world!
 ```
-... will be broadcast to all agents.
+... will be broadcast to all agents as a `"say"` action.
 
-To send a point to point message or specific action, use the following format:
+To send a point-to-point message to a specific agent, or to call actions other
+than `"say"`, you can use the following format:
 ```
-/action to:AgentID arg1:"value 1" arg2:"value 2"
+/action_name to:AgentID arg1:"value 1" arg2:"value 2"
 ```
-
-Please note that this application is for demonstration purposes only, so it
-currently only supports a single user.
-
 
 
 ## Adding OS Access with the `Host` class
@@ -384,28 +391,121 @@ to the chat API. Since the chat API is limited to a predefined set of roles, we
 need to indicate which is the main "user".
 
 For an implementation that uses a plain text completion API, see
-[`OpenAICompletionAgent`](./agency/agents/openai_completion_agent.py).
+[`OpenAICompletionAgent`](../examples/demo/agents/openai_completion_agent.py).
 
 
 # Agent Callbacks
 
-* `Agent._before_action` - Called before an action is attempted
-* `Agent._after_action` - Called after an action is attempted
-* `Agent._after_add` - Called after an agent is added to a space and may begin
-  sending/receiving messages
-* `Agent._before_remove` - Called before an agent is removed from a space and
-  will no longer send/receive messages
+* `Agent._before_action`\
+Called before an action is attempted. If an exception is raised in
+`_before_action`, the action method and `_after_action` callbacks will not be
+executed and the error will be returned to the sender.
+
+* `Agent._after_action`\
+Called after an action is attempted. Provides the original message, the return
+value, and error if applicable. This method is called even if an exception is
+raised in the action.
+
+* `Agent._after_add`\
+Called after an agent is added to a space and may begin sending/receiving
+messages. Use this method to perform any initial setup necessary upon being
+added to a space.
+
+* `Agent._before_remove`\
+Called before an agent is removed from a space and will no longer send/receive
+messages. Use this method to perform any cleanup necessary before being removed
+from a space.
+
+* `Agent._request_permission`\
+Called when an agent attempts to perform an action that requires permission.
+This method should return `True` or `False` to indicate whether the action
+should be allowed. A rejected action will be returned as a permission error to
+the sender.
 
 
 # Using `AMQPSpace`
 
+To use AMQP for multi-process or networked communication, you can first swap the
+`AMQPSpace` class for the `NativeSpace` class in the walkthrough above.
+
+Then to take advantage of parallelism, you would also separate your agents into
+multiple processes configured to use the same AMQP server.
+
+For example, the following would separate the `Host` agent into its own
+application:
+
+```python
+if __name__ == '__main__':
+
+    # Create a space
+    space = AMQPSpace()
+
+    # Add a host agent to the space
+    space.add(Host("Host"))
+
+    # keep alive
+    while True:
+        time.sleep(1)
+```
+
+And the following would separate the `ChattyAI` agent into its own application:
+
+```python
+if __name__ == '__main__':
+
+    # Create a space
+    space = AMQPSpace()
+
+    # Add a simple HF based chat agent to the space
+    space.add(
+        ChattyAI("Chatty",
+                 model="EleutherAI/gpt-neo-125m"))
+
+    # keep alive
+    while True:
+        time.sleep(1)
+```
+
+Make sure to reuse the same AMQP server and configuration for both applications.
+
+Then you can run both applications at the same time, and the agents will be able
+to connect and communicate with each other over AMQP. This approach allows you
+to scale your agents across multiple processes or hosts, and avoids the
+multithreading limitations of python's GIL.
+
+See the [example application](../examples/demo/) for a full working example.
+
+
+## Configuring Connectivity
+
 When using AMQP, you have many options for connectivity that may affect your
-experience. By default, the `AMQPSpace` class will read the environment
-variables seen in [`examples/demo/.env.example`](...) for basic settings, and
-otherwise will use default settings.
+experience. By default, the `AMQPSpace` class will read the following
+environment variables (listed with their defaults) and will otherwise use
+default settings.
+
+```sh
+AMQP_HOST
+AMQP_PORT
+AMQP_USERNAME
+AMQP_PASSWORD
+AMQP_VHOST
+```
 
 Finer grained connection options are possible (heartbeat, ssl, etc.) if you
 provide your own
 [`pika.ConnectionParameters`](https://pika.readthedocs.io/en/stable/modules/parameters.html)
-object when instantiating an `AMQPSpace`. Please take a look at those options if
-you experience dropped connections, or have other connection related issues.
+object when instantiating an `AMQPSpace`. For example:
+  
+```python
+space = AMQPSpace(
+    pika_connection_params=pika.ConnectionParameters(
+        host="localhost",
+        port=5672,
+        heartbeat=60,
+        ssl=True,
+        ssl_options=pika.SSLOptions(
+            ca_certs="/path/to/ca/certs",
+            keyfile="/path/to/keyfile",
+            certfile="/path/to/certfile",
+            cert_reqs=ssl.CERT_REQUIRED)))
+```

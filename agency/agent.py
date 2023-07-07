@@ -97,9 +97,11 @@ class Agent():
                 return
 
         self._before_action(message)
+
         return_value = None
         error = None
         try:
+
             # Check if the action is permitted
             if self.__permitted(message):
 
@@ -126,11 +128,9 @@ class Agent():
                 raise PermissionError(
                   f"\"{self.id()}.{message['action']}\" not permitted")
         except Exception as e:
-            # If an error occurs, we reraise it to be handled by the process loop
-            error = e
+            error = e # save the error for _after_action
             raise Exception(e)
         finally:
-            # Always call _after_action
             self._after_action(message, return_value, error)
 
     def __permitted(self, message: dict) -> bool:
