@@ -1,51 +1,68 @@
-# Example Walkthrough
+# API Walkthrough
+
+This walkthrough will guide you through the basic concepts of `agency`'s API,
+and how to use them to build your own agents.
+
+## Creating an `agency` Application
 
 The snippet below is a taken from the demo application located at
-[examples/demo/](./examples/demo/). Basic instructions for
-how to run the demo are located in that directory.
+[examples/demo/](./examples/demo/). Basic instructions for how to run the demo
+are located in that directory.
 
-The demo application includes two different OpenAI agent classes, the
-HuggingFace based `ChattyAI`, operating system access, and a Flask/React based
-web application hosted at `http://localhost:8080`, all integrated in
-a single "space".
+The demo can be run as both a single `NativeSpace` implementation, or a
+distributed `AMQPSpace` implementation.
+
+For this walkthrough, we'll be using the `NativeSpace` implementation. Usage is
+exactly the same as with the `AMQPSpace` class, except that a `NativeSpace` is
+for agents in the same process, and does not require an AMQP server.
+
+This demo application includes two different OpenAI agent classes, a
+transformers based chat agent named `ChattyAI`, operating system access, and a
+Flask/React based web application hosted at `http://localhost:8080`, all
+integrated with the following implementation.
 
 
 ```python
-# demo.py
+# native_demo.py
 
 if __name__ == '__main__':
 
-    space = Space("DemoSpace")
+    # Create a space
+    space = NativeSpace()
 
+    # Add a host agent to the space, exposing access to the host system
+    space.add(Host("Host"))
+
+    # Add a simple HF based chat agent to the space
     space.add(
         ChattyAI("Chatty",
-            model="EleutherAI/gpt-neo-125m"))
+                 model="EleutherAI/gpt-neo-125m"))
 
-    space.add(
-        WebApp("WebApp",
-            demo_user_id="Dan", # hardcoded for simplicity
-            port='8080'))
-
-    space.add(
-        Host("Host"))
-
+    # Add an OpenAI function API agent to the space
     space.add(
         OpenAIFunctionAgent("FunctionAI",
-            model="gpt-3.5-turbo-16k",
-            openai_api_key=os.getenv("OPENAI_API_KEY"),
-            # user_id determines the "user" role in the OpenAI chat
-            user_id="Dan.WebApp.DemoSpace"))
+                            model="gpt-3.5-turbo-16k",
+                            openai_api_key=os.getenv("OPENAI_API_KEY"),
+                            # user_id determines the "user" role in the OpenAI chat API
+                            user_id="Dan"))
 
+    # Add another OpenAI agent based on the completion API
     space.add(
         OpenAICompletionAgent("CompletionAI",
-            model="text-davinci-003",
-            openai_api_key=os.getenv("OPENAI_API_KEY")))
+                              model="text-davinci-003",
+                              openai_api_key=os.getenv("OPENAI_API_KEY")))
 
-    space.run()
+    # Create and start a web app to connect human users to the space.
+    # As users connect they are added to the space as agents.
+    web_app = WebApp(space,
+                     port=os.getenv("WEB_APP_PORT"),
+                     # NOTE We're hardcoding a single demo user for simplicity
+                     demo_username="Dan")
+    web_app.start()
 
     print("pop!")
 
-    # space.run() starts a thread, so we keep the app alive with a loop
+    # keep alive
     while True:
         time.sleep(1)
 ```
@@ -53,22 +70,19 @@ if __name__ == '__main__':
 
 ## Creating a `Space`
 
-Now let's see how this is implemented. Let's start by instantiating the demo
+Now let's see how this is implemented. Let's start simply by instantiating the
 space.
 
 ```python
-space = Space("DemoSpace")
+space = NativeSpace()
 ```
-
-`Space`'s, like all `Agent`'s, must be given an `id`. So the line above
-instantiates a single space called `"DemoSpace"` that we can now add agents to.
 
 
 ## Adding an `Agent` to a `Space`
 
 Now, let's add our first agent to the space, a simple transformers library
-backed chatbot class named `ChattyAI`. You can browse the source code for
-`ChattyAI` [here](./agency/agents/chattyai.py).
+backed chatbot named `ChattyAI`. You can browse the source code for `ChattyAI`
+[here](./agency/agents/chattyai.py).
 
 ```python
 space.add(ChattyAI("Chatty", model="EleutherAI/gpt-neo-125m"))
@@ -78,11 +92,11 @@ The line above adds a new `ChattyAI` instance to the space, with the `id` of
 `"Chatty"`. It also passes the `model` argument to the constructor, which is
 used to initialize the HuggingFace transformers language model.
 
-At this point "Chatty" has a fully qualified `id` of `"Chatty.DemoSpace"`.  This
-is because `"Chatty"` is a member of the `"DemoSpace"` space.
+The `id` parameter is used to identify the agent within the space. Other agents
+may send messages to Chatty by using that `id`, as we'll see later.
 
-This way, spaces establish a namespace for their member agents which can later
-be used to address them.
+Note that `id`'s are not unique. Two agents may declare the same `id` and would
+receive duplicate messages.
 
 
 ## Defining Actions
@@ -107,7 +121,7 @@ intended to allow other agents to chat with Chatty, as expressed in its
 docstring.
 
 When `ChattyAI` receives a `say` action, it will generate a response using its
-prompt format with the language model, and return the result to the sender.
+underlying language model, and return the result to the sender.
 
 
 ## Invoking Actions
@@ -136,10 +150,11 @@ When an agent receives a message, it invokes the action method specified by the
 keyword arguments.
 
 So here we see that Chatty is invoking the `say` action on the sender of the
-original message, passing the response as the `"content"` argument.
+original message, passing the response as the `"content"` argument. This way,
+the original sender and Chatty can have a conversation.
 
 
-## The Common Message Schema
+## The Common Message Format
 
 In the example above, we see the format that is used when sending actions.
 
@@ -147,20 +162,19 @@ In describing the messaging format, there are two terms that are used similarly:
 "action" and "message".
 
 An "action" is the format you use when sending, as seen in the `_send()` call
-above. You do not specify the `"from"` field, as it will be automatically added
-when routing.
+above. You do not specify the `"from"` field, as it will be set when routing.
 
-A "message" then, is a "received action" which includes the additional
-`"from"` field containing the sender's fully qualified `id`.
+A "message" then, is a "received action" which includes the additional `"from"`
+field containing the sender's `id`.
 
 Continuing the example above, the original sender would receive a response
 message from Chatty that would look something like:
 
 ```python
 {
-    "from": "Chatty.DemoSpace",
-    "to": "Sender.DemoSpace",
-    "thoughts": "",
+    "from": "Chatty",
+    "to": "Sender",
+    "thoughts": "Chatty's thoughts",
     "action": "say",
     "args": {
       "content": "Whatever Chatty said",
@@ -170,18 +184,15 @@ message from Chatty that would look something like:
 
 This is an example of the full message schema that is used for all messages sent
 between agents in `agency`. This format is intended to be simple and extensible
-enough to support any use case while remaining human readable.
+enough to support most use cases while remaining human readable.
 
-Note that the `"thoughts"` field is defined as a distinct argument for providing
-a natural language explanation to accompany any action, but as of this writing
-`ChattyAI` does not make use of it. `OpenAICompletionAgent` discussed below,
-does.
+Custom message format are a possibility in the future. If you'd like to see
+support for custom message formats, please open an issue.
 
 
 ## Access Control
 
-All actions must declare an access policy like the following example seen above
-the `ChattyAI._action__say()` method:
+All actions must declare an access policy like the following example:
 
 ```python
 @access_policy(ACCESS_PERMITTED)
@@ -190,7 +201,7 @@ def _action__say(self, content: str):
     ...
 ```
 
-Access policies are used to control what actions can be invoked by other agents.
+Access policies are used to control when actions can be invoked by other agents.
 
 An access policy can currently be one of three values:
 
@@ -198,37 +209,35 @@ An access policy can currently be one of three values:
 any time
 - `ACCESS_DENIED` - which prevents use
 - `ACCESS_REQUESTED` - which will prompt the receiving agent for permission
-when access is attempted. Access will await approval or denial. If denied, the
-sender is notified of the denial.
+when access is attempted. Access will await approval or denial.
 
-If `ACCESS_REQUESTED` is used, the receiving agent will be prompted at run
-time to approve the action.
+If `ACCESS_REQUESTED` is used, the receiving agent will be prompted at run time
+to approve the action via the `_request_permission()` callback method.
 
 If any actions require permission, you must implement the
-`_request_permission()` method with the following signature:
+`_request_permission()` method with the following signature in order to receive
+permission requests.
 
 ```python
 def _request_permission(self, proposed_message: MessageSchema) -> bool:
     ...
 ```
 
-This method is called when an agent attempts to invoke an action that has been
-marked as `ACCESS_REQUESTED`. Your method should inspect `proposed_message` and
-return a boolean indicating whether or not to permit the action.
+Your implementation should inspect `proposed_message` and return a boolean
+indicating whether or not to permit the action.
 
 You can use this approach to protect against dangerous actions being taken. For
 example if you allow terminal access, you may want to review commands before
 they are invoked.
 
-This implementation of access control is just a start, and further development
-of the functionality is a priority for this project.
-
 
 ## Adding Human Users With the `WebApp` Class
 
 A single chatting AI wouldn't be useful without someone to chat with, so now
-let's add humans into the space so that they can chat with "Chatty". To do
-this, we'll use the `WebApp` class, which is a subclass of `Space`.
+let's add humans into the space so that they can chat with "Chatty". To do this,
+we'll use the `WebApp` class.
+
+
 
 Why choose to subclass `Space` and not `Agent`? This is an arbitrary choice up
 to the developer, and may depend on what they want to accomplish.
@@ -268,7 +277,7 @@ their intended receiver in the space.
 
 ## Namespacing and Adding the Web Application
 
-Now that we've defined our new `WebApp` class, we can add it to `DemoSpace`
+Now that we've defined our new `WebApp` class, we can add it to the space
 with:
 
 ```python
@@ -280,7 +289,7 @@ Whenever any agent is added to a space, its fully qualified `id` becomes
 namespaced with the space's `id`.
 
 For example, after running the line above the `WebApp` being an agent as well,
-receives an `id` of `"WebApp.DemoSpace"`.
+receives an `id` of `"WebApp"`.
 
 At this point, we have integrated the following agents listed using their fully
 qualified `id`'s:
@@ -301,6 +310,9 @@ in the space.
 _(Note that login/out functionality is not implemented as of this writing.)_
 
 
+
+
+
 ## Adding OS Access with the `Host` class
 
 At this point, we have a system where human users of the web application can
@@ -308,7 +320,7 @@ chat with `ChattyAI`, using just a single action called `"say"` that both
 `Agent` classes implement.
 
 Now we'll add an agent that exposes many different actions, the
-[`Host`](./agency/agents/host.py) class.
+[`Host`](../examples/demo/agents/host.py) class.
 
 ```python
 space.add(Host("Host"))
@@ -324,11 +336,12 @@ have been given the access policy:
 
 ```python
 @access_policy(ACCESS_REQUESTED)
+...
 ```
 
-By declaring this access policy, all actions on the host will require a
-confirmation from the terminal where the application is being run. This is
-thanks to the implementation of `_request_permission()` in the `Host` class.
+Thanks to the implementation of `_request_permission()` in the `Host` class, all
+actions on the host will require a confirmation from the terminal where the
+application is being run.
 
 Note that this implementation of `_request_permission()` is just one
 possibility. We could have implemented, for example, a phone notification for a
@@ -363,7 +376,7 @@ would look something like:
 ```python
 [
     {
-        "to": "Host.DemoSpace",
+        "to": "Host",
         "action": "delete_file",
         "thoughts": "Delete a file",
         "args": {
@@ -371,7 +384,7 @@ would look something like:
         }
     },
     {
-        "to": "Host.DemoSpace",
+        "to": "Host",
         "action": "list_files",
         "thoughts": "List files in a directory",
         "args": {
@@ -382,28 +395,27 @@ would look something like:
 ]
 ```
 
-Notice that each action lists the fully qualified `id` of the agent in the
-`"to"` field, the docstring of the action's method in the `"thoughts"` field,
-and each argument along with its type in the `"args"` field.
+Notice that each action lists the `id` of the agent in the `"to"` field, the
+docstring from the action's method in the `"thoughts"` field, and each argument
+along with its type in the `"args"` field.
 
 So a person using the web app UI can invoke the `list_files` action on
-`"Host.DemoSpace"` with the following syntax:
+`"Host"` with the following syntax:
 
 ```
-/list_files to:Host.DemoSpace directory_path:/app
+/list_files to:Host directory_path:/app
 ```
 
 This will send the `list_files` action to the `Host` agent who will (after being
-granted permission) return the results back to `"Dan.WebApp.DemoSpace"`
-rendering it to the web user interface as a message.
+granted permission) return the results back to the web user interface as a
+message.
 
 
 ## Broadcast vs Point-to-Point Messaging
 
-Note the use of the fully qualified `id` of `Host.DemoSpace` used with the `to:`
-field.
+Note the use of the `id` of `Host` used with the `to:` field.
 
-If we omit the `to:Host.DemoSpace` portion of the command above, the message
+If we omit the `to:Host` portion of the command above, the message
 will be broadcast, and any agents who implement a `list_files` action will
 respond.
 
@@ -411,11 +423,12 @@ This is also how the `/help` command works. If you want to request help from
 just a single agent you can use something like:
 
 ```
-/help to:Host.DemoSpace
+/help to:Host
 ```
 
 Note that point-to-point messages (messages that define the `"to"` field) will
-result in an error if the action is not defined on the target agent.
+result in an error if the action is not defined on the target agent, or if no
+agent with that `id` exists in the space.
 
 Broadcast messages will _not_ return an error, but will silently be ignored by
 agents who do not implement the given action.
@@ -425,13 +438,12 @@ agents who do not implement the given action.
 
 Finally we get to the good part!
 
-We'll now add an intelligent agent into this environment and see that it is able
+We'll now add an intelligent agent into the environment and see that it is able
 to understand and interact with any of the systems or humans we've connected
 thus far.
 
-> Note that the following `OpenAIFunctionAgent` class uses the newly released
-[openai function calling
-API](https://platform.openai.com/docs/guides/gpt/function-calling).
+> Note that the following `OpenAIFunctionAgent` class uses the [openai function
+calling API](https://platform.openai.com/docs/guides/gpt/function-calling).
 
 To add the [`OpenAIFunctionAgent`](./agency/agents/demo_agent.py) class to the
 environment:
@@ -441,7 +453,7 @@ space.add(
         model="gpt-3.5-turbo-16k",
         openai_api_key=os.getenv("OPENAI_API_KEY"),
         # user_id determines the "user" role in the chat API
-        user_id="Dan.WebApp.DemoSpace"))
+        user_id="Dan"))
 ```
 
 The `user_id` argument determines which agent is represented as the "user" role
@@ -450,3 +462,17 @@ need to indicate which is the main "user".
 
 For an implementation that uses a plain text completion API, see
 [`OpenAICompletionAgent`](./agency/agents/openai_completion_agent.py).
+
+
+# Important Notes on Using `AMQPSpace` and the `amqp` Protocol
+
+When using AMQP, you have many options for connectivity that may affect your
+experience. By default, the `AMQPSpace` class will read the environment
+variables seen in [`examples/demo/.env.example`](...) for basic settings, and
+otherwise will use default settings.
+
+Finer grained connection options are possible (heartbeat, ssl, etc.) if you
+provide your own
+[`pika.ConnectionParameters`](https://pika.readthedocs.io/en/stable/modules/parameters.html)
+object when instantiating an `AMQPSpace`. Please take a look at those options if
+you experience dropped connections, or have other connection related issues.
