@@ -24,15 +24,21 @@ def rabbitmq_container():
 
 def wait_for_rabbitmq():
     print("Waiting for RabbitMQ server to start...")
-    retries = 10
+    retries = 30
     for _ in range(retries):
         try:
-            result = subprocess.run(["docker", "exec", "rabbitmq-test", "rabbitmq-diagnostics", "ping"],
-                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            result = subprocess.run([
+                    "docker", "exec", "rabbitmq-test",
+                    "rabbitmq-diagnostics", "check_running"
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True,
+            )
             if result.returncode == 0:
                 print("RabbitMQ server is up and running.")
                 return
         except subprocess.CalledProcessError:
             pass
-        time.sleep(10)
+        time.sleep(1)
     raise Exception("RabbitMQ server failed to start.")
