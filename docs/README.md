@@ -423,7 +423,7 @@ should be allowed. A rejected action will be returned as a permission error to
 the sender.
 
 
-# Using `AMQPSpace`
+# Using AMQPSpace
 
 To use AMQP for multi-process or networked communication, you can first swap the
 `AMQPSpace` class for the `NativeSpace` class in the walkthrough above.
@@ -480,8 +480,7 @@ See the [example application](../examples/demo/) for a full working example.
 
 When using AMQP, you have many options for connectivity that may affect your
 experience. By default, the `AMQPSpace` class will read the following
-environment variables (listed with their defaults) and will otherwise use
-default settings.
+environment variables and will otherwise use default settings.
 
 ```sh
 AMQP_HOST
