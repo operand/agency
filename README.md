@@ -141,12 +141,11 @@ poetry add agency
 # Running the Demo Application
 
 To run the demo, please follow the directions at
-[examples/demo](./examples/demo/).
+[examples/demo](./examples/demo/). After a short boot time you can visit the
+web app at `http://localhost:8080` and you should see a simple chat interface.
 
-After a short boot time you can visit the web app at `http://localhost:8080` and
-you should see a simple chat interface. The following is a screenshot of a
-conversation that demonstrates multiple agents intelligently interacting and
-following orders.
+The following is a screenshot of the web UI that demonstrates the multiple demo
+agents intelligently interacting and following orders.
 
 There are two OpenAI based agents: `"FunctionAI"` and `"CompletionAI"`, named
 for the API's they use, and `"Chatty"` a simple chat agent who uses a small
@@ -174,8 +173,8 @@ intended to be a full-fledged agent toolset.
 
 Projects like LangChain and others are exploring how to create purpose-built
 agents that solve diverse problems using tools. `agency` is focused on the
-problems surrounding agent/tool integration, such as observability and access
-control.
+problems surrounding agent/tool/human integration, such as observability and
+access control.
 
 More likely, you would use LangChain and other libraries for defining agent
 behavior and rely on `agency` to provide the connective layer for bringing
