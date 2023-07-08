@@ -5,7 +5,7 @@ agent integrated applications.
 
 The library provides a low-level means for connecting agents, systems, and human
 users by defining actions, callbacks, and access policies that you can use to
-monitor, control, and interact with your agents.
+connect, monitor, control, and interact with your agents.
 
 `agency` handles the details of the common messaging system and allows
 discovering and invoking actions across parties, automatically handling things
