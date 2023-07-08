@@ -11,13 +11,6 @@ monitor, control, and interact with your agents.
 discovering and invoking actions across parties, automatically handling things
 such as reporting exceptions, enforcing access restrictions, and more.
 
-`agency`'s purpose is to support agent development and integration by allowing
-you to create dynamic environments for your agents to freely work in a safe and
-controllable way, and to leave all other details up to you.
-
-
-Set your agents free (or just as much as you want) with `agency`!
-
 
 ## Features
 
