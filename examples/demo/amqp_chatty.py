@@ -1,11 +1,25 @@
+import os
 import time
+import pika
 from agents.chatty_ai import ChattyAI
 from agency.space import AMQPSpace
 
 
 if __name__ == '__main__':
 
-    space = AMQPSpace()
+    space = AMQPSpace(
+        pika_connection_params=pika.ConnectionParameters(
+            heartbeat=3, # <-- Note the heartbeat setting on this line
+            host=os.environ.get('AMQP_HOST', 'localhost'),
+            port=os.environ.get('AMQP_PORT', 5672),
+            virtual_host=os.environ.get('AMQP_VHOST', '/'),
+            credentials=pika.PlainCredentials(
+                os.environ.get('AMQP_USERNAME', 'guest'),
+                os.environ.get('AMQP_PASSWORD', 'guest'),
+            ),
+        )
+    )
+
 
     # Add a simple HF chat agent to the space
     space.add(

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# This script mostly passes subcommands to docker-compose but additionally:
-# - overrides some subcommands to add default options
-# - builds changes before every subcommand
+# This script mostly passes subcommands to docker-compose but overrides some
+# subcommands to add default options. See below.
+
 
 set -ae
 source .env
@@ -24,9 +24,9 @@ shift
 
 # add default arguments to these compose commands
 if [[ "$SUBCOMMAND" == "run" ]]; then
-  command="$SUBCOMMAND --remove-orphans --rm --service-ports $@"
+  command="$SUBCOMMAND --build --remove-orphans --rm --service-ports $@"
 elif [[ "$SUBCOMMAND" == "up" ]]; then
-  command="$SUBCOMMAND --remove-orphans --abort-on-container-exit $@"
+  command="$SUBCOMMAND --build --remove-orphans --force-recreate --always-recreate-deps --abort-on-container-exit $@"
 elif [[ "$SUBCOMMAND" == "down" ]]; then
   command="$SUBCOMMAND --remove-orphans $@"
 
@@ -34,27 +34,6 @@ elif [[ "$SUBCOMMAND" == "down" ]]; then
 # otherwise just pass the subcommand through to docker-compose
 else
   command="$SUBCOMMAND $@"
-fi
-
-
-# build changes first unless the subcommand is build
-if [ "$SUBCOMMAND" != "build" ]; then
-  echo "Building changes ..."
-  if [ $QUIET_BUILD_CHANGES ]; then
-    dc build --quiet || (
-      echo "Building changes failed. Run 'demo build' to find out why."
-      exit 1
-    )
-  else
-    dc build
-  fi
-
-  echo "Cleaning up dangling images ..."
-  if [ $QUIET_BUILD_CHANGES ]; then
-    docker image prune -f > /dev/null
-  else
-    docker image prune -f
-  fi
 fi
 
 

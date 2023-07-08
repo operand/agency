@@ -1,5 +1,4 @@
 from abc import ABC, ABCMeta, abstractmethod
-from agency import util
 from agency.agent import Agent
 from agency.schema import MessageSchema
 from typing import List
