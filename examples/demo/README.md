@@ -22,12 +22,12 @@ should not be considered production ready.
 
       To run the single-container `NativeSpace` application:
       ```sh
-      demo run native
+      ./demo run native
       ```
 
       To run the multi-container `AMQPSpace` application:
       ```sh
-      demo run amqp
+      ./demo run amqp
       ```
 
 1. Visit [http://localhost:8080](http://localhost:8080) and try it out!
