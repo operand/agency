@@ -59,7 +59,7 @@
           ],
           input: ''
         };
-        this.socket = io.connect('http://localhost:8080');
+        this.socket = io();
         this.chatbox = React.createRef()
       }
 
