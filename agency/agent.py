@@ -1,9 +1,11 @@
-from agency import util
-from agency.schema import ActionSchema, MessageSchema
-from colorama import Fore, Style
-from typing import List
 import inspect
 import re
+import threading
+from typing import List
+
+from colorama import Fore, Style
+
+from agency.schema import ActionSchema, MessageSchema
 
 # access keys
 ACCESS = "access"
@@ -32,6 +34,10 @@ class Agent():
         if re.match(r"^amq\.", id):
             raise ValueError("id cannot start with \"amq.\"")
         self.__id: str = id
+        # threading state
+        self._thread_started = threading.Event()
+        self._thread_stopping = threading.Event()
+        self._thread_stopped = threading.Event()
         # set by Space when added
         self._space = None
         # a basic approach to storing messages
@@ -50,9 +56,7 @@ class Agent():
         """
         Sends (out) an action
         """
-        action = ActionSchema(**action).dict(by_alias=True)  # validate
-        message = self._space._route(sender=self, action=action)
-        self._message_log.append(message)
+        self._space._route(sender=self, action=action)
 
     def _receive(self, message: dict):
         """
@@ -128,7 +132,7 @@ class Agent():
                 raise PermissionError(
                   f"\"{self.id()}.{message['action']}\" not permitted")
         except Exception as e:
-            error = e # save the error for _after_action
+            error = e  # save the error for _after_action
             raise Exception(e)
         finally:
             self._after_action(message, return_value, error)

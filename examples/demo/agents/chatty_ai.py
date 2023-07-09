@@ -1,17 +1,18 @@
-from agency.agent import ACCESS_PERMITTED, access_policy
-from agency.agent import Agent
-from .prompt_methods import PromptMethods
-from agency.schema import MessageSchema
-from transformers import AutoTokenizer, AutoModelForCausalLM
 import os
-import agency.util as util
 import textwrap
 
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+import agency.util as util
+from agency.agent import ACCESS_PERMITTED, Agent, access_policy
+from examples.demo.agents.help_methods import HelpMethods
+
+from .prompt_methods import PromptMethods
 
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 
 
-class ChattyAI(PromptMethods, Agent):
+class ChattyAI(PromptMethods, HelpMethods, Agent):
     """
     Encapsulates a simple chatting AI backed by a language model.
     Currently uses transformers library as a backend provider.

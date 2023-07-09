@@ -35,8 +35,8 @@ services:
         condition: service_healthy
       amqp_chatty:
         condition: service_started
-      amqp_openai:
-        condition: service_started
+      # amqp_openai:
+      #   condition: service_started
       amqp_web:
         condition: service_started
     command: poetry run python amqp_main.py
@@ -50,12 +50,12 @@ services:
         condition: service_healthy
     command: poetry run python amqp_chatty.py
 
-  amqp_openai:
-    <<: *demo-base
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    command: poetry run python amqp_openai.py
+  # amqp_openai:
+  #   <<: *demo-base
+  #   depends_on:
+  #     rabbitmq:
+  #       condition: service_healthy
+  #   command: poetry run python amqp_openai.py
 
   amqp_web:
     <<: *demo-base
