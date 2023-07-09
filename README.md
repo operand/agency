@@ -20,7 +20,7 @@ such as reporting exceptions, enforcing access restrictions, and more.
   using AMQP
 
 ### Observability and Control
-  * Before/After action callbacks for observability or other needs
+  * Before/after action and lifecycle callbacks for observability or other needs
   * Access policies and permission callbacks for access control
 
 ### Performance
