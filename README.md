@@ -36,7 +36,7 @@ such as reporting exceptions, enforcing access restrictions, and more.
   * Two OpenAI agent examples
   * HuggingFace transformers agent example
   * Simple Flask/React web interface included
-  * Direct host access for agents
+  * Operating system access for agents
   * Docker configuration for reference and development
 
 
@@ -84,7 +84,7 @@ safety. For example:
     ...
 ```
 
-You can also callbacks for various purposes:
+You can also define callbacks for various purposes:
 
 ```python
 class CalculatorAgent(Agent):
