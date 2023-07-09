@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     space = AMQPSpace(
         pika_connection_params=pika.ConnectionParameters(
-            heartbeat=3, # <-- Note the heartbeat setting on this line
+            heartbeat=3,
             host=os.environ.get('AMQP_HOST', 'localhost'),
             port=os.environ.get('AMQP_PORT', 5672),
             virtual_host=os.environ.get('AMQP_VHOST', '/'),

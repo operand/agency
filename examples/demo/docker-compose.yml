@@ -15,23 +15,11 @@ x-demo-base:
   environment:
     TRANSFORMERS_CACHE: /models/transformers_cache
 
-x-amqp-base:
-  &amqp-base
-  <<: *demo-base
-  profiles:
-    - amqp
-  depends_on:
-    rabbitmq:
-      condition: service_healthy
-
-
 services:
 
   # This container runs all example classes in a single native space
   native:
     <<: *demo-base
-    profiles:
-      - native
     ports:
       - '$WEB_APP_PORT:$WEB_APP_PORT'
     command: poetry run python native_demo.py
@@ -41,29 +29,46 @@ services:
   # This and the following containers run the same example classes
   # across containers in an amqp space
   amqp:
-    <<: *amqp-base
+    <<: *demo-base
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      amqp_chatty:
+        condition: service_started
+      amqp_openai:
+        condition: service_started
+      amqp_web:
+        condition: service_started
     command: poetry run python amqp_main.py
     tty: true
     stdin_open: true
 
   amqp_chatty:
-    <<: *amqp-base
+    <<: *demo-base
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     command: poetry run python amqp_chatty.py
 
-  # amqp_openai:
-  #   <<: *amqp-base
-  #   command: poetry run python amqp_openai.py
+  amqp_openai:
+    <<: *demo-base
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    command: poetry run python amqp_openai.py
 
   amqp_web:
-    <<: *amqp-base
+    <<: *demo-base
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     ports:
       - '$WEB_APP_PORT:$WEB_APP_PORT'
     command: poetry run python amqp_web.py
 
   rabbitmq:
-    profiles:
-      - amqp
     image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
     ports:
       - 5672:5672 # broker
       - 15672:15672 # management
