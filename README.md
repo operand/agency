@@ -84,7 +84,7 @@ safety. For example:
     ...
 ```
 
-You can also define before/after and permission callbacks for various purposes:
+You can also callbacks for various purposes:
 
 ```python
 class CalculatorAgent(Agent):
