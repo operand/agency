@@ -75,6 +75,9 @@
             }
           } else {
             let commandEndIndex = action_text.indexOf(" ");
+            if (commandEndIndex === -1) {
+              commandEndIndex = action_text.length;
+            }
             let action_name = action_text.substring(1, commandEndIndex);
             let args = {};
 
