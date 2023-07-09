@@ -95,12 +95,18 @@ class CalculatorAgent(Agent):
   def _after_action(self, original_message: dict, return_value: str, error: str):
     # Called after any action is attempted
 
+  def _after_add(self):
+    # Called after the agent is added to the space and may begin communicating
+
+  def _before_remove(self):
+    # Called before the agent is removed from the space
+
   def _request_permission(self, proposed_message: dict) -> bool:
     # Called before an ACCESS_REQUESTED action is attempted for run-time review
 ```
 
 A `Space` is how you connect your agents together. An agent cannot communicate
-with others until it is added to a common "space".
+with others until it is added to a common `Space`.
 
 There are two included `Space` implementations to choose from:
 * `NativeSpace` - which connects agents within the same python process
