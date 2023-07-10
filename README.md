@@ -168,20 +168,17 @@ terminal), `"FunctionAI"` appropriately used the `shell_command` action with `wc
 
 Though you could entirely create a simple agent using only the primitives in
 `agency` (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
-intended to be a full-fledged agent toolset.
+intended to be a full-fledged agent toolset like other libraries or tools.
 
-Projects like LangChain and others are exploring how to create purpose-built
-agents that solve diverse problems using tools. `agency` is focused on the
-problems surrounding agent/tool/human integration, such as observability and
-access control.
+`agency` is focused on the problems surrounding agent/tool/human integration,
+such as communication, observability, and access control. The library strives to
+provide a minimal yet practical foundation for defining and integrating agent
+systems, allowing developers the freedom to experiment with different agent
+solutions as they desire.
 
-More likely, you would use LangChain and other libraries for defining agent
-behavior and rely on `agency` to provide the connective layer for bringing
-agents and other systems together.
-
-So in comparison, `agency` is a smaller but more general purpose application
-framework compared to libraries like LangChain that focus on enabling individual
-agent behavior.
+More likely, you would use LangChain or other libraries for defining agent
+specific behavior and rely on `agency` to provide the connective layer for
+bringing agents and other systems together.
 
 
 ## What are some known limitations or issues?
