@@ -1,11 +1,9 @@
 from agency.agent import ACCESS_PERMITTED, Agent, access_policy
 from agency.schema import MessageSchema
 from agency.space import Space
-from eventlet import wsgi
 from flask import Flask, render_template
 from flask.logging import default_handler
 from flask_socketio import SocketIO
-import eventlet
 import logging
 
 
@@ -28,17 +26,14 @@ class WebApp():
         app = Flask(__name__)
         app.config['SECRET_KEY'] = 'secret!'
 
-        # six lines to disable logging...
+        # disable logging
         app.logger.removeHandler(default_handler)
         app.logger.setLevel(logging.ERROR)
         werkzeug_log = logging.getLogger('werkzeug')
         werkzeug_log.setLevel(logging.ERROR)
-        eventlet_logger = logging.getLogger('eventlet.wsgi.server')
-        eventlet_logger.setLevel(logging.ERROR)
 
-        # start socketio server
-        self.socketio = SocketIO(app, async_mode='eventlet',
-                                 logger=False, engineio_logger=False)
+        # define socketio server
+        self.socketio = SocketIO(app, logger=False, engineio_logger=False)
 
         # Define routes
         @app.route('/')
@@ -72,11 +67,9 @@ class WebApp():
             """
             raise NotImplementedError()
 
-        # Wrap the Flask application with wsgi middleware and start
-        def run_server():
-            wsgi.server(eventlet.listen(('', int(self.__port))),
-                        app, log=eventlet_logger)
-        eventlet.spawn(run_server)
+        # Start the server
+        print(f"Starting web server on port {self.__port}")
+        self.socketio.run(app, port=self.__port)
 
     def current_user(self):
         # NOTE: We're simplifying here by hardcoding a single user. In a real
