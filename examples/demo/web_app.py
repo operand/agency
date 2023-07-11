@@ -1,10 +1,12 @@
+import eventlet
+eventlet.monkey_patch()
+
 import logging
 
+from eventlet import wsgi
 from flask import Flask, render_template
 from flask.logging import default_handler
 from flask_socketio import SocketIO
-from gevent import pywsgi
-from geventwebsocket.handler import WebSocketHandler
 
 from agency.agent import ACCESS_PERMITTED, Agent, access_policy
 from agency.schema import MessageSchema
@@ -30,14 +32,17 @@ class WebApp():
         app = Flask(__name__)
         app.config['SECRET_KEY'] = 'secret!'
 
-        # disable logging
+        # six lines to disable logging...
         app.logger.removeHandler(default_handler)
         app.logger.setLevel(logging.ERROR)
         werkzeug_log = logging.getLogger('werkzeug')
         werkzeug_log.setLevel(logging.ERROR)
+        eventlet_logger = logging.getLogger('eventlet.wsgi.server')
+        eventlet_logger.setLevel(logging.ERROR)
 
-        # define socketio server
-        self.socketio = SocketIO(app, logger=False, engineio_logger=False)
+        # start socketio server
+        self.socketio = SocketIO(app, async_mode='eventlet',
+                                 logger=False, engineio_logger=False)
 
         # Define routes
         @app.route('/')
@@ -71,10 +76,11 @@ class WebApp():
             """
             raise NotImplementedError()
 
-        # Start the server
-        print(f"Starting web server on port {self.__port}")
-        server = pywsgi.WSGIServer(('0.0.0.0', int(self.__port)), app, handler_class=WebSocketHandler)
-        server.serve_forever()
+        # Wrap the Flask application with wsgi middleware and start
+        def run_server():
+            wsgi.server(eventlet.listen(('', int(self.__port))),
+                        app, log=eventlet_logger)
+        eventlet.spawn(run_server)
 
     def current_user(self):
         # NOTE: We're simplifying here by hardcoding a single user. In a real
