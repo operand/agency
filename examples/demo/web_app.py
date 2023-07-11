@@ -1,8 +1,6 @@
-import eventlet
-eventlet.monkey_patch()
-
 import logging
 
+import eventlet
 from eventlet import wsgi
 from flask import Flask, render_template
 from flask.logging import default_handler

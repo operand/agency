@@ -1,8 +1,10 @@
+import eventlet
+eventlet.monkey_patch()
 from agency.space import AMQPSpace
 from web_app import WebApp
-import os
 import pika
 import time
+import os
 
 
 if __name__ == '__main__':
