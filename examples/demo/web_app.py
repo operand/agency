@@ -69,7 +69,7 @@ class WebApp():
 
         # Start the server
         print(f"Starting web server on port {self.__port}")
-        self.socketio.run(app, port=self.__port)
+        self.socketio.run(app, host='0.0.0.0', port=self.__port)
 
     def current_user(self):
         # NOTE: We're simplifying here by hardcoding a single user. In a real
