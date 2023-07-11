@@ -170,15 +170,19 @@ Though you could entirely create a simple agent using only the primitives in
 `agency` (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
 intended to be a full-fledged agent toolset like other libraries or tools.
 
-`agency` is focused on the problems surrounding agent/tool/human integration,
-such as communication, observability, and access control. The library strives to
-provide a minimal yet practical foundation for defining and integrating agent
-systems, allowing developers the freedom to experiment with different agent
-solutions as they desire.
+`agency` is an application framework focused on the problems surrounding
+agent/tool/human integration, such as communication, observability, and access
+control. The library strives to provide a minimal yet practical foundation for
+defining and integrating agent systems, allowing developers the freedom to
+experiment with different agent solutions as they desire.
 
-More likely, you would use LangChain or other libraries for defining agent
-specific behavior and rely on `agency` to provide the connective layer for
-bringing agents and other systems together.
+To risk an analogy for those familiar with the javascript ecosystem:
+
+* Libraries like LangChain are somewhat like the lodash library, providing a
+large set of tools for creating agents.
+
+* `agency` strives to be more like the express framework, providing a minimal
+set of tools for creating agent systems.
 
 
 ## What are some known limitations or issues?
@@ -267,6 +271,10 @@ parallelism option for single-host systems.
 - **Multimodal Support**:
 Image/audio transfer for use with multimodal models or other multimedia
 services.
+
+- **Storage Support**
+Persistent session support will be included. Other forms of storage will be
+considered as well though it's not clear yet what that will look like.
 
 - **More Examples**:
 More examples of integrations with popular AI libraries and tools such as
