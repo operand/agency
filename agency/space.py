@@ -54,8 +54,10 @@ class NativeSpace(Space):
             # create queue for agent
             agent._queue = queue.Queue()
             agent._space = self
+            agent._connected = threading.Event()
+            agent._connected.set()
             agent._after_add()
-            while True:
+            while agent._connected.is_set():
                 try:
                     message_dict = agent._queue.get(block=False)
                     message = MessageSchema(
@@ -71,6 +73,7 @@ class NativeSpace(Space):
 
     def remove(self, agent: Agent):
         agent._before_remove()
+        agent._connected.clear()
         self.agents.remove(agent)
         agent._space = None
 

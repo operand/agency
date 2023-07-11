@@ -1,12 +1,14 @@
-from agency.agent import ACCESS_PERMITTED, Agent, access_policy
-from agency.schema import MessageSchema
-from agency.space import Space
+import logging
+
+import eventlet
 from eventlet import wsgi
 from flask import Flask, render_template
 from flask.logging import default_handler
 from flask_socketio import SocketIO
-import eventlet
-import logging
+
+from agency.agent import ACCESS_PERMITTED, Agent, access_policy
+from agency.schema import MessageSchema
+from agency.space import Space
 
 
 class WebApp():
