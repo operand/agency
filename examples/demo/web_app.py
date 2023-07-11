@@ -1,10 +1,14 @@
-from agency.agent import ACCESS_PERMITTED, Agent, access_policy
-from agency.schema import MessageSchema
-from agency.space import Space
+import logging
+
 from flask import Flask, render_template
 from flask.logging import default_handler
 from flask_socketio import SocketIO
-import logging
+from gevent import pywsgi
+from geventwebsocket.handler import WebSocketHandler
+
+from agency.agent import ACCESS_PERMITTED, Agent, access_policy
+from agency.schema import MessageSchema
+from agency.space import Space
 
 
 class WebApp():
@@ -69,7 +73,8 @@ class WebApp():
 
         # Start the server
         print(f"Starting web server on port {self.__port}")
-        self.socketio.run(app, host='0.0.0.0', port=self.__port)
+        server = pywsgi.WSGIServer(('0.0.0.0', int(self.__port)), app, handler_class=WebSocketHandler)
+        server.serve_forever()
 
     def current_user(self):
         # NOTE: We're simplifying here by hardcoding a single user. In a real
