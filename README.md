@@ -176,14 +176,13 @@ control. The library strives to provide a minimal yet practical foundation for
 defining and integrating agent systems, allowing developers the freedom to
 experiment with different agent solutions as they desire.
 
-To risk an analogy for those familiar with the javascript ecosystem:
+A rough analogy for those familiar with the javascript ecosystem:
 
 * Libraries like LangChain are somewhat like the lodash library, providing a
-large set of tools for creating agents.
+large set of tools for defining agent behavior.
 
 * `agency` strives to be more like the express framework, providing a minimal
-set of tools for creating agent systems.
-
+set of tools for creating entire agent-integrated systems from the ground up.
 
 ## What are some known limitations or issues?
 
