@@ -272,7 +272,7 @@ Image/audio transfer for use with multimodal models or other multimedia
 services.
 
 - **Storage Support**
-Persistent session support will be included. Other forms of storage will be
+Durable session support will be included. Other forms of storage will be
 considered as well though it's not clear yet what that will look like.
 
 - **More Examples**:
