@@ -1,7 +1,7 @@
 # Summary
 
 `agency` is a python library that provides a communication and action framework
-for creating AI agent integrated applications.
+for creating AI agent-integrated applications.
 
 The library provides a low-level means for connecting agents, systems, and human
 users by defining actions, callbacks, and access policies that you can use to
@@ -173,16 +173,9 @@ intended to be a full-fledged agent toolset like other libraries or tools.
 `agency` is an application framework focused on the problems surrounding
 agent/tool/human integration, such as communication, observability, and access
 control. The library strives to provide a minimal yet practical foundation for
-defining and integrating agent systems, allowing developers the freedom to
-experiment with different agent solutions as they desire.
+defining and integrating agent-based systems, allowing developers the freedom
+to experiment with different agent solutions as they desire.
 
-A rough analogy for those familiar with the javascript ecosystem:
-
-* Libraries like LangChain are somewhat like the lodash library, providing a
-large set of tools for defining agent behavior.
-
-* `agency` strives to be more like the express framework, providing a minimal
-set of tools for creating entire agent-integrated systems from the ground up.
 
 ## What are some known limitations or issues?
 
