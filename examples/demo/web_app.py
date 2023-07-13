@@ -54,21 +54,18 @@ class WebApp():
         @self.socketio.on('connect')
         def handle_connect():
             # When a client connects add them to the space
-            # NOTE We're hardcoding a single demo user for simplicity
+            # NOTE We're hardcoding a single demo_username for simplicity
             self.__current_user = WebUser(
                 name=self.__demo_username,
                 app=self,
                 sid=request.sid
             )
             self.__space.add(self.__current_user)
-            util.debug(f"*Added user {self.__current_user.name}")
 
         @self.socketio.on('disconnect')
         def handle_disconnect():
             # When a client disconnects remove them from the space
-            util.debug(f"*{self.__current_user.name} disconnected")
             self.__space.remove(self.__current_user)
-            util.debug(f"*Removed user {self.__current_user.name}")
             self.__current_user = None
 
         @self.socketio.on('message')
@@ -76,7 +73,6 @@ class WebApp():
             """
             Handles sending incoming actions from the web interface
             """
-            util.debug(f"* {self.__current_user} sending from web", action)
             self.__current_user._send(action)
 
         @self.socketio.on('permission_response')
@@ -112,9 +108,6 @@ class WebUser(Agent):
         self.app.socketio.server.emit(
             'permission_request', proposed_message)
 
-    def _before_action(self, message: dict):
-        util.debug(f"*{self.name} receiving", message)
-
     # The following methods simply forward incoming messages to the web client
 
     @access_policy(ACCESS_PERMITTED)
@@ -122,19 +115,15 @@ class WebUser(Agent):
         """
         Sends a message to the user
         """
-        util.debug(f"* {self.id()}({self.sid}) received _action__say", content)
         self.app.socketio.server.emit(
             'message', self._current_message, room=self.sid)
 
     @access_policy(ACCESS_PERMITTED)
     def _action__return(self, original_message: dict, return_value):
-        util.debug(
-            f"* {self.id()}({self.sid}) received _action__return", return_value)
         self.app.socketio.server.emit(
             'message', self._current_message, room=self.sid)
 
     @access_policy(ACCESS_PERMITTED)
     def _action__error(self, original_message: dict, error: str):
-        util.debug(f"* {self.id()}({self.sid}) received _action__error", error)
         self.app.socketio.server.emit(
             'message', self._current_message, room=self.sid)
