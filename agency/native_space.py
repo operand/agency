@@ -32,6 +32,7 @@ class NativeSpace(Space):
                     message = MessageSchema(
                         **message_dict).dict(by_alias=True)  # validate
                     if 'to' not in message or message['to'] in [None, ""] or message['to'] == agent.id():
+                        util.debug(f"*{agent.id()} received:", message)
                         agent._receive(message)
                 except queue.Empty:
                     pass
@@ -40,6 +41,7 @@ class NativeSpace(Space):
 
         threading.Thread(target=_consume_messages).start()
         agent._thread_started.wait()
+        util.debug(f"*Added agent {agent.id()}")
         agent._after_add()
 
     def remove(self, agent: Agent):
@@ -79,8 +81,10 @@ class NativeSpace(Space):
                     'error': f"\"{message['to']}\" not found",
                 }
             }).dict(by_alias=True)
+            util.debug(f"*Error for {sender.id()}", error_message)
             sender._queue.put(error_message)
         else:
             # enqueue message for recipients
             for recipient in recipients:
+                util.debug(f"*Enqueuing message for {recipient.id()}", message)
                 recipient._queue.put(message)

@@ -20,10 +20,10 @@ if __name__ == '__main__':
     # Add a host agent to the space, exposing access to the host system
     space.add(Host("Host"))
 
-    # Add a simple HF based chat agent to the space
-    space.add(
-        ChattyAI("Chatty",
-                 model="EleutherAI/gpt-neo-125m"))
+    # # Add a simple HF based chat agent to the space
+    # space.add(
+    #     ChattyAI("Chatty",
+    #              model="EleutherAI/gpt-neo-125m"))
 
     # Add an OpenAI function API agent to the space
     space.add(
@@ -33,11 +33,11 @@ if __name__ == '__main__':
                             # user_id determines the "user" role in the OpenAI chat API
                             user_id="Dan"))
 
-    # Add another OpenAI agent based on the completion API
-    space.add(
-        OpenAICompletionAgent("CompletionAI",
-                              model="text-davinci-003",
-                              openai_api_key=os.getenv("OPENAI_API_KEY")))
+    # # Add another OpenAI agent based on the completion API
+    # space.add(
+    #     OpenAICompletionAgent("CompletionAI",
+    #                           model="text-davinci-003",
+    #                           openai_api_key=os.getenv("OPENAI_API_KEY")))
 
     # Create and start a web app to connect human users to the space.
     # As users connect they are added to the space as agents.

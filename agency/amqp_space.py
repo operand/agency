@@ -104,7 +104,6 @@ class AMQPSpace(Space):
                     [direct_queue, broadcast_queue],
                     callbacks=[_on_message],
                 ):
-
                     agent._space = self
                     agent._thread_started.set()
                     try:
@@ -127,8 +126,8 @@ class AMQPSpace(Space):
             raise Exception(
                 f"Agent {agent.id()} could not be added. Thread timeout.")
         else:
-            agent._after_add()
             util.debug(f"*Added agent {agent.id()}")
+            agent._after_add()
 
     def remove(self, agent: Agent) -> None:
         agent._before_remove()
