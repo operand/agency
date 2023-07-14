@@ -21,7 +21,7 @@ if __name__ == '__main__':
     # Add a host agent to the space, exposing access to the host system
     space.add(Host("Host"))
 
-    # # Add a simple HF based chat agent to the space
+    # Add a simple HF based chat agent to the space
     space.add(
         ChattyAI("Chatty",
                  model="EleutherAI/gpt-neo-125m"))
