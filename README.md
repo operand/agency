@@ -167,15 +167,13 @@ Though you could entirely create a simple agent using only the primitives in
 `agency` (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
 intended to be an agent toolset like other libraries.
 
-`agency` is an application framework focused on the problems surrounding
-agent/tool/human integration, such as communication, observability, and access
-control. The library strives to provide a minimal yet practical foundation for
-defining and integrating agent-based systems, allowing developers the freedom to
-create different agent solutions as they desire.
+`agency` is a framework for defining and integrating agent systems. It strives
+to provide a minimal yet practical foundation, allowing developers the freedom
+to create custom agent solutions as they desire.
 
-So while you might use libraries like LangChain for defining agent behavior, you
-can use `agency` for providing the communication and control foundation on which
-to build your agent-system.
+While you might use other libraries for defining agent behavior, you can use
+`agency` for providing the basic communication and control foundation on which
+to build your agent system.
 
 ## What are some known limitations or issues?
 
