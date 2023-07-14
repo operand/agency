@@ -490,21 +490,18 @@ AMQP_PASSWORD
 AMQP_VHOST
 ```
 
-Finer grained connection options are possible (heartbeat, ssl, etc.) if you
-provide your own
-[`pika.ConnectionParameters`](https://pika.readthedocs.io/en/stable/modules/parameters.html)
-object when instantiating an `AMQPSpace`. For example:
-  
+More options are possible like setting the heartbeat rate or enabling ssl, if
+you provide your own `AMQPOptions` object when instantiating an `AMQPSpace`.
+For example:
+
 ```python
 space = AMQPSpace(
-    pika_connection_params=pika.ConnectionParameters(
-        host="localhost",
+    amqp_options=AMQPOptions(
+        hostname="localhost",
         port=5672,
-        heartbeat=60,
-        ssl=True,
-        ssl_options=pika.SSLOptions(
-            ca_certs="/path/to/ca/certs",
-            keyfile="/path/to/keyfile",
-            certfile="/path/to/certfile",
-            cert_reqs=ssl.CERT_REQUIRED)))
+        username="guest",
+        password="guest",
+        virtual_host="/",
+        use_ssl=True,
+        heartbeat=60))
 ```
