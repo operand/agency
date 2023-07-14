@@ -1,12 +1,12 @@
-from agency.agent import ACCESS_PERMITTED, access_policy
-from agency.agent import Agent
-from .prompt_methods import PromptMethods
-from agency.schema import MessageSchema
-from transformers import AutoTokenizer, AutoModelForCausalLM
 import os
-import agency.util as util
 import textwrap
 
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+import agency.util as util
+from agency.agent import ACCESS_PERMITTED, Agent, access_policy
+
+from .prompt_methods import PromptMethods
 
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 

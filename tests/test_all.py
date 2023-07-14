@@ -1,12 +1,20 @@
-from agency import util
-from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED,
-                          ACCESS_REQUESTED, Agent, access_policy)
-from agency.space import AMQPSpace, NativeSpace
+import json
+import subprocess
+import sys
+import time
 from unittest.mock import MagicMock
-import pika
+
 import pytest
 import pytest_asyncio
-import time
+
+from agency import util
+from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED, ACCESS_REQUESTED,
+                          Agent, access_policy)
+from agency.amqp_space import AMQPOptions, AMQPSpace
+from agency.native_space import NativeSpace
+
+import tracemalloc
+tracemalloc.start()
 
 
 class Webster(Agent):
@@ -48,19 +56,23 @@ class Chatty(Agent):
     """A fake AI agent"""
 
 
-def wait_for_messages(agent, count=1, max_seconds=3):
+def wait_for_messages(agent, count=1, max_seconds=5):
     """
     A utility method to wait for messages to be processed. Throws an exception
-    if the number of messages received goes over count.
+    if the number of messages received goes over count, or if the timeout is
+    reached.
     """
+    print(f"{agent.id()} waiting {max_seconds} seconds for {count} messages...")
     start_time = time.time()
     while ((time.time() - start_time) < max_seconds):
         time.sleep(0.01)
         if len(agent._message_log) > count:
             raise Exception(
-                f"too many messages received: {len(agent._message_log)} expected: {count}")
+                f"too many messages received: {len(agent._message_log)} expected: {count}\n{json.dumps(agent._message_log, indent=2)}")
         if len(agent._message_log) == count:
             return
+    raise Exception(
+        f"too few messages received: {len(agent._message_log)} expected: {count}\n{json.dumps(agent._message_log, indent=2)}")
 
 
 @pytest.fixture
@@ -70,14 +82,15 @@ def native_space():
 
 @pytest.fixture
 def amqp_space():
-    connection_params = pika.ConnectionParameters(
-        host='localhost',
-        port='5672',
-        credentials=pika.PlainCredentials(
-            'guest', 'guest'
-        ),
+    return AMQPSpace(exchange="agency-test")
+
+
+@pytest.fixture
+def amqp_space_with_short_heartbeat():
+    return AMQPSpace(
+        amqp_options=AMQPOptions(heartbeat=2),
+        exchange="agency-test",
     )
-    return AMQPSpace(pika_connection_params=connection_params)
 
 
 @pytest.fixture(params=['native_space', 'amqp_space'])
@@ -99,23 +112,10 @@ async def webster_and_chatty(either_space):
     either_space.add(webster)
     either_space.add(chatty)
 
-    # wait for both agents to be added
-    start_time = time.time()
-    while webster._space is None \
-            or chatty._space is None \
-            and (time.time() - start_time) < 5:
-        time.sleep(0.01)
-
     yield (webster, chatty)
 
     either_space.remove(webster)
     either_space.remove(chatty)
-    # wait for both agents to be removed
-    start_time = time.time()
-    while webster._space is not None \
-            or chatty._space is not None \
-            and (time.time() - start_time) < 5:
-        time.sleep(0.01)
 
 
 # -----------
@@ -156,18 +156,10 @@ def test_after_add_and_before_remove(either_space):
     agent = Chatty("Chatty")
     agent._after_add = MagicMock()
     either_space.add(agent)
-    # wait for 5 secs until ._space is set
-    start_time = time.time()
-    while agent._space is None and (time.time() - start_time) < 5:
-        time.sleep(0.01)
     agent._after_add.assert_called_once()
 
     agent._before_remove = MagicMock()
     either_space.remove(agent)
-    # wait for 5 secs until ._space is unset
-    start_time = time.time()
-    while agent._space is not None and (time.time() - start_time) < 5:
-        time.sleep(0.01)
     agent._before_remove.assert_called_once()
 
 
@@ -498,3 +490,53 @@ def test_send_request_rejected_action(webster_and_chatty):
             "from": "Chatty"
         }
     ]
+
+
+def test_heartbeat(amqp_space_with_short_heartbeat):
+    """
+    Tests the amqp heartbeat is sent by setting a short heartbeat interval and
+    ensuring the connection remains open.
+    """
+    hartford = Agent("Hartford")
+    hartford._action__say = MagicMock()
+    hartford._action__say.access_policy = ACCESS_PERMITTED
+    hartford._action__say.return_value = None
+    amqp_space_with_short_heartbeat.add(hartford)
+
+    # wait enough time for connection to drop if no heartbeat is sent
+    time.sleep(6) # 3 x heartbeat
+
+    # send yourself a message
+    hartford._send({
+        "from": hartford.id(),
+        "to": hartford.id(),
+        "thoughts": "Hello",
+        "action": "say",
+        "args": {
+            "content": "Hello",
+        },
+    })
+    wait_for_messages(hartford, count=2, max_seconds=5)
+    assert len(hartford._message_log) == 2
+    assert hartford._message_log == [
+        {
+            "from": hartford.id(),
+            "to": hartford.id(),
+            "thoughts": "Hello",
+            "action": "say",
+            "args": {
+                "content": "Hello",
+            },
+        },
+        {
+            "from": hartford.id(),
+            "to": hartford.id(),
+            "thoughts": "Hello",
+            "action": "say",
+            "args": {
+                "content": "Hello",
+            },
+        },
+    ]
+    # cleanup
+    amqp_space_with_short_heartbeat.remove(hartford)

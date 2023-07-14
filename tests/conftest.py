@@ -14,10 +14,13 @@ def rabbitmq_container():
         "--user", "rabbitmq:rabbitmq",
         "rabbitmq:3-management",
     ], start_new_session=True)
-    wait_for_rabbitmq()
-    yield container
-    subprocess.run(["docker", "stop", "rabbitmq-test"])
-    subprocess.run(["docker", "rm", "rabbitmq-test"])
+    try:
+        wait_for_rabbitmq()
+        yield container
+    finally:
+        subprocess.run(["docker", "stop", "rabbitmq-test"])
+        subprocess.run(["docker", "rm", "rabbitmq-test"])
+        container.wait()
 
 
 def wait_for_rabbitmq():

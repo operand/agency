@@ -2,9 +2,11 @@ import logging
 
 import eventlet
 from eventlet import wsgi
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
+from regex import F
+from agency import util
 
 from agency.agent import ACCESS_PERMITTED, Agent, access_policy
 from agency.schema import MessageSchema
@@ -20,8 +22,8 @@ class WebApp():
     def __init__(self, space: Space, port: int, demo_username: str):
         self.__space = space
         self.__port = port
-        # NOTE We're hardcoding a single demo user for simplicity
-        self.__demo_user = WebUser(demo_username, app=self)
+        self.__demo_username = demo_username
+        self.__current_user = None
 
     def start(self):
         """
@@ -47,25 +49,31 @@ class WebApp():
         def index():
             return render_template(
                 'index.html',
-                username=f"{self.current_user().name}")
+                username=f"{self.__demo_username}")
 
         @self.socketio.on('connect')
         def handle_connect():
             # When a client connects add them to the space
-            self.__space.add(self.current_user())
+            # NOTE We're hardcoding a single demo_username for simplicity
+            self.__current_user = WebUser(
+                name=self.__demo_username,
+                app=self,
+                sid=request.sid
+            )
+            self.__space.add(self.__current_user)
 
         @self.socketio.on('disconnect')
         def handle_disconnect():
             # When a client disconnects remove them from the space
-            self.__space.remove(self.current_user())
+            self.__space.remove(self.__current_user)
+            self.__current_user = None
 
         @self.socketio.on('message')
         def handle_action(action):
             """
             Handles sending incoming actions from the web interface
             """
-            # NOTE we send it as the _user_, not the space
-            self.current_user()._send(action)
+            self.__current_user._send(action)
 
         @self.socketio.on('permission_response')
         def handle_alert_response(allowed: bool):
@@ -80,23 +88,17 @@ class WebApp():
                         app, log=eventlet_logger)
         eventlet.spawn(run_server)
 
-    def current_user(self):
-        # NOTE: We're simplifying here by hardcoding a single user. In a real
-        # application this function would return the user associated with the
-        # current session.
-        return self.__demo_user
-
 
 class WebUser(Agent):
     """
     A human user of WebApp
     """
 
-    def __init__(self, name: str, app: WebApp) -> None:
+    def __init__(self, name: str, app: WebApp, sid: str) -> None:
         super().__init__(id=name)
         self.name = name
         self.app = app
-        self._connected_sid = None
+        self.sid = sid
 
     def _request_permission(self, proposed_message: MessageSchema) -> bool:
         """
@@ -114,14 +116,14 @@ class WebUser(Agent):
         Sends a message to the user
         """
         self.app.socketio.server.emit(
-            'message', self._current_message, room=self._connected_sid)
+            'message', self._current_message, room=self.sid)
 
     @access_policy(ACCESS_PERMITTED)
     def _action__return(self, original_message: dict, return_value):
         self.app.socketio.server.emit(
-            'message', self._current_message, room=self._connected_sid)
+            'message', self._current_message, room=self.sid)
 
     @access_policy(ACCESS_PERMITTED)
     def _action__error(self, original_message: dict, error: str):
         self.app.socketio.server.emit(
-            'message', self._current_message, room=self._connected_sid)
+            'message', self._current_message, room=self.sid)

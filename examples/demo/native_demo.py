@@ -1,14 +1,16 @@
 import eventlet
 eventlet.monkey_patch()
 
-from agency.space import NativeSpace
-from web_app import WebApp
-from agents.openai_function_agent import OpenAIFunctionAgent
-from agents.openai_completion_agent import OpenAICompletionAgent
-from agents.host import Host
-from agents.chatty_ai import ChattyAI
-import time
 import os
+import time
+
+from agents.chatty_ai import ChattyAI
+from agents.host import Host
+from agents.openai_completion_agent import OpenAICompletionAgent
+from agents.openai_function_agent import OpenAIFunctionAgent
+from web_app import WebApp
+
+from agency.native_space import NativeSpace
 
 
 if __name__ == '__main__':

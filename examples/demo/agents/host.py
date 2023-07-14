@@ -5,7 +5,6 @@ import os
 import re
 import subprocess
 
-from agency.schema import MessageSchema
 
 
 class Host(Agent):
