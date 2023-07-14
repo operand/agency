@@ -3,13 +3,11 @@ import os
 import socket
 import threading
 import time
-import traceback
 from dataclasses import dataclass
 
 from amqp import ChannelError
 from kombu import Connection, Exchange, Queue
 
-from agency import util
 from agency.agent import Agent
 from agency.schema import MessageSchema
 from agency.space import Space
