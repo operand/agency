@@ -1,11 +1,11 @@
 # Summary
 
 `agency` is a python library that provides a communication and action framework
-for creating AI agent-integrated applications.
+for creating AI agent-integrated systems.
 
-The library provides a low-level means for connecting agents, systems, and human
-users by defining actions, callbacks, and access policies that you can use to
-connect, monitor, control, and interact with your agents.
+The library provides a foundation for connecting agents, software systems, and
+human users by defining actions, callbacks, and access policies that you can use
+to connect, monitor, control, and interact with your agents.
 
 `agency` handles the communication details and allows discovering and invoking
 actions across parties, automatically handling things such as reporting
