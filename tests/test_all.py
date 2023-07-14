@@ -1,4 +1,5 @@
 import json
+from os import wait
 import time
 from unittest.mock import MagicMock
 
@@ -118,6 +119,41 @@ async def webster_and_chatty(either_space):
 # -----------
 # Begin tests
 # -----------
+
+
+def test_duplicate_ids(either_space):
+    """
+    Asserts that two agents with the same id receive duplicate messages
+    """
+    webster = Webster("Webster")
+    dopple = Webster("Webster")
+    sender = Agent("Sender")
+    either_space.add(webster)
+    either_space.add(dopple)
+    either_space.add(sender)
+
+    # send message and assert
+    message = {
+        "from": sender.id(),
+        "to": "Webster",
+        "thoughts": "I wonder how Websters are doing.",
+        "action": "say",
+        "args": {
+            "content": "I wonder how Websters are doing."
+        }
+    }
+    sender._send(message)
+    wait_for_messages(webster, count=1)
+    wait_for_messages(dopple, count=1)
+    assert webster._message_log == [message]
+    assert dopple._message_log == [message]
+
+    # cleanup
+    either_space.remove(webster)
+    either_space.remove(dopple)
+    either_space.remove(sender)
+
+
 
 
 def test_id_validation():

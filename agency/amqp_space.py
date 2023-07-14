@@ -87,7 +87,7 @@ class AMQPSpace(Space):
                 )
                 direct_queue(connection.channel()).declare()
 
-                # Create a separate broadcast queue for each agent and bind it to the broadcast key
+                # Create a separate broadcast queue for each agent
                 broadcast_queue = Queue(
                     f"{agent.id()}_broadcast",
                     exchange=self.__topic_exchange,
