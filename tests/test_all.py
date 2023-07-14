@@ -22,7 +22,6 @@ class Webster(Agent):
 
     @access_policy(ACCESS_PERMITTED)
     def _action__say(self, content):
-        util.debug(f"* {self.id()} _action__say: {content}")
         pass
 
     # We implement actions for "return" and "error" so that we can test that

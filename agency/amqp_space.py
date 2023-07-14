@@ -51,7 +51,6 @@ class AMQPSpace(Space):
         }
         # setup topic exchange
         self.__topic_exchange = Exchange(exchange, type="topic")
-        util.debug(f"* AMQPSpace created", self.__kombu_connection_options)
 
     @classmethod
     def default_amqp_options(cls) -> AMQPOptions:
@@ -77,7 +76,6 @@ class AMQPSpace(Space):
                 None, ""]
             if broadcast and message_data['from'] != agent.id() \
                or not broadcast and message_data['to'] == agent.id():
-                util.debug(f"*{agent.id()} received:", body)
                 agent._receive(message_data)
             message.ack()
 
@@ -106,17 +104,13 @@ class AMQPSpace(Space):
                 ):
                     agent._space = self
                     agent._thread_started.set()
-                    try:
-                        while not agent._thread_stopping.is_set():
-                            time.sleep(0.01)
-                            connection.heartbeat_check()  # sends heartbeat if necessary
-                            try:
-                                connection.drain_events(timeout=0.01)
-                            except socket.timeout:
-                                pass
-                    except Exception as e:
-                        util.debug(
-                            f"*Error while consuming messages for agent {agent.id()}: {e}", traceback.format_exc())
+                    while not agent._thread_stopping.is_set():
+                        time.sleep(0.01)
+                        connection.heartbeat_check()  # sends heartbeat if necessary
+                        try:
+                            connection.drain_events(timeout=0.01)
+                        except socket.timeout:
+                            pass
 
             agent._thread_stopped.set()
 
@@ -126,7 +120,6 @@ class AMQPSpace(Space):
             raise Exception(
                 f"Agent {agent.id()} could not be added. Thread timeout.")
         else:
-            util.debug(f"*Added agent {agent.id()}")
             agent._after_add()
 
     def remove(self, agent: Agent) -> None:
@@ -134,7 +127,6 @@ class AMQPSpace(Space):
         agent._thread_stopping.set()
         agent._thread_stopped.wait()
         agent._space = None
-        util.debug(f"*Removed agent {agent.id()}")
 
     def _route(self, sender: Agent, action: dict) -> dict:
         # Define and validate message
@@ -149,8 +141,6 @@ class AMQPSpace(Space):
         else:
             # broadcast
             routing_key = self.BROADCAST_KEY
-
-        util.debug(f"*Routing from {sender.id()} to {routing_key}", message)
 
         sender._message_log.append(message)
         if routing_key == self.BROADCAST_KEY or self.__check_queue_exists(routing_key):
@@ -178,7 +168,6 @@ class AMQPSpace(Space):
     def __publish(self, routing_key: str, message: dict):
         with Connection(**self.__kombu_connection_options) as connection:
             with connection.Producer(serializer="json") as producer:
-                util.debug(f"*Publishing message", message)
                 producer.publish(
                     json.dumps(message),
                     exchange=self.__topic_exchange,
