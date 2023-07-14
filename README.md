@@ -251,7 +251,6 @@ poetry run pytest
 ```
 
 
-
 # Roadmap
 
 - **Multiprocess Support**:
@@ -263,11 +262,16 @@ Multimedia transfer for use with multimodal models or other multimedia services.
 
 - **Storage Support**
 Durable session support will be included. Other forms of storage will be
-considered as well though it's not clear yet what that will look like.
+considered though it's not clear yet what that may look like.
+
+- **Starter Application**
+The current demo application is proof-of-concept quality. A more modern and
+higher quality application will be developed to replace the main demo and serve
+as a reference example that can be extended or modified.
 
 - **More Examples**:
-More examples of integrations with popular AI libraries and tools such as
-Langchain and oobabooga.
+More examples of integrations with popular AI libraries and services will be
+added.
 
 
 ## Planned Work
