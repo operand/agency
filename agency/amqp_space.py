@@ -69,13 +69,13 @@ class AMQPSpace(Space):
     def add(self, agent: Agent) -> None:
         # define callback for incoming messages
         def _on_message(body, message):
+            message.ack()
             message_data = json.loads(body)
             broadcast = 'to' not in message_data or message_data['to'] in [
                 None, ""]
             if broadcast and message_data['from'] != agent.id() \
                or not broadcast and message_data['to'] == agent.id():
                 agent._receive(message_data)
-            message.ack()
 
         def _consume_messages():
             with Connection(**self.__kombu_connection_options) as connection:
