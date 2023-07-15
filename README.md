@@ -161,19 +161,19 @@ terminal), `"FunctionAI"` appropriately used the `shell_command` action with `wc
 
 # FAQ
 
-## How does `agency` compare to agent libraries like LangChain?
+## How does `agency` compare to other agent libraries?
 
 Though you could entirely create a simple agent using only the primitives in
 `agency` (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
 intended to be an agent toolset like other libraries.
 
-`agency` is a framework for defining and integrating agent systems. It strives
-to provide a minimal yet practical foundation, allowing developers the freedom
-to create custom agent solutions as they desire.
+`agency` is a framework for defining and integrating agent-driven systems. It
+strives to provide a practical yet minimal foundation, allowing developers the
+freedom to create custom agent-integrated solutions as they see fit.
 
-While you might use other libraries for defining agent behavior, you can use
-`agency` for providing the basic communication and control foundation on which
-to build your agent system.
+So while you might use other libraries for implementing agent behavior, you can
+use `agency` for providing the foundation on which to define, connect, and
+control your agents.
 
 ## What are some known limitations or issues?
 
