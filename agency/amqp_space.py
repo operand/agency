@@ -79,19 +79,23 @@ class AMQPSpace(Space):
 
         def _consume_messages():
             with Connection(**self.__kombu_connection_options) as connection:
+                agent_qid = self.__agent_queue_id(agent)
+
                 # Create a queue for direct messages
                 direct_queue = Queue(
-                    agent.id(),
+                    f"{agent_qid}-direct",
                     exchange=self.__topic_exchange,
                     routing_key=agent.id(),
+                    exclusive=True,
                 )
                 direct_queue(connection.channel()).declare()
 
                 # Create a separate broadcast queue for each agent
                 broadcast_queue = Queue(
-                    f"{agent.id()}_broadcast",
+                    f"{agent_qid}-broadcast",
                     exchange=self.__topic_exchange,
                     routing_key=self.BROADCAST_KEY,
+                    exclusive=True,
                 )
                 broadcast_queue(connection.channel()).declare()
 
@@ -162,6 +166,16 @@ class AMQPSpace(Space):
                     }
                 }
                 self.__publish(sender.id(), error_message)
+
+    def __agent_queue_id(self, agent: Agent):
+        """
+        Returns a unique queue id for the agent instance based on:
+        - the agent id
+        - the hostname
+        - the process id
+        - the agent object id
+        """
+        return f"{agent.id()}-{socket.gethostname()}-{os.getpid()}-{id(agent)}"
 
     def __publish(self, routing_key: str, message: dict):
         with Connection(**self.__kombu_connection_options) as connection:

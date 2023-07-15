@@ -154,7 +154,6 @@ def test_duplicate_ids(either_space):
         either_space.remove(webster)
         either_space.remove(dopple)
         either_space.remove(sender)
-    print("test_duplicate_ids passed")
 
 
 
