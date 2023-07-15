@@ -177,10 +177,16 @@ control your agents.
 
 ## What are some known limitations or issues?
 
-* It's a new project, so keep that in mind in terms of
-  completeness, but see [the issues
-  page](https://github.com/operand/agency/issues) for what is currently planned,
-  and the [Roadmap](#roadmap) below for the high level plan.
+* `agency` is still in early development. Like many projects in the AI agent
+  space it is somewhat experimental at this time, with the goal of finding and
+  providing a minimal yet useful foundation for building AI agent systems.
+
+  Expect changes to the API over time as features are added or changed. Stay up
+  to date on changes by following the
+  [issues](https://github.com/operand/agency/issues) or
+  [discussions](https://github.com/operand/agency/discussions) pages and please
+  reach out regarding bugs, features, ideas, or any feedback you'd like to
+  share.
 
 * This library makes use of threads for each individual agent. Multithreading
   is limited by [python's
@@ -188,7 +194,7 @@ control your agents.
   run a local model or other heavy computation in the same process as other
   agents, they may have to wait for their "turn". Note that I/O does not block,
   so networked backends or services will execute in parallel.
-  
+
   For blocking processes, it's recommended to use the `AMQPSpace` class and run
   heavy computations in isolation to avoid blocking other agents.
 
