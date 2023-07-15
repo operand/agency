@@ -30,7 +30,7 @@ using AMQP
   single-host systems_](https://github.com/operand/agency/issues/33)
 
 ### Multimodal support
-* [_In development_](https://github.com/operand/agency/issues/27), though a
+* [_In development_](https://github.com/operand/agency/issues/26), though a
 timeline of features is not yet determined.
 
 ### Full demo available at [`examples/demo`](./examples/demo/)
