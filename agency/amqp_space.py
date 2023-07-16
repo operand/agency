@@ -83,19 +83,21 @@ class AMQPSpace(Space):
 
                 # Create a queue for direct messages
                 direct_queue = Queue(
-                    f"{agent_qid}-direct",
+                    # f"{agent_qid}-direct",
+                    agent.id(),
                     exchange=self.__topic_exchange,
                     routing_key=agent.id(),
-                    exclusive=True,
+                    # exclusive=True,
                 )
                 direct_queue(connection.channel()).declare()
 
                 # Create a separate broadcast queue for each agent
                 broadcast_queue = Queue(
-                    f"{agent_qid}-broadcast",
+                    # f"{agent_qid}-broadcast",
+                    agent.id(),
                     exchange=self.__topic_exchange,
                     routing_key=self.BROADCAST_KEY,
-                    exclusive=True,
+                    # exclusive=True,
                 )
                 broadcast_queue(connection.channel()).declare()
 

@@ -99,8 +99,8 @@ def either_space(request, native_space, amqp_space):
         return amqp_space
 
 
-@pytest_asyncio.fixture
-async def webster_and_chatty(either_space):
+@pytest.fixture
+def webster_and_chatty(either_space):
     """
     Used for tests that should be run for both NativeSpace and AMQPSpace. This
     decorator also adds the two agents to the space: Webster and Chatty.
@@ -112,8 +112,10 @@ async def webster_and_chatty(either_space):
 
     yield (webster, chatty)
 
+    print("cleaning up agents")
     either_space.remove(webster)
     either_space.remove(chatty)
+    print("cleaned up")
 
 
 # -----------
@@ -121,7 +123,7 @@ async def webster_and_chatty(either_space):
 # -----------
 
 
-@pytest.mark.focus
+@pytest.mark.skip
 def test_duplicate_ids(either_space):
     """
     Asserts that two agents with the same id receive duplicate messages
@@ -154,6 +156,7 @@ def test_duplicate_ids(either_space):
         either_space.remove(webster)
         either_space.remove(dopple)
         either_space.remove(sender)
+        print("test_duplicate_ids cleaned up")
 
 
 

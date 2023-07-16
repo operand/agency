@@ -18,6 +18,7 @@ kombu = "^5.3.1"
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"
 pytest-asyncio = "^0.21.0"
+pytest-randomly = "^3.13.0"
 
 
 [build-system]
