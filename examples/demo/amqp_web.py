@@ -19,8 +19,6 @@ if __name__ == '__main__':
                      demo_username="Dan")
     web_app.start()
 
-    print("pop!")
-
     # keep alive
     while True:
         time.sleep(1)

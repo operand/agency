@@ -1,13 +1,11 @@
 import json
-import subprocess
-import sys
+from os import wait
 import time
 from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
 
-from agency import util
 from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED, ACCESS_REQUESTED,
                           Agent, access_policy)
 from agency.amqp_space import AMQPOptions, AMQPSpace
@@ -101,8 +99,8 @@ def either_space(request, native_space, amqp_space):
         return amqp_space
 
 
-@pytest_asyncio.fixture
-async def webster_and_chatty(either_space):
+@pytest.fixture
+def webster_and_chatty(either_space):
     """
     Used for tests that should be run for both NativeSpace and AMQPSpace. This
     decorator also adds the two agents to the space: Webster and Chatty.
@@ -121,6 +119,40 @@ async def webster_and_chatty(either_space):
 # -----------
 # Begin tests
 # -----------
+
+
+def test_duplicate_ids(either_space):
+    """
+    Asserts that two agents with the same id receive duplicate messages
+    """
+    webster = Webster("Webster")
+    dopple = Webster("Webster")
+    sender = Agent("Sender")
+    either_space.add(webster)
+    either_space.add(dopple)
+    either_space.add(sender)
+
+    # send message and assert
+    try:
+        message = {
+            "from": sender.id(),
+            "to": "Webster",
+            "thoughts": "I wonder how Websters are doing.",
+            "action": "say",
+            "args": {
+                "content": "I wonder how Websters are doing."
+            }
+        }
+        sender._send(message)
+        wait_for_messages(webster, count=1)
+        wait_for_messages(dopple, count=1)
+        assert webster._message_log == [message]
+        assert dopple._message_log == [message]
+    finally:
+        # cleanup
+        either_space.remove(webster)
+        either_space.remove(dopple)
+        either_space.remove(sender)
 
 
 def test_id_validation():

@@ -48,7 +48,7 @@ class AMQPSpace(Space):
             'heartbeat': amqp_options.heartbeat,
         }
         # setup topic exchange
-        self.__topic_exchange = Exchange(exchange, type="topic")
+        self.__topic_exchange = Exchange(exchange, type="topic", durable=False)
 
     @classmethod
     def default_amqp_options(cls) -> AMQPOptions:
@@ -79,25 +79,44 @@ class AMQPSpace(Space):
 
         def _consume_messages():
             with Connection(**self.__kombu_connection_options) as connection:
-                # Create a queue for direct messages
-                direct_queue = Queue(
+                agent_qid = self.__agent_queue_id(agent)
+
+                # Create a non-exclusive named queue on the agent id,
+                # auto-deleted when the last instance disconnects. This queue is
+                # not used for messaging but for determining whether an agent
+                # has any remaining open connections. I'm not fond of this
+                # approach but it works decently for now.
+                id_queue = Queue(
                     agent.id(),
                     exchange=self.__topic_exchange,
+                    routing_key='', # shouldn't receive messages
+                    auto_delete=True
+                )
+                id_queue(connection.channel()).declare()
+
+                # Create a queue for direct messages
+                direct_queue = Queue(
+                    f"{agent_qid}-direct",
+                    exchange=self.__topic_exchange,
                     routing_key=agent.id(),
+                    exclusive=True,
                 )
                 direct_queue(connection.channel()).declare()
 
-                # Create a separate broadcast queue for each agent and bind it to the broadcast key
+                # Create a separate broadcast queue for each agent
                 broadcast_queue = Queue(
-                    f"{agent.id()}_broadcast",
+                    f"{agent_qid}-broadcast",
                     exchange=self.__topic_exchange,
                     routing_key=self.BROADCAST_KEY,
+                    exclusive=True,
                 )
                 broadcast_queue(connection.channel()).declare()
 
-                # Consume messages from both direct and broadcast queues
+                # Consume from direct and broadcast queues. The id_queue is
+                # included for tracking connections but does not receive
+                # messages.
                 with connection.Consumer(
-                    [direct_queue, broadcast_queue],
+                    [id_queue, direct_queue, broadcast_queue],
                     callbacks=[_on_message],
                 ):
                     agent._space = self
@@ -163,6 +182,16 @@ class AMQPSpace(Space):
                 }
                 self.__publish(sender.id(), error_message)
 
+    def __agent_queue_id(self, agent: Agent):
+        """
+        Returns a unique queue id for the agent instance based on:
+        - the agent id
+        - the hostname
+        - the process id
+        - the agent object id
+        """
+        return f"{agent.id()}-{socket.gethostname()}-{os.getpid()}-{id(agent)}"
+
     def __publish(self, routing_key: str, message: dict):
         with Connection(**self.__kombu_connection_options) as connection:
             with connection.Producer(serializer="json") as producer:
@@ -176,10 +205,9 @@ class AMQPSpace(Space):
         with Connection(**self.__kombu_connection_options) as connection:
             try:
                 with connection.channel() as channel:
-                    channel.queue_bind(
+                    channel.queue_declare(
                         queue=queue_name,
-                        exchange=self.__topic_exchange.name,
-                        routing_key=queue_name,
+                        passive=True,
                     )
                 return True
             except ChannelError:

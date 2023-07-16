@@ -6,7 +6,6 @@ import re
 import subprocess
 
 
-
 class Host(Agent):
     """
     Represents the host system of the running application

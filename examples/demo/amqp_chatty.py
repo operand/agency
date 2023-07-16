@@ -11,8 +11,6 @@ if __name__ == '__main__':
         ChattyAI("Chatty",
                  model="EleutherAI/gpt-neo-125m"))
 
-    print("snap!")
-
     # keep alive
     while True:
         time.sleep(1)

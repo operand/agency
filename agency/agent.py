@@ -5,7 +5,7 @@ from typing import List
 
 from colorama import Fore, Style
 
-from agency.schema import ActionSchema, MessageSchema
+from agency.schema import MessageSchema
 
 # access keys
 ACCESS = "access"
