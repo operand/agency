@@ -121,7 +121,6 @@ def webster_and_chatty(either_space):
 # -----------
 
 
-@pytest.mark.skip
 def test_duplicate_ids(either_space):
     """
     Asserts that two agents with the same id receive duplicate messages
