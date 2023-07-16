@@ -81,23 +81,32 @@ class AMQPSpace(Space):
             with Connection(**self.__kombu_connection_options) as connection:
                 agent_qid = self.__agent_queue_id(agent)
 
-                # Create a queue for direct messages
-                direct_queue = Queue(
-                    # f"{agent_qid}-direct",
+                # Create a non-exclusive named queue for the agent id,
+                # auto-deleted when the last instance disconnects. This queue is
+                # not used for messaging but for determining whether an agent
+                # has any remaining open connections.
+                named_queue = Queue(
                     agent.id(),
                     exchange=self.__topic_exchange,
+                    auto_delete=True
+                )
+                named_queue(connection.channel()).declare()
+
+                # Create a queue for direct messages
+                direct_queue = Queue(
+                    f"{agent_qid}-direct",
+                    exchange=self.__topic_exchange,
                     routing_key=agent.id(),
-                    # exclusive=True,
+                    exclusive=True,
                 )
                 direct_queue(connection.channel()).declare()
 
                 # Create a separate broadcast queue for each agent
                 broadcast_queue = Queue(
-                    # f"{agent_qid}-broadcast",
-                    agent.id(),
+                    f"{agent_qid}-broadcast",
                     exchange=self.__topic_exchange,
                     routing_key=self.BROADCAST_KEY,
-                    # exclusive=True,
+                    exclusive=True,
                 )
                 broadcast_queue(connection.channel()).declare()
 

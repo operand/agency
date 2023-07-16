@@ -112,10 +112,8 @@ def webster_and_chatty(either_space):
 
     yield (webster, chatty)
 
-    print("cleaning up agents")
     either_space.remove(webster)
     either_space.remove(chatty)
-    print("cleaned up")
 
 
 # -----------
@@ -156,7 +154,6 @@ def test_duplicate_ids(either_space):
         either_space.remove(webster)
         either_space.remove(dopple)
         either_space.remove(sender)
-        print("test_duplicate_ids cleaned up")
 
 
 
