@@ -85,12 +85,12 @@ class AMQPSpace(Space):
                 # auto-deleted when the last instance disconnects. This queue is
                 # not used for messaging but for determining whether an agent
                 # has any remaining open connections.
-                named_queue = Queue(
+                id_queue = Queue(
                     agent.id(),
                     exchange=self.__topic_exchange,
                     auto_delete=True
                 )
-                named_queue(connection.channel()).declare()
+                id_queue(connection.channel()).declare()
 
                 # Create a queue for direct messages
                 direct_queue = Queue(
