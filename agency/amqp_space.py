@@ -86,11 +86,11 @@ class AMQPSpace(Space):
                 # auto-deleted when the last instance disconnects. This queue is
                 # not used for messaging but for determining whether an agent
                 # has any remaining open connections. I'm not fond of this
-                # approach but it works for now.
+                # approach but it works decently for now.
                 id_queue = Queue(
                     agent.id(),
                     exchange=self.__topic_exchange,
-                    routing_key=f"{agent.id()}-dontuse",
+                    routing_key='', # shouldn't receive messages
                     auto_delete=True
                 )
                 id_queue(connection.channel()).declare()
