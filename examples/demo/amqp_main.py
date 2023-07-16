@@ -1,5 +1,7 @@
 import time
+
 from agents.host import Host
+
 from agency.amqp_space import AMQPSpace
 
 if __name__ == '__main__':

@@ -1,12 +1,13 @@
-from agency import util
-from agency.agent import ACCESS_PERMITTED, Agent, access_policy
-from agency.schema import MessageSchema
+import json
+import textwrap
+from datetime import datetime
+
+import openai
 from agents.help_methods import HelpMethods
 from agents.prompt_methods import PromptMethods
-from datetime import datetime
-import json
-import openai
-import textwrap
+
+from agency import util
+from agency.agent import ACCESS_PERMITTED, Agent, access_policy
 
 
 class OpenAICompletionAgent(HelpMethods, PromptMethods, Agent):

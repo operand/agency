@@ -4,6 +4,7 @@ import socket
 import threading
 import time
 from dataclasses import dataclass
+import uuid
 
 from amqp import ChannelError
 from kombu import Connection, Exchange, Queue
@@ -48,7 +49,7 @@ class AMQPSpace(Space):
             'heartbeat': amqp_options.heartbeat,
         }
         # setup topic exchange
-        self.__topic_exchange = Exchange(exchange, type="topic")
+        self.__topic_exchange = Exchange(exchange, type="topic", durable=False)
 
     @classmethod
     def default_amqp_options(cls) -> AMQPOptions:
@@ -81,13 +82,15 @@ class AMQPSpace(Space):
             with Connection(**self.__kombu_connection_options) as connection:
                 agent_qid = self.__agent_queue_id(agent)
 
-                # Create a non-exclusive named queue for the agent id,
+                # Create a non-exclusive named queue on the agent id,
                 # auto-deleted when the last instance disconnects. This queue is
                 # not used for messaging but for determining whether an agent
-                # has any remaining open connections.
+                # has any remaining open connections. I'm not fond of this
+                # approach but it works for now.
                 id_queue = Queue(
                     agent.id(),
                     exchange=self.__topic_exchange,
+                    routing_key=f"{agent.id()}-dontuse",
                     auto_delete=True
                 )
                 id_queue(connection.channel()).declare()
@@ -110,9 +113,11 @@ class AMQPSpace(Space):
                 )
                 broadcast_queue(connection.channel()).declare()
 
-                # Consume messages from both direct and broadcast queues
+                # Consume from direct and broadcast queues. The id_queue is
+                # included for tracking connections but does not receive
+                # messages.
                 with connection.Consumer(
-                    [direct_queue, broadcast_queue],
+                    [id_queue, direct_queue, broadcast_queue],
                     callbacks=[_on_message],
                 ):
                     agent._space = self
@@ -205,6 +210,7 @@ class AMQPSpace(Space):
                         queue=queue_name,
                         exchange=self.__topic_exchange.name,
                         routing_key=queue_name,
+                        passive=True,
                     )
                 return True
             except ChannelError:
