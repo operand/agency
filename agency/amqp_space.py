@@ -4,7 +4,6 @@ import socket
 import threading
 import time
 from dataclasses import dataclass
-import uuid
 
 from amqp import ChannelError
 from kombu import Connection, Exchange, Queue

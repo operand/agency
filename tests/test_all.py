@@ -155,9 +155,6 @@ def test_duplicate_ids(either_space):
         either_space.remove(sender)
 
 
-
-
-
 def test_id_validation():
     """
     Asserts ids are:
