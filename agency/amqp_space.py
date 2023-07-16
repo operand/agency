@@ -206,10 +206,8 @@ class AMQPSpace(Space):
         with Connection(**self.__kombu_connection_options) as connection:
             try:
                 with connection.channel() as channel:
-                    channel.queue_bind(
+                    channel.queue_declare(
                         queue=queue_name,
-                        exchange=self.__topic_exchange.name,
-                        routing_key=queue_name,
                         passive=True,
                     )
                 return True
