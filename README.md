@@ -168,12 +168,12 @@ Though you could entirely create a simple agent using only the primitives in
 intended to be an agent toolset like other libraries.
 
 `agency` is a framework for defining and integrating agent-driven systems. It
-strives to provide a practical yet minimal foundation, allowing developers the
-freedom to create custom agent-integrated solutions as they see fit.
+strives to provide a practical yet minimal foundation, allowing developers to
+create custom agent-integrated solutions as they see fit.
 
-So while you might use other libraries for implementing agent behavior, you can
-use `agency` for providing the foundation on which to define, connect, and
-control your agents.
+So if you want freedom in how you build your agent system, but don't want to
+reinvent the wheel when it comes to basic concerns like communication and
+performance, `agency` might be what you're looking for.
 
 ## What are some known limitations or issues?
 
@@ -259,21 +259,21 @@ poetry run pytest
 
 # Roadmap
 
+- **Multimodal Support**:
+Multimedia transfer for use with multimodal models or other multimedia services.
+
 - **Multiprocess Support**:
 An additional space type utilizing python multiprocessing, as another
 parallelism option for single-host systems.
-
-- **Multimodal Support**:
-Multimedia transfer for use with multimodal models or other multimedia services.
 
 - **Storage Support**
 Durable session support will be included. Other forms of storage will be
 considered though it's not clear yet what that may look like.
 
 - **Starter Application**
-The current demo application is proof-of-concept quality. A more modern and
-higher quality application will be developed to replace the main demo and serve
-as a reference example that can be extended or modified.
+The current demo application is only proof-of-concept quality. A modern
+application will be developed to replace the main demo and serve as a
+reference example that can be extended or modified.
 
 - **More Examples**:
 More examples of integrations with popular AI libraries and services will be
