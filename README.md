@@ -204,8 +204,8 @@ performance, `agency` might be what you're looking for.
   `agency` is intended to allow potentially large numbers of agents, systems,
   and people to come together. A small predefined set of roles gets in the way
   of representing many things generally. This is a core design feature of
-  `agency`: that all entities are treated similarly and may be interacted with
-  through common means.
+  `agency`: that all entities are represented similarly and may be interacted
+  with through common means.
 
   The lack of roles may require extra translation code when integrating with
   role based APIs. See the implementation of
