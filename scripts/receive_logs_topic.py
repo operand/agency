@@ -28,7 +28,7 @@ def main():
     )
 
     with connection as conn:
-        exchange = kombu.Exchange("agency", type="topic")
+        exchange = kombu.Exchange("agency", type="topic", durable=False)
         binding_keys = sys.argv[1:]
         if not binding_keys:
             sys.stderr.write("Usage: %s [binding_key]...\n" % sys.argv[0])
