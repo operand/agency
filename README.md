@@ -23,11 +23,12 @@ using AMQP
 * Before/after action and lifecycle callbacks for observability or other needs
 * Access policies and permission callbacks for access control
 
-### Performance
+### Performance and Scalability
 * Multithreaded (though python's GIL is a bottleneck for single process apps)
 * AMQP support for multiprocess and networked systems (avoids GIL)
 * [_Python multiprocess support is planned for better scalability on
   single-host systems_](https://github.com/operand/agency/issues/33)
+* [_Decentralized (p2p) networking support planned_](https://github.com/operand/agency/issues/83)
 
 ### Multimodal support
 * [_In development_](https://github.com/operand/agency/issues/26), though a
@@ -40,6 +41,7 @@ timeline of features is not yet determined.
 * Operating system access for agents
 * Docker configuration for reference and development
 
+(_Please note that [a modern UI is also being developed](https://github.com/operand/agency/issues/82) to replace the proof-of-concept demo above_)
 
 # API Overview
 
