@@ -198,7 +198,8 @@ performance, `agency` might be what you're looking for.
   so networked backends or services will execute in parallel.
 
   For blocking processes, it's recommended to use the `AMQPSpace` class and run
-  heavy computations in isolation to avoid blocking other agents.
+  heavy computations in isolation to avoid blocking other agents. Multiprocessing
+  support is also planned as another option for avoiding the GIL.
 
 * This API does not assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.
