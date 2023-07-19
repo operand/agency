@@ -187,9 +187,7 @@ performance, `agency` might be what you're looking for.
   Expect changes to the API over time as features are added or changed. Stay up
   to date on changes by following the
   [issues](https://github.com/operand/agency/issues) or
-  [discussions](https://github.com/operand/agency/discussions) pages and please
-  reach out regarding bugs, features, ideas, or any feedback you'd like to
-  share.
+  [discussions](https://github.com/operand/agency/discussions) pages.
 
 * This library makes use of threads for each individual agent. Multithreading
   is limited by [python's
@@ -199,8 +197,9 @@ performance, `agency` might be what you're looking for.
   so networked backends or services will execute in parallel.
 
   For blocking processes, it's recommended to use the `AMQPSpace` class and run
-  heavy computations in isolation to avoid blocking other agents. Multiprocessing
-  support is also planned as another option for avoiding the GIL.
+  heavy computations in isolation to avoid blocking other agents. [Multiprocessing
+  support](https://github.com/operand/agency/issues/33) is also planned as
+  another option for avoiding the GIL.
 
 * This API does not assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.
@@ -211,8 +210,8 @@ performance, `agency` might be what you're looking for.
   `agency`: that all entities are represented similarly and may be interacted
   with through common means.
 
-  The lack of roles may require extra translation code when integrating with
-  role based APIs. See the implementation of
+  The lack of roles may require extra work when integrating with role based
+  APIs. See the implementation of
   [`OpenAIFunctionAgent`](./examples/demo/agents/openai_function_agent.py) for
   an example.
 
