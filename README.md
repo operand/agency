@@ -141,6 +141,7 @@ poetry add agency
 
 
 # Running the Demo Application
+_(Note: [a modern UI is planned](https://github.com/operand/agency/issues/82) to replace this demo soon.)_
 
 To run the demo, please follow the directions at
 [examples/demo](./examples/demo/). After a short boot time you can visit the
