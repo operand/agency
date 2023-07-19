@@ -5,7 +5,7 @@ for creating AI agent-integrated systems.
 
 The library provides a foundation for connecting agents, software systems, and
 human users by defining actions, callbacks, and access policies that you can use
-to connect, monitor, control, and interact with your agents.
+to connect, monitor, and interact with your agents.
 
 `agency` handles the communication details and allows discovering and invoking
 actions across parties, automatically handling things such as reporting
@@ -28,7 +28,7 @@ using AMQP
 * AMQP support for multiprocess and networked systems (avoids GIL)
 * [_Python multiprocess support is planned for better scalability on
   single-host systems_](https://github.com/operand/agency/issues/33)
-* [_Decentralized (p2p) networking support planned_](https://github.com/operand/agency/issues/83)
+* [_Decentralized networking support planned_](https://github.com/operand/agency/issues/83)
 
 ### Multimodal support
 * [_In development_](https://github.com/operand/agency/issues/26), though a
