@@ -1,11 +1,11 @@
 # Summary
 
-`agency` is a python library that provides a communication and action framework
-for creating AI agent-integrated systems.
+`agency` is a python library that provides a minimal framework for creating
+agent-integrated systems.
 
-The library provides a foundation for connecting agents, software systems, and
-human users by defining actions, callbacks, and access policies that you can use
-to connect, monitor, and interact with your agents.
+The library provides a simple foundation for connecting agents, software systems,
+and human users by defining actions, callbacks, and access policies that you can
+use to connect, monitor, and interact with your agents.
 
 `agency` handles the communication details and allows discovering and invoking
 actions across parties, automatically handling things such as reporting
@@ -168,26 +168,27 @@ terminal), `"FunctionAI"` appropriately used the `shell_command` action with `wc
 
 Though you could entirely create a simple agent using only the primitives in
 `agency` (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
-intended to be an agent toolset like other libraries.
+intended to be an agent toolset like other libraries. For example, you won't
+find much support for building prompts or working with vector databases, etc.
+Implementation of agent behavior is left up to you.
 
-`agency` is a framework for defining and integrating agent systems. It
-strives to provide a minimal yet practical foundation, allowing developers to
-create custom agent-integrated solutions as they see fit.
+`agency` is concerned with providing a minimal communication and control
+foundation on which to define and integrate agent systems in a performant
+and flexible way, allowing developers to create custom agent solutions as
+they see fit.
 
-So if you want freedom in how you build your agent system, but don't want to
-reinvent the wheel when it comes to basic concerns like communication and
-performance, `agency` might be what you're looking for.
+So if you're looking for a library with just enough structure to build from
+but not so much that it gets in your way, then `agency` might be for you.
 
 ## What are some known limitations or issues?
 
 * `agency` is still in early development. Like many projects in the AI agent
   space it is somewhat experimental at this time, with the goal of finding and
-  providing a minimal yet useful foundation for building AI agent systems.
+  providing a minimal yet useful foundation for building agent systems.
 
-  Expect changes to the API over time as features are added or changed. Stay up
-  to date on changes by following the
-  [issues](https://github.com/operand/agency/issues) or
-  [discussions](https://github.com/operand/agency/discussions) pages.
+  Expect changes to the API over time as features are added or changed. The
+  library follows semver versioning starting at 1.x.x. Minor version updates
+  may contain breaking API changes. Patch versions should not.
 
 * This library makes use of threads for each individual agent. Multithreading
   is limited by [python's
