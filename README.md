@@ -167,8 +167,8 @@ Though you could entirely create a simple agent using only the primitives in
 `agency` (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
 intended to be an agent toolset like other libraries.
 
-`agency` is a framework for defining and integrating agent-driven systems. It
-strives to provide a practical yet minimal foundation, allowing developers to
+`agency` is a framework for defining and integrating agent systems. It
+strives to provide a minimal yet practical foundation, allowing developers to
 create custom agent-integrated solutions as they see fit.
 
 So if you want freedom in how you build your agent system, but don't want to
@@ -263,7 +263,7 @@ poetry run pytest
 Multimedia transfer for use with multimodal models or other multimedia services.
 
 - **Multiprocess Support**:
-An additional space type utilizing python multiprocessing, as another
+An additional `Space` type utilizing python multiprocessing, as another
 parallelism option for single-host systems.
 
 - **Storage Support**
@@ -274,6 +274,11 @@ considered though it's not clear yet what that may look like.
 The current demo application is only proof-of-concept quality. A modern
 application will be developed to replace the main demo and serve as a
 reference example that can be extended or modified.
+
+-**Decentralized Networking**--
+An additional `Space` type using decentralized protocols, enabling the
+highest levels of scalability and opening the door for peer-to-peer
+agent networks.
 
 - **More Examples**:
 More examples of integrations with popular AI libraries and services will be
