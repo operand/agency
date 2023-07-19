@@ -275,7 +275,7 @@ The current demo application is only proof-of-concept quality. A modern
 application will be developed to replace the main demo and serve as a
 reference example that can be extended or modified.
 
--**Decentralized Networking**--
+- **Decentralized Networking**
 An additional `Space` type using decentralized protocols, enabling the
 highest levels of scalability and opening the door for peer-to-peer
 agent networks.
