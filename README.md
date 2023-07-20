@@ -41,7 +41,7 @@ timeline of features is not yet determined.
 * Operating system access for agents
 * Docker configuration for reference and development
 
-(_Please note that [a modern UI is also being developed](https://github.com/operand/agency/issues/82) to replace the proof-of-concept demo above_)
+(_Please note that [a Gradio UI is being developed](https://github.com/operand/agency/issues/82) to replace the Flask/React app above_)
 
 # API Overview
 
@@ -141,7 +141,7 @@ poetry add agency
 
 
 # Running the Demo Application
-_(Note: [a modern UI is planned](https://github.com/operand/agency/issues/82) to replace this demo soon.)_
+_(Note: [a Gradio app is being developed](https://github.com/operand/agency/issues/82) to replace the following UI soon.)_
 
 To run the demo, please follow the directions at
 [examples/demo](./examples/demo/). After a short boot time you can visit the
