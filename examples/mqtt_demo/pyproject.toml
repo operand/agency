@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "mqtt_demo"
+version = "0.0.1"
+description = ""
+authors = []
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+python-dotenv = "^1.0.0"
+agency = {path = "../..", develop = true}
+transformers = "^4.29"
+torch = "^2.0"
+Flask-SocketIO = "^5.3"
+openai = "^0.27.8"
+eventlet = "^0.33.3"
+cryptography = "^41.0.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
