@@ -274,10 +274,10 @@ parallelism option for single-host systems.
 Durable session support will be included. Other forms of storage will be
 considered though it's not clear yet what that may look like.
 
-- **Starter Application**
-The current demo application is only proof-of-concept quality. A modern
-application will be developed to replace the main demo and serve as a
-reference example that can be extended or modified.
+- **Gradio Application**
+The current demo application uses a proof-of-concept quality Flask/React
+web app. A Gradio application will be developed to replace the Flask app
+and serve as a reference example that can be extended or modified.
 
 - **Decentralized Networking**
 An additional `Space` type using decentralized protocols, enabling the
