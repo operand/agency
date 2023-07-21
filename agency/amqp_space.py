@@ -160,7 +160,7 @@ class AMQPSpace(Space):
             routing_key = self.BROADCAST_KEY
 
         sender._message_log.append(message)
-        if routing_key == self.BROADCAST_KEY or self.__check_queue_exists(routing_key):
+        if routing_key == self.BROADCAST_KEY or self._check_queue_exists(routing_key):
             self.__publish(routing_key, message)
         else:
             if routing_key == sender.id():
@@ -201,7 +201,7 @@ class AMQPSpace(Space):
                     routing_key=routing_key,
                 )
 
-    def __check_queue_exists(self, queue_name):
+    def _check_queue_exists(self, queue_name):
         with Connection(**self.__kombu_connection_options) as connection:
             try:
                 with connection.channel() as channel:
