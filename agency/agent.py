@@ -201,7 +201,7 @@ class Agent():
                 and re.search(r'^_action__(help|return|error)$', name) is None
             ]
         if action_name:
-            return self.__cached__help[action_name]
+            return [item for item in self.__cached__help if item["action"] == action_name]
         else:
             return self.__cached__help
 
