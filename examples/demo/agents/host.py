@@ -58,9 +58,10 @@ class Host(Agent):
         text = \
             f"{Fore.RED}***** Permission requested to execute: *****{Style.RESET_ALL}\n" + \
             json.dumps(proposed_message, indent=2) + \
-            f"\n{Fore.RED}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{Style.RESET_ALL}\n"
-        print(text)
-        permission_response = input("Allow? (y/n) ")
+            f"\n{Fore.RED}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{Style.RESET_ALL}\n" + \
+            "Allow? (y/n) "
+        print(text, flush=True)
+        permission_response = input()
         return re.search(r"^y(es)?$", permission_response)
 
     def _after_add(self):

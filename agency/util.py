@@ -121,3 +121,65 @@ def debug_text(name, object=None):
             pass
         debug_value = f"{debug_object_value}\n{END_STYLE}{'_'*5} {name} {'_'*5}"
     return f"\n{START_STYLE}{'>'*5} {name} {'<'*5}{Style.RESET_ALL}\n{debug_value}{Style.RESET_ALL}".replace("\\n", "\n")
+
+
+def parse_slash_syntax_action(action_text):
+    """
+    Parses a slash syntax action of the form:
+    /action_name arg1:val1 arg2:val2 ...
+    """
+    action_text = action_text.strip()
+    action = {}
+
+    if not action_text.startswith("/"):
+        action = {
+            "action": "say",
+            "thoughts": "",
+            "args": {"content": action_text}
+        }
+    else:
+        commandEndIndex = action_text.find(" ")
+        if commandEndIndex == -1:
+            commandEndIndex = len(action_text)
+        action_name = action_text[1:commandEndIndex]
+        args = {}
+
+        currentArgName = ""
+        currentArgValue = ""
+        inQuotes = False
+
+        for i in range(commandEndIndex + 1, len(action_text)):
+            char = action_text[i]
+
+            if char == ':' and not inQuotes:
+                currentArgName = currentArgValue.strip()
+                currentArgValue = ""
+            elif char == '"' and not inQuotes:
+                inQuotes = True
+            elif char == '"' and inQuotes:
+                inQuotes = False
+            elif char == ' ' and not inQuotes:
+                args[currentArgName] = currentArgValue.strip()
+                currentArgValue = ""
+            else:
+                currentArgValue += char
+
+        if currentArgName and currentArgValue:
+            args[currentArgName] = currentArgValue.strip()
+
+        # pull out the "to" and "thoughts" args if they exist
+        to = args.get('to')
+        if to:
+            del args['to']
+        thoughts = args.get('thoughts')
+        if thoughts:
+            del args['thoughts']
+
+        action = {
+            "to": to,
+            "thoughts": thoughts or "",
+            "action": action_name,
+            "args": args
+        }
+
+    return action

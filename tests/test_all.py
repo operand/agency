@@ -1,11 +1,7 @@
 import json
-from os import wait
 import time
-from unittest.mock import MagicMock
-
 import pytest
-import pytest_asyncio
-
+from unittest.mock import MagicMock
 from agency.agent import (ACCESS_DENIED, ACCESS_PERMITTED, ACCESS_REQUESTED,
                           Agent, access_policy)
 from agency.amqp_space import AMQPOptions, AMQPSpace

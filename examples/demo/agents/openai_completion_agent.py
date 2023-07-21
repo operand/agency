@@ -1,13 +1,11 @@
-import json
-import textwrap
-from datetime import datetime
-
-import openai
-from agents.help_methods import HelpMethods
-from agents.prompt_methods import PromptMethods
-
 from agency import util
 from agency.agent import ACCESS_PERMITTED, Agent, access_policy
+from agents.mixins.help_methods import HelpMethods
+from agents.mixins.prompt_methods import PromptMethods
+from datetime import datetime
+import json
+import openai
+import textwrap
 
 
 class OpenAICompletionAgent(HelpMethods, PromptMethods, Agent):

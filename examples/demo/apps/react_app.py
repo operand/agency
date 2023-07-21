@@ -1,22 +1,29 @@
 import logging
-
 import eventlet
 from eventlet import wsgi
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
-from regex import F
-from agency import util
-
 from agency.agent import ACCESS_PERMITTED, Agent, access_policy
 from agency.schema import MessageSchema
 from agency.space import Space
 
 
-class WebApp():
+# Usage:
+#
+#   space = NativeSpace()
+#   react_app = ReactApp(space,
+#                        port=os.getenv("WEB_APP_PORT"),
+#                        # NOTE We're hardcoding a single demo user for simplicity
+#                        demo_username="User")
+#   react_app.start()
+#
+# The app will add/remove a single user to the space as they connect
+
+
+class ReactApp():
     """
-    A simple Flask/React web application which can be used to connect human
-    users to a space.
+    A simple Flask/React web application which connects human users to a space.
     """
 
     def __init__(self, space: Space, port: int, demo_username: str):
@@ -55,7 +62,7 @@ class WebApp():
         def handle_connect():
             # When a client connects add them to the space
             # NOTE We're hardcoding a single demo_username for simplicity
-            self.__current_user = WebUser(
+            self.__current_user = ReactAppUser(
                 name=self.__demo_username,
                 app=self,
                 sid=request.sid
@@ -89,12 +96,12 @@ class WebApp():
         eventlet.spawn(run_server)
 
 
-class WebUser(Agent):
+class ReactAppUser(Agent):
     """
-    A human user of WebApp
+    A human user of the web app
     """
 
-    def __init__(self, name: str, app: WebApp, sid: str) -> None:
+    def __init__(self, name: str, app: ReactApp, sid: str) -> None:
         super().__init__(id=name)
         self.name = name
         self.app = app
