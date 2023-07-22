@@ -1,13 +1,13 @@
 # Summary
 
-`agency` is a python library that provides a minimal framework for creating
+Agency is a python library that provides a minimal framework for creating
 agent-integrated systems.
 
 The library provides a simple foundation for connecting agents, software systems,
 and human users by defining actions, callbacks, and access policies that you can
 use to connect, monitor, and interact with your agents.
 
-`agency` handles the communication details and allows discovering and invoking
+Agency handles the communication details and allows discovering and invoking
 actions across parties, automatically handling things such as reporting
 exceptions, enforcing access restrictions, and more.
 
@@ -45,11 +45,11 @@ timeline of features is not yet determined.
 
 # API Overview
 
-`agency` is an implementation of the [Actor
+Agency is an implementation of the [Actor
 model](https://en.wikipedia.org/wiki/Actor_model) for building AI agent
 integrated systems.
 
-In `agency`, all entities are represented as instances of the `Agent` class.
+In Agency, all entities are represented as instances of the `Agent` class.
 This includes all humans, software, and AI-driven agents that may communicate as
 part of your application.
 
@@ -116,7 +116,7 @@ There are two included `Space` implementations to choose from:
 * `AMQPSpace` - which connects agents across processes and systems using an AMQP
   server like RabbitMQ.
 
-Here is an example of creating a `NativeSpace` and adding two agents to it.
+Finally, here is an example of creating a `NativeSpace` and adding two agents to it.
 
 ```python
 space = NativeSpace()
@@ -125,7 +125,7 @@ space.add(AIAgent("AIAgent"))
 # The agents above can now communicate
 ```
 
-These are just some of the main `agency` features. For more detailed information
+These are just some of the main features. For more detailed information
 please see [the docs directory](./docs/).
 
 
@@ -164,25 +164,25 @@ terminal), `"FunctionAI"` appropriately used the `shell_command` action with `wc
 
 # FAQ
 
-## How does `agency` compare to other agent libraries?
+## How does Agency compare to other agent libraries?
 
 Though you could entirely create a simple agent using only the primitives in
-`agency` (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
+Agency (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
 intended to be an agent toolset like other libraries. For example, you won't
 find much support for building prompts or working with vector databases, etc.
 Implementation of agent behavior is left up to you.
 
-`agency` is concerned with providing a minimal communication and control
+Agency is concerned with providing a minimal communication and control
 foundation on which to define and integrate agent systems in a performant
 and flexible way, allowing developers to create custom agent solutions as
 they see fit.
 
 So if you're looking for a library with just enough structure to build from
-but not so much that it gets in your way, then `agency` might be for you.
+but not so much that it gets in your way, then Agency might be for you.
 
 ## What are some known limitations or issues?
 
-* `agency` is still in early development. Like many projects in the AI agent
+* Agency is still in early development. Like many projects in the AI agent
   space it is somewhat experimental at this time, with the goal of finding and
   providing a minimal yet useful foundation for building agent systems.
 
@@ -205,10 +205,10 @@ but not so much that it gets in your way, then `agency` might be for you.
 * This API does not assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.
 
-  `agency` is intended to allow potentially large numbers of agents, systems,
+  Agency is intended to allow potentially large numbers of agents, systems,
   and people to come together. A small predefined set of roles gets in the way
   of representing many things generally. This is a core design feature of
-  `agency`: that all entities are represented similarly and may be interacted
+  Agency: that all entities are represented similarly and may be interacted
   with through common means.
 
   The lack of roles may require extra work when integrating with role based
