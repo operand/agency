@@ -176,9 +176,6 @@ foundation on which to define and integrate agent systems in a performant
 and flexible way, allowing developers to create custom agent solutions as
 they see fit.
 
-So if you're looking for a library with just enough structure to build from
-but not so much that it gets in your way, then Agency might be for you.
-
 ## What are some known limitations or issues?
 
 * Agency is still in early development. Like many projects in the AI agent
