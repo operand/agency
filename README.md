@@ -168,13 +168,10 @@ intended to be an all-inclusive toolset like other libraries. For example, it
 does not include support for constructing prompts or working with vector
 databases, etc. Implementation of agent behavior is left up to you.
 
-The goal of Agency is to enable developers to experiment and develop their own
-agent systems by providing a minimal set of functionality. It aims to support
-custom agent solutions by offering a foundation that developers can build upon
-as they see fit.
-
-So if you're looking for a flexible yet minimal foundation for building your own
-agent systems, Agency might be for you.
+The goal of Agency is to enable developers to experiment and create their own
+agent solutions by providing a minimal set of functionality. So if you're
+looking for a flexible yet minimal foundation for building your own agent
+system, Agency might be for you.
 
 
 ## What are some known limitations or issues?
@@ -222,7 +219,7 @@ agent systems, Agency might be for you.
 
 # Contributing
 
-Please do! I could especially use help developing more examples for the demo.
+Please do!
 
 ## Development Installation
 
