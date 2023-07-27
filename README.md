@@ -5,7 +5,7 @@ agent-integrated systems.
 
 The library enables you to connect agents with software systems and human users
 by allowing you to define actions, callbacks, and access policies making it easy
-to connect, monitor, and interact with your agents.
+to connect, monitor, and control your agents.
 
 Agency handles the communication details and allows discovering and invoking
 actions across parties, automatically handling things such as reporting
