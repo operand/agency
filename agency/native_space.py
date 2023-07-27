@@ -2,8 +2,6 @@ import queue
 import threading
 import time
 from typing import List
-
-from agency import util
 from agency.agent import Agent
 from agency.schema import MessageSchema
 from agency.space import Space

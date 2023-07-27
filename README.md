@@ -3,9 +3,9 @@
 Agency is a python library that provides a minimal framework for creating
 agent-integrated systems.
 
-The library provides a simple foundation for connecting agents, software systems,
-and human users by defining actions, callbacks, and access policies that you can
-use to connect, monitor, and interact with your agents.
+The library enables you to connect agents with software systems and human users
+by allowing you to define actions, callbacks, and access policies making it easy
+to connect, monitor, and interact with your agents.
 
 Agency handles the communication details and allows discovering and invoking
 actions across parties, automatically handling things such as reporting
@@ -30,17 +30,16 @@ exceptions, enforcing access restrictions, and more.
 * [_Decentralized networking support planned_](https://github.com/operand/agency/issues/83)
 
 ### Multimodal support
-* [_In development_](https://github.com/operand/agency/issues/26), though a
-timeline of features is not yet determined.
+* [_In development_](https://github.com/operand/agency/issues/26)
 
-### Full demo available at [`examples/demo`](./examples/demo/)
-* Two OpenAI agent examples
-* HuggingFace transformers agent example
-* Simple Flask/React web interface included
-* Operating system access for agents
+### Demo application available at [`examples/demo`](./examples/demo/)
+* Includes Gradio UI (Flask/React UI also available)
+* Multiple agent examples for experimentation
+  * Two OpenAI agent examples
+  * HuggingFace transformers agent example
+  * Operating system access
 * Docker configuration for reference and development
 
-(_Please note that [a Gradio UI is being developed](https://github.com/operand/agency/issues/82) to replace the Flask/React app above_)
 
 # API Overview
 
@@ -48,12 +47,12 @@ Agency is an implementation of the [Actor
 model](https://en.wikipedia.org/wiki/Actor_model) for building AI agent
 integrated systems.
 
-In Agency, all entities are represented as instances of the `Agent` class.
-This includes all humans, software, and AI-driven agents that may communicate as
+In Agency, all entities are represented as instances of the `Agent` class. This
+includes all human users, software, and AI-driven agents that may communicate as
 part of your application.
 
 All agents may expose "actions" that other agents can discover and invoke at run
-time. An example of a simple agent implemention could be:
+time. An example of a simple agent could be:
 
 ```python
 class CalculatorAgent(Agent):
@@ -139,26 +138,24 @@ poetry add agency
 ```
 
 
-# Running the Demo Application
-_(Note: [a Gradio app is being developed](https://github.com/operand/agency/issues/82) to replace the following UI soon.)_
+# The Demo Application
 
 To run the demo, please follow the directions at
-[examples/demo](./examples/demo/). After a short boot time you can visit the
-web app at `http://localhost:8080` and you should see a simple chat interface.
+[examples/demo](./examples/demo/).
 
-The following is a screenshot of the web UI that demonstrates multiple demo
-agents interacting and following orders.
-
-The screenshot also demonstrates the results of rejecting an action and
-directing an agent to use a different approach in real time. After I explained
-my rejection of the `read_file` action (which happened behind the scenes on the
-terminal), `"FunctionAI"` appropriately used the `shell_command` action with `wc
--l Dockerfile`.
+The following is a screenshot of the Gradio UI that demonstrates the example
+`OpenAIFunctionAgent` following orders and interacting with the `Host`.
 
 <p align="center">
-  <img src="https://i.ibb.co/nbvLJvg/Screenshot-2023-06-14-at-3-59-01-AM.png"
-       alt="Screenshot-2023-06-14-at-3-59-01-AM" border="0" width=500>
+  <img src="https://i.ibb.co/h29m5S4/Screenshot-2023-07-26-at-4-53-05-PM.png"
+      alt="Screenshot-2023-07-26-at-4-53-05-PM" border="0">
 </p>
+
+The screenshot above also demonstrates rejecting an action and directing an
+agent to use a different approach in real time. After I explained my rejection
+of the `read_file` action (which happened behind the scenes on the terminal),
+`"FunctionAI"` appropriately used the `shell_command` action with `head -n 2
+Dockerfile`.
 
 
 # FAQ
@@ -167,14 +164,15 @@ terminal), `"FunctionAI"` appropriately used the `shell_command` action with `wc
 
 Though you could entirely create a simple agent using only the primitives in
 Agency (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
-intended to be an agent toolset like other libraries. For example, you won't
-find much support for building prompts or working with vector databases, etc.
-Implementation of agent behavior is left up to you.
+intended to be an all-inclusive toolset like other libraries. For example, it
+does not include support for constructing prompts or working with vector
+databases, etc. Implementation of agent behavior is left up to you.
 
-Agency is concerned with providing a minimal communication and control
-foundation on which to define and integrate agent systems in a performant
-and flexible way, allowing developers to create custom agent solutions as
-they see fit.
+The goal of Agency is to enable developers to experiment and create their own
+agent solutions by providing a minimal set of functionality. So if you're
+looking for a flexible yet minimal foundation for building your own agent
+system, Agency might be for you.
+
 
 ## What are some known limitations or issues?
 
@@ -183,8 +181,8 @@ they see fit.
   providing a minimal yet useful foundation for building agent systems.
 
   Expect changes to the API over time as features are added or changed. The
-  library follows semver versioning starting at 1.x.x. Patch version updates
-  may contain breaking API changes. Minor versions should not.
+  library follows semver versioning starting at 1.x.x. Patch version updates may
+  contain breaking API changes. Minor versions should not.
 
 * This library makes use of threads for each individual agent. Multithreading
   is limited by [python's
@@ -194,18 +192,18 @@ they see fit.
   so networked backends or services will execute in parallel.
 
   For blocking processes, it's recommended to use the `AMQPSpace` class and run
-  heavy computations in isolation to avoid blocking other agents. [Multiprocessing
-  support](https://github.com/operand/agency/issues/33) is also planned as
-  another option for avoiding the GIL.
+  heavy computations in isolation to avoid blocking other agents.
+  [Multiprocessing support](https://github.com/operand/agency/issues/33) is also
+  planned as another option for avoiding the GIL.
 
 * This API does not assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.
 
-  Agency is intended to allow potentially large numbers of agents, systems,
-  and people to come together. A small predefined set of roles gets in the way
-  of representing many things generally. This is a core design feature of
-  Agency: that all entities are represented similarly and may be interacted
-  with through common means.
+  Agency is intended to allow potentially large numbers of agents, systems, and
+  people to come together. A small predefined set of roles gets in the way of
+  representing many things generally. This is a core design feature of Agency:
+  that all entities are represented similarly and may be interacted with through
+  common means.
 
   The lack of roles may require extra work when integrating with role based
   APIs. See the implementation of
@@ -223,7 +221,6 @@ they see fit.
 
 Please do!
 
-
 ## Development Installation
 
 ```bash
@@ -231,7 +228,6 @@ git clone git@github.com:operand/agency.git
 cd agency
 poetry install
 ```
-
 
 ## Developing with the Demo Application
 
@@ -244,7 +240,6 @@ several agent examples. It can also be used for experimentation and development.
 The application is configured to read the agency library source when running,
 allowing changes to be tested manually.
 
-
 ## Test Suite
 
 Ensure you have Docker installed. A small RabbitMQ container will be
@@ -255,35 +250,6 @@ You can run the test suite with:
 ```bash
 poetry run pytest
 ```
-
-
-# Roadmap
-
-- **Multimodal Support**:
-Multimedia transfer for use with multimodal models or other multimedia services.
-
-- **Multiprocess Support**:
-An additional `Space` type utilizing python multiprocessing, as another
-parallelism option for single-host systems.
-
-- **Storage Support**
-Durable session support will be included. Other forms of storage will be
-considered though it's not clear yet what that may look like.
-
-- **Gradio Application**
-The current demo application uses a proof-of-concept quality Flask/React
-web app. A Gradio application will be developed to replace the Flask app
-and serve as a reference example that can be extended or modified.
-
-- **Decentralized Networking**
-An additional `Space` type using decentralized protocols, enabling the
-highest levels of scalability and opening the door for peer-to-peer
-agent networks.
-
-- **More Examples**:
-More examples of integrations with popular AI libraries and services will be
-added.
-
 
 ## Planned Work
 

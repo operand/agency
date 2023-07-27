@@ -1,8 +1,8 @@
-from agency.agent import ACCESS_PERMITTED, Agent, access_policy
-from agents.help_methods import HelpMethods
 import json
-import openai
 import textwrap
+import openai
+from .mixins.help_methods import HelpMethods
+from agency.agent import ACCESS_PERMITTED, Agent, access_policy
 
 
 class OpenAIFunctionAgent(HelpMethods, Agent):

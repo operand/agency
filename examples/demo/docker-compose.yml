@@ -1,6 +1,7 @@
 version: '3.8'
 
-# shared config for the main demo container and chatty
+
+# Shared config for all containers
 x-demo-base:
   &demo-base
   build:
@@ -15,58 +16,61 @@ x-demo-base:
   environment:
     TRANSFORMERS_CACHE: /models/transformers_cache
 
+
 services:
 
-  # This container runs all example classes in a single native space
+  # This container runs example agent classes in a single native space
   native:
     <<: *demo-base
+    profiles:
+      - native
     ports:
-      - '$WEB_APP_PORT:$WEB_APP_PORT'
-    command: poetry run python native_demo.py
+      - '$WEB_APP_PORT:8080'
+    # socat is used to redirect from the hardcoded ip:port in gradio's dev mode
+    # https://github.com/gradio-app/gradio/issues/3656
+    command: |
+      bash -ce "
+        socat TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:7860 &
+        echo \"Launching gradio app at http://localhost:$WEB_APP_PORT\. Please wait...\"
+        poetry run gradio demo_native.py | grep -v \"Launching.*127.0.0.1:7860\"
+      "
     tty: true
     stdin_open: true
 
-  # This and the following containers run the same example classes
-  # across containers in an amqp space
+  # The following containers run agent classes across containers using an amqp
+  # space with rabbitmq
   amqp:
     <<: *demo-base
+    profiles:
+      - amqp
     depends_on:
       rabbitmq:
         condition: service_healthy
-      amqp_chatty:
+      amqp_2:
         condition: service_started
-      amqp_openai:
-        condition: service_started
-      amqp_web:
-        condition: service_started
-    command: poetry run python amqp_main.py
+    ports:
+      - '$WEB_APP_PORT:8080'
+    command: |
+      bash -ce "
+        socat TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:7860 &
+        echo \"Launching gradio app at http://localhost:$WEB_APP_PORT\. Please wait...\"
+        poetry run gradio demo_amqp_1.py | grep -v \"Launching.*127.0.0.1:7860\"
+      "
     tty: true
     stdin_open: true
 
-  amqp_chatty:
+  amqp_2:
     <<: *demo-base
+    profiles:
+      - amqp
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: poetry run python amqp_chatty.py
-
-  amqp_openai:
-    <<: *demo-base
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    command: poetry run python amqp_openai.py
-
-  amqp_web:
-    <<: *demo-base
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    ports:
-      - '$WEB_APP_PORT:$WEB_APP_PORT'
-    command: poetry run python amqp_web.py
+    command: poetry run python demo_amqp_2.py
 
   rabbitmq:
+    profiles:
+      - amqp
     image: rabbitmq:3-management-alpine
     ports:
       - 5672:5672 # broker
@@ -76,6 +80,6 @@ services:
       - RABBITMQ_DEFAULT_PASS=guest
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: 3s
+      timeout: 5s
+      retries: 10

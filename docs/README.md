@@ -16,90 +16,63 @@ suggestions for how to improve the documentation.
 The following walkthrough will guide you through the basic concepts of
 `agency`'s API, and how to use it to build your own agent systems.
 
-## Creating an `agency` Application
+## Creating an Agency Application
 
-The snippet below is a taken from the demo application located at
-[examples/demo/](./examples/demo/). Basic instructions for how to run the demo
-are located in that directory.
+The snippet below is an example of a simple Agency application.
 
-The demo can be run as both a single `NativeSpace` implementation, or a
-distributed `AMQPSpace` implementation.
+For this walkthrough, we'll be using the `NativeSpace` class for connecting
+agents. Usage is exactly the same as with the `AMQPSpace` class, except that a
+`NativeSpace` is for agents in the same process, and does not require an AMQP
+server.
 
-For this walkthrough, we'll be using the `NativeSpace` implementation. Usage is
-exactly the same as with the `AMQPSpace` class, except that a `NativeSpace` is
-for agents in the same process, and does not require an AMQP server.
-
-This demo application includes two different OpenAI agent classes, a
+The following application includes the `OpenAIFunctionAgent` class, a
 transformers based chat agent named `ChattyAI`, operating system access, and a
-Flask/React based web application hosted at `http://localhost:8080`, all
-integrated with the following implementation.
+Gradio based web application hosted at `http://localhost:8080`, all integrated
+with the following implementation.
 
 
 ```python
-# native_demo.py
 
-if __name__ == '__main__':
+# Create a space
+space = NativeSpace()
 
-    # Create a space
-    space = NativeSpace()
+# Add a simple HF based chat agent to the space
+space.add(
+    ChattyAI("Chatty",
+             model="EleutherAI/gpt-neo-125m"))
 
-    # Add a host agent to the space, exposing access to the host system
-    space.add(Host("Host"))
+# Add a host agent to the space, exposing access to the host system
+space.add(Host("Host"))
 
-    # Add a simple HF based chat agent to the space
-    space.add(
-        ChattyAI("Chatty",
-                 model="EleutherAI/gpt-neo-125m"))
+# Add an OpenAI agent to the space
+space.add(
+    OpenAIFunctionAgent("FunctionAI",
+                        model="gpt-3.5-turbo-16k",
+                        openai_api_key=os.getenv("OPENAI_API_KEY"),
+                        # user_id determines the "user" role in the OpenAI chat API
+                        user_id="User"))
 
-    # Add an OpenAI function API agent to the space
-    space.add(
-        OpenAIFunctionAgent("FunctionAI",
-                            model="gpt-3.5-turbo-16k",
-                            openai_api_key=os.getenv("OPENAI_API_KEY"),
-                            # user_id determines the "user" role in the OpenAI chat API
-                            user_id="Dan"))
+# Connect the Gradio app user to the space
+space.add(gradio_user)
 
-    # Add another OpenAI agent based on the completion API
-    space.add(
-        OpenAICompletionAgent("CompletionAI",
-                              model="text-davinci-003",
-                              openai_api_key=os.getenv("OPENAI_API_KEY")))
-
-    # Create and start a web app to connect human users to the space.
-    # As users connect they are added to the space as agents.
-    web_app = WebApp(space,
-                     port=os.getenv("WEB_APP_PORT"),
-                     # NOTE We're hardcoding a single demo user for simplicity
-                     demo_username="Dan")
-    web_app.start()
-
-    print("pop!")
-
-    # keep alive
-    while True:
-        time.sleep(1)
+# Launch Gradio UI
+demo.launch()
 ```
 
 
-## Creating a `Space`
+## Creating a `Space` and adding an `Agent`
 
 ```python
 space = NativeSpace()
-```
-
-
-## Adding an `Agent` to a `Space`
-
-```python
 space.add(ChattyAI("Chatty", model="EleutherAI/gpt-neo-125m"))
 ```
 
-The line above adds a new `ChattyAI` instance to the space, with the `id` of
-`"Chatty"`. The `model` argument is used to initialize the HuggingFace
+The lines above create a space and add a new `ChattyAI` instance to it, with the
+`id` of `"Chatty"`. The `model` argument is used to initialize the HuggingFace
 transformers language model.
 
 An agent's `id` is used to identify the agent within the space. Other agents may
-send messages to Chatty by using that `id`, as we'll see later.
+send messages to `"Chatty"` by using that `id`, as we'll see later.
 
 `id`'s are not necessarily unique. Two agents may declare the same `id` and
 will receive duplicate messages.
@@ -146,8 +119,7 @@ self._send({
 })
 ```
 
-This is a simple implementation that demonstrates the basic idea of how to
-invoke an action on another agent.
+This demonstrates the basic idea of how to invoke an action on another agent.
 
 When an agent receives a message, it invokes the action method specified by the
 `"action"` field of the message, passing the `"args"` to the action method as
@@ -157,29 +129,21 @@ So here we see that Chatty is invoking the `say` action on the sender of the
 original message, passing the response as the `"content"` argument. This way,
 the original sender and Chatty can have a conversation.
 
-This is an example of the schema that is used for sending messages in `agency`.
-This format is intended to be simple and extensible enough to support most use
-cases while remaining human readable.
-
-Custom message formats are a possibility in the future. If you'd like to see
-support for custom message formats, please open an issue.
-
-
 
 ## Special Actions
 
 There are three special actions present on all agents by default:
 
 * `help`\
-Sends back to the sender, a list of all actions on this agent. This is used by
-agents for action discovery.
+Returns a list of all actions on this agent. This is used by agents for action
+discovery.
 
 * `return`\
-Receives the return value of the last action invoked on an agent.
+Receives the return value of a previous action invoked by the agent.
 
 * `error`\
-Receives an error message if the last action invoked on an agent raised an
-exception.
+Receives an error message from a previous action invoked by the agent.
+
 
 Override or extend these actions to customize the behavior of your agent.
 
@@ -223,33 +187,28 @@ example if you allow terminal access, you may want to review commands before
 they are invoked.
 
 
-## The `WebApp` Class
+## The Gradio UI
 
-The `WebApp` class is a simple web application that allows human users to
-connect to the space and chat with agents. _Please note that this application is
-for demonstration purposes, so it currently only supports a single user._
+The Gradio UI is a [`Chatbot`](https://www.gradio.app/docs/chatbot) based
+application that allows human users to connect to the space and chat with the
+connected agents.
+
+It is defined in
+[examples/demo/apps/gradio_app.py](../examples/demo/apps/gradio_app.py) and
+simply needs to be imported and used like so:
 
 ```python
-web_app = WebApp(space,
-                  port=os.getenv("WEB_APP_PORT"),
-                  # NOTE We're hardcoding a single demo user for simplicity
-                  demo_username="Dan")
-web_app.start()
+from apps.gradio_app import demo, gradio_user
+...
+space.add(gradio_user)
+...
+demo.launch()
 ```
 
-Note that the `WebApp` class is not an agent or space. It is implemented as a
-separate process that adds users to the space dynamically as agents.
-
-To see the web application, first run the demo, then open a browser and navigate
-to `http://localhost:8080`.
-
-The web UI hosts a simple chat interface that allows you to chat with agents in
-the space. You can also invoke actions on agents using a custom "slash" syntax
-for finer-grained commands.
-
-To broadcast a message to all other agents in the space, simply type without a
-format. The javascript client will automatically convert unformatted text to a
-`"say"` action. For example, simply writing:
+You can also invoke actions on agents using a custom "slash" syntax. To
+broadcast a message to all other agents in the space, simply type without a
+format. The client will automatically convert unformatted text to a `"say"`
+action. For example, simply writing:
 
 ```
 Hello, world!
@@ -372,9 +331,6 @@ agents who do not implement the given action.
 
 ## Adding an Environment-Aware Agent
 
-> Note that the following `OpenAIFunctionAgent` class uses the [openai function
-calling API](https://platform.openai.com/docs/guides/gpt/function-calling).
-
 To add the [`OpenAIFunctionAgent`](./agency/agents/demo_agent.py) class to the
 environment:
 ```python
@@ -383,7 +339,7 @@ space.add(
         model="gpt-3.5-turbo-16k",
         openai_api_key=os.getenv("OPENAI_API_KEY"),
         # user_id determines the "user" role in the chat API
-        user_id="Dan"))
+        user_id="User"))
 ```
 
 The `user_id` argument determines which agent is represented as the "user" role
@@ -394,7 +350,15 @@ For an implementation that uses a plain text completion API, see
 [`OpenAICompletionAgent`](../examples/demo/agents/openai_completion_agent.py).
 
 
+# Other Agent Examples
+
+See the [`examples/demo/agents/`](../examples/demo/agents/) directory for more
+agent examples that you can use to get started.
+
+
 # Agent Callbacks
+
+The following is the full list of agent callbacks currently supported.
 
 * `Agent._before_action`\
 Called before an action is attempted. If an exception is raised in
