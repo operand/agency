@@ -44,7 +44,7 @@ class GradioUser(Agent):
         if message['action'] == 'say':
             text += f"{message['args']['content']}"
         else:
-            text += f"\n```\n{json.dumps(message, indent=2)}\n```"
+            text += f"\n```javascript\n{json.dumps(message, indent=2)}\n```"
 
         if message['from'] == self.id():
             return text, None
