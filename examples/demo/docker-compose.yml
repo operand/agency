@@ -80,6 +80,6 @@ services:
       - RABBITMQ_DEFAULT_PASS=guest
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: 3s
+      timeout: 5s
+      retries: 10
