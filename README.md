@@ -181,8 +181,8 @@ system, Agency might be for you.
   providing a minimal yet useful foundation for building agent systems.
 
   Expect changes to the API over time as features are added or changed. The
-  library follows semver versioning starting at 1.x.x. Patch version updates may
-  contain breaking API changes. Minor versions should not.
+  library follows semver versioning starting at 1.x.x. Minor version updates may
+  contain breaking API changes. Patch versions should not.
 
 * This library makes use of threads for each individual agent. Multithreading
   is limited by [python's
