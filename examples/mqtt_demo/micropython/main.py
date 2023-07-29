@@ -42,7 +42,7 @@ class SmartHomeAgent(UAgent):
             return help
 
     def _after_add(self):
-        self._send(
+        self.send(
             {
                 "thoughts": "Here is a list of actions you can take on me.",
                 "action": "return",
@@ -88,7 +88,7 @@ class RobotAgent(UAgent):
             return help
 
     def _after_add(self):
-        self._send(
+        self.send(
             {
                 "thoughts": "Here is a list of actions you can take on me.",
                 "action": "return",

@@ -1,14 +1,18 @@
-from agency import util
-from agency.agent import ACCESS_PERMITTED, Agent, access_policy
+import json
+import textwrap
+from datetime import datetime
+
+import openai
 from agents.mixins.help_methods import HelpMethods
 from agents.mixins.prompt_methods import PromptMethods
-from datetime import datetime
-import json
-import openai
-import textwrap
+from agents.mixins.say_response_methods import SayResponseMethods
+
+from agency import util
+from agency.agent import Agent, action
+from agency.schema import Message
 
 
-class OpenAICompletionAgent(HelpMethods, PromptMethods, Agent):
+class OpenAICompletionAgent(HelpMethods, SayResponseMethods, PromptMethods, Agent):
     """
     An agent which uses OpenAI's completion API for inference
     """
@@ -35,11 +39,20 @@ class OpenAICompletionAgent(HelpMethods, PromptMethods, Agent):
         In order to communicate, I use a simple terminal application where I can
         interact via JSON formatted messages. I can send messages to discover
         and interact with other systems, AI agents, or humans who may also be
-        present.
+        present. The following JSON schema describes the message format:
+
+        ```
+        {json.dumps(Message.schema())}
+        ```
 
         %%%%% Terminal App 1.0.0 %%%%%
         """) + \
-            self._message_log_to_list()
+            self._message_log_to_list([
+                # Ignore outgoing help_request messages
+                message
+                for message in self._message_log
+                if not (message['from'] == self.id() and message.get('id') == "help_request")
+            ])
 
     def _pre_prompt(self, agent_id, timestamp=util.to_timestamp(datetime.now())):
         return f"\n[{timestamp}] {agent_id}:"
@@ -48,8 +61,8 @@ class OpenAICompletionAgent(HelpMethods, PromptMethods, Agent):
         pre_prompt = self._pre_prompt(message['from'])
         return f"{pre_prompt} {json.dumps(message)}/END"
 
-    @access_policy(ACCESS_PERMITTED)
-    def _action__say(self, content: str) -> bool:
+    @action
+    def say(self, content: str) -> bool:
         # NOTE that we don't use the content arg here since we construct the
         # prompt from the message log
         full_prompt = self._full_prompt()
@@ -61,4 +74,4 @@ class OpenAICompletionAgent(HelpMethods, PromptMethods, Agent):
         )
         # parse the output
         action = util.extract_json(completion.choices[0].text, ["/END"])
-        self._send(action)
+        self.send(action)

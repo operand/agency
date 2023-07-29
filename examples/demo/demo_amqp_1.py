@@ -1,4 +1,4 @@
-from agency.amqp_space import AMQPSpace
+from agency.spaces.amqp_space import AMQPSpace
 from agents.host import Host
 from apps.gradio_app import demo, gradio_user
 

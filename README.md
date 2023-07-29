@@ -56,8 +56,8 @@ time. An example of a simple agent could be:
 
 ```python
 class CalculatorAgent(Agent):
-  def _action__add(a, b):
-    return a + b
+    def _action__add(a, b):
+        return a + b
 ```
 
 This defines an agent with a single action: `"add"`. Other agents will be able
@@ -65,14 +65,14 @@ to call this method by sending a message to an instance of `CalculatorAgent` and
 specifying the `"add"` action.
 
 ```python
-other_agent._send({
-  'to': 'CalcAgent',
-  'thoughts': 'Optionally explain here',
-  'action': 'add',
-  'args': {
-    'a': 1,
-    'b': 2,
-  },
+other_agent.send({
+    'to': 'CalcAgent',
+    'thoughts': 'Optionally explain here',
+    'action': 'add',
+    'args': {
+        'a': 1,
+        'b': 2,
+    },
 })
 ```
 
@@ -90,19 +90,19 @@ You can also define callbacks for various purposes:
 ```python
 class CalculatorAgent(Agent):
   ...
-  def _before_action(self, original_message: dict):
+  def before_action(self, original_message: dict):
     # Called before any action is attempted
 
-  def _after_action(self, original_message: dict, return_value: str, error: str):
+  def after_action(self, original_message: dict, return_value: str, error: str):
     # Called after any action is attempted
 
-  def _after_add(self):
+  def after_add(self):
     # Called after the agent is added to the space and may begin communicating
 
-  def _before_remove(self):
+  def before_remove(self):
     # Called before the agent is removed from the space
 
-  def _request_permission(self, proposed_message: dict) -> bool:
+  def request_permission(self, proposed_message: dict) -> bool:
     # Called before an ACCESS_REQUESTED action is attempted for run-time review
 ```
 

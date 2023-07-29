@@ -4,16 +4,23 @@ import time
 
 # Starts and stops a RabbitMQ container for the duration of the test session.
 
+out = subprocess.DEVNULL # use subprocess.PIPE for output
+
 
 @pytest.fixture(scope="session", autouse=True)
 def rabbitmq_container():
-    container = subprocess.Popen([
-        "docker", "run", "--name", "rabbitmq-test",
-        "-p", "5672:5672",
-        "-p", "15672:15672",
-        "--user", "rabbitmq:rabbitmq",
-        "rabbitmq:3-management",
-    ], start_new_session=True)
+    container = subprocess.Popen(
+        [
+            "docker", "run", "--name", "rabbitmq-test",
+            "-p", "5672:5672",
+            "-p", "15672:15672",
+            "--user", "rabbitmq:rabbitmq",
+            "rabbitmq:3-management",
+        ],
+        start_new_session=True,
+        stdout=out,
+        stderr=out
+    )
     try:
         wait_for_rabbitmq()
         yield container
@@ -32,8 +39,8 @@ def wait_for_rabbitmq():
                     "docker", "exec", "rabbitmq-test",
                     "rabbitmq-diagnostics", "check_running"
                 ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdout=out,
+                stderr=out,
                 check=True,
             )
             if result.returncode == 0:

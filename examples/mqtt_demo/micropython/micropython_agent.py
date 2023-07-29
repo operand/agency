@@ -49,7 +49,7 @@ class UAgent:
         """
         return self.__id
 
-    def _send(self, action: dict):
+    def send(self, action: dict):
         """
         Sends (out) an action
         """
@@ -68,7 +68,7 @@ class UAgent:
             # Here we handle exceptions that occur while committing an
             # action, including PermissionError's from access denial, by
             # reporting the error back to the sender.
-            self._send(
+            self.send(
                 {
                     "to": message["from"],
                     "thoughts": "An error occurred",
@@ -118,7 +118,7 @@ class UAgent:
                 # action method is sent back to the sender as a "return" action. This is
                 # useful for actions that simply need to return a value to the sender.
                 if return_value is not None:
-                    self._send(
+                    self.send(
                         {
                             "to": message["from"],
                             "thoughts": "A value was returned for your action",

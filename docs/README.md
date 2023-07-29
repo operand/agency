@@ -14,7 +14,8 @@ suggestions for how to improve the documentation.
 # API Walkthrough
 
 The following walkthrough will guide you through the basic concepts of
-`agency`'s API, and how to use it to build your own agent systems.
+Agency's API, and how to use it to build your own agent systems.
+
 
 ## Creating an Agency Application
 
@@ -74,8 +75,8 @@ transformers language model.
 An agent's `id` is used to identify the agent within the space. Other agents may
 send messages to `"Chatty"` by using that `id`, as we'll see later.
 
-`id`'s are not necessarily unique. Two agents may declare the same `id` and
-will receive duplicate messages.
+`id`'s are unique. Two agents may not declare the same `id` within the same
+space.
 
 
 ## Defining Actions
@@ -86,13 +87,15 @@ Looking at `ChattyAI`'s source code, you'll see that it is a subclass of
 The following is a typical action method implementation taken from `ChattyAI`.
 
 ```python
-def _action__say(self, content: str):
+@action
+def say(self, content: str):
     """Use this action to say something to Chatty"""
     ...
 ```
 
-The prefix `_action__` is used to indicate that this is an action that can be
-invoked by other agents. The suffix `say` is the name of the action.
+The decorator `@action` is used to indicate that this is an action that can be
+invoked by other agents in their space. The method name `say` is the name of the
+action by default.
 
 The `say` action takes a single string argument `content`. This action is
 intended to allow other agents to chat with Chatty, as expressed in its
@@ -105,16 +108,17 @@ underlying language model, and return the result to the sender.
 ## Invoking Actions
 
 An example of invoking an action can be seen here, taken from the same
-`ChattyAI._action__say()` method.
+`ChattyAI.say()` method.
 
 ```python
 ...
-self._send({
+self.send({
     "to": self._current_message['from'],
-    "thoughts": "",
-    "action": "say",
-    "args": {
-      "content": response_content,
+    "action": {
+        "name": "say",
+        "args": {
+            "content": response_content,
+        }
     }
 })
 ```
@@ -122,12 +126,15 @@ self._send({
 This demonstrates the basic idea of how to invoke an action on another agent.
 
 When an agent receives a message, it invokes the action method specified by the
-`"action"` field of the message, passing the `"args"` to the action method as
-keyword arguments.
+`action.name` field of the message, passing the `args` dictionary to the action
+method as keyword arguments.
 
-So here we see that Chatty is invoking the `say` action on the sender of the
-original message, passing the response as the `"content"` argument. This way,
-the original sender and Chatty can have a conversation.
+So here Chatty is invoking the `say` action on the sender of the original
+message, passing the response as the `"content"` argument. This way, the
+original sender and Chatty can have a conversation.
+
+Note the use of the `_current_message` variable. That variable may be inspected
+during an action to access the entire incoming message which invoked the action.
 
 
 ## Special Actions
@@ -150,32 +157,32 @@ Override or extend these actions to customize the behavior of your agent.
 
 ## Access Control
 
-Access policies are used to control when actions can be invoked by other agents.
-All actions must declare an access policy like the following example:
+Access policies may be used to control when actions can be invoked by agents.
+All actions may declare an access policy like the following example:
 
 ```python
-@access_policy(ACCESS_PERMITTED)
-def _action__myaction(self):
+@action(access_policy=ACCESS_PERMITTED)
+def my_action(self):
     ...
 ```
 
 An access policy can currently be one of three values:
 
-- `ACCESS_PERMITTED` - which permits any agent to use that action at
-any time
-- `ACCESS_DENIED` - which prevents use
-- `ACCESS_REQUESTED` - which will prompt the receiving agent for permission
-when access is attempted. Access will await approval or denial.
+- `ACCESS_PERMITTED` - (Default) Permits any agent to use that action at
+any time.
+- `ACCESS_DENIED` - Prevents access to that action.
+- `ACCESS_REQUESTED` - Prompts the receiving agent for permission when access is
+attempted. Access will await approval or denial.
 
-If `ACCESS_REQUESTED` is used, the receiving agent will be prompted at run time
-to approve the action via the `_request_permission()` callback method.
+If `ACCESS_REQUESTED` is used, the receiving agent will be prompted to approve
+the action via the `request_permission()` callback method.
 
-If any actions require permission, you must implement the
-`_request_permission()` method with the following signature in order to receive
+If any actions declare a policy of `ACCESS_REQUESTED`, you must implement the
+`request_permission()` method with the following signature in order to receive
 permission requests.
 
 ```python
-def _request_permission(self, proposed_message: dict) -> bool:
+def request_permission(self, proposed_message: dict) -> bool:
     ...
 ```
 
@@ -190,8 +197,8 @@ they are invoked.
 ## The Gradio UI
 
 The Gradio UI is a [`Chatbot`](https://www.gradio.app/docs/chatbot) based
-application that allows human users to connect to the space and chat with the
-connected agents.
+application used for development and demonstration purposes, that allows human
+users to connect to a space and chat with the connected agents.
 
 It is defined in
 [examples/demo/apps/gradio_app.py](../examples/demo/apps/gradio_app.py) and
@@ -213,12 +220,12 @@ action. For example, simply writing:
 ```
 Hello, world!
 ```
-... will be broadcast to all agents as a `"say"` action.
+will be broadcast to all agents as a `"say"` action.
 
 To send a point-to-point message to a specific agent, or to call actions other
 than `"say"`, you can use the following format:
 ```
-/action_name to:AgentID arg1:"value 1" arg2:"value 2"
+/agent_id.action_name arg1:"value 1" arg2:"value 2"
 ```
 
 
@@ -228,8 +235,8 @@ than `"say"`, you can use the following format:
 space.add(Host("Host"))
 ```
 
-The `Host` class allows access to the host operating system where the python
-application is running. It exposes actions such as `read_file` and
+The `Host` class demonstrates allowing access to the host operating system where
+the python application is running. It exposes actions such as `read_file` and
 `shell_command` which allow other agents to interact with the host.
 
 This class is a good example of one with potentially dangerous actions that must
@@ -237,17 +244,17 @@ be accessed with care. You'll notice that all the methods in the `Host` class
 have been given the access policy:
 
 ```python
-@access_policy(ACCESS_REQUESTED)
+@action(access_policy=ACCESS_REQUESTED)
 ...
 ```
 
-Thanks to the implementation of `_request_permission()` in the `Host` class, all
+Thanks to the implementation of `request_permission()` in the `Host` class, all
 actions on the host will require a confirmation from the terminal where the
 application is being run.
 
-Note that this implementation of `_request_permission()` is just one
-possibility. We could have implemented, for example, a phone notification for a
-human to review from elsewhere.
+Note that this implementation of `request_permission()` is just one possibility.
+We could have implemented for example, a phone notification for a human to
+review from elsewhere.
 
 
 ## Discovering Actions
@@ -261,49 +268,53 @@ other agents and actions that are available in the space.
 So a person using the chat UI can discover available actions by typing:
 
 ```
-/help
+/*.help
 ```
 
-This will broadcast a `help` action to all other agents, who will individually
-respond with a list of their available actions. The returned list of actions
-would look something like:
+Note the use of "*". This is a reserved name for broadcasting messages to all
+agents in the space.
+
+So the above command will broadcast a `help` action to all other agents, who
+will individually respond with a dictionary of their available actions. The
+returned data would look something like:
 
 ```python
-[
-    {
-        "to": "Host",
-        "action": "delete_file",
-        "thoughts": "Delete a file",
-        "args": {
-          "filepath": "str"
-        }
+{
+  "shell_command": {
+    "description": "Execute a shell command",
+    "args": {
+      "command": {
+        "type": "string"
+        "description": "The command to execute"
+      }
     },
-    {
-        "to": "Host",
-        "action": "list_files",
-        "thoughts": "List files in a directory",
-        "args": {
-          "directory_path": "str"
-        }
-    },
-    ...
-]
+    "returns": {
+      "type": "string"
+      "description": "The output of the command"
+    }
+  },
+  ...
+}
 ```
 
-Notice that each action lists the `id` of the agent in the `"to"` field, the
-docstring from the action's method in the `"thoughts"` field, and each argument
-along with its type in the `"args"` field.
-
-So a person using the web app UI can invoke the `list_files` action on
+So a person using the Gradio UI can invoke the `shell_command` action on
 `"Host"` with the following syntax:
 
 ```
-/list_files to:Host directory_path:/app
+/Host.shell_command command:"ls -la"
 ```
 
-This will send the `list_files` action to the `Host` agent who will (after being
-granted permission) return the results back to the web user interface as a
+This will send the `shell_command` action to the `Host` agent who will (after
+being granted permission) return the results back to the Gradio interface as a
 message.
+
+
+## Defining Help
+
+The `help` data structure above for describing actions is automatically
+generated from the `@action` decorator and its method.
+
+TODO
 
 
 ## Broadcast vs Point-to-Point Messaging
@@ -329,7 +340,9 @@ Broadcast messages will _not_ return an error, but will silently be ignored by
 agents who do not implement the given action.
 
 
-## Adding an Environment-Aware Agent
+## Adding an Intelligent Agent
+
+Lastly we can add an intelligent agent into the space.
 
 To add the [`OpenAIFunctionAgent`](./agency/agents/demo_agent.py) class to the
 environment:
@@ -342,52 +355,47 @@ space.add(
         user_id="User"))
 ```
 
-The `user_id` argument determines which agent is represented as the "user" role
-to the chat API. Since the chat API is limited to a predefined set of roles, we
-need to indicate which is the main "user".
+For more agent examples that you can try, see the
+[`examples/demo/agents/`](../examples/demo/agents/) directory.
 
-For an implementation that uses a plain text completion API, see
-[`OpenAICompletionAgent`](../examples/demo/agents/openai_completion_agent.py).
-
-
-# Other Agent Examples
-
-See the [`examples/demo/agents/`](../examples/demo/agents/) directory for more
-agent examples that you can use to get started.
+That concludes the example walkthrough. To try the demo application, please jump
+to the [examples/demo/](../examples/demo/) directory.
 
 
-# Agent Callbacks
+# Agent Implementation
+
+## Callbacks
 
 The following is the full list of agent callbacks currently supported.
 
-* `Agent._before_action`\
+* `Agent.before_action`\
 Called before an action is attempted. If an exception is raised in
-`_before_action`, the action method and `_after_action` callbacks will not be
+`before_action`, the action method and `after_action` callbacks will not be
 executed and the error will be returned to the sender.
 
-* `Agent._after_action`\
+* `Agent.after_action`\
 Called after an action is attempted. Provides the original message, the return
 value, and error if applicable. This method is called even if an exception is
 raised in the action.
 
-* `Agent._after_add`\
+* `Agent.after_add`\
 Called after an agent is added to a space and may begin sending/receiving
 messages. Use this method to perform any initial setup necessary upon being
 added to a space.
 
-* `Agent._before_remove`\
+* `Agent.before_remove`\
 Called before an agent is removed from a space and will no longer send/receive
 messages. Use this method to perform any cleanup necessary before being removed
 from a space.
 
-* `Agent._request_permission`\
+* `Agent.request_permission`\
 Called when an agent attempts to perform an action that requires permission.
 This method should return `True` or `False` to indicate whether the action
 should be allowed. A rejected action will be returned as a permission error to
 the sender.
 
 
-# Using AMQPSpace
+## Using AMQPSpace
 
 To use AMQP for multi-process or networked communication, you can first swap the
 `AMQPSpace` class for the `NativeSpace` class in the walkthrough above.
@@ -440,11 +448,10 @@ multithreading limitations of python's GIL.
 See the [example application](../examples/demo/) for a full working example.
 
 
-## Configuring Connectivity
+### Configuring Connectivity
 
-When using AMQP, you have many options for connectivity that may affect your
-experience. By default, the `AMQPSpace` class will read the following
-environment variables and will otherwise use default settings.
+By default, the `AMQPSpace` class will read the following environment variables
+and will otherwise use default settings.
 
 ```sh
 AMQP_HOST
@@ -454,9 +461,8 @@ AMQP_PASSWORD
 AMQP_VHOST
 ```
 
-More options are possible like setting the heartbeat rate or enabling ssl, if
-you provide your own `AMQPOptions` object when instantiating an `AMQPSpace`.
-For example:
+You may also customize the full list of options if you provide your own
+`AMQPOptions` object when instantiating an `AMQPSpace`. For example:
 
 ```python
 space = AMQPSpace(

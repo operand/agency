@@ -10,9 +10,9 @@ exclude = ["*"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-colorama = "^0.4"
 pydantic = "^1.8"
 kombu = "^5.3.1"
+docstring-parser = "^0.15"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"

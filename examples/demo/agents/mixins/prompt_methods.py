@@ -1,8 +1,8 @@
 from abc import ABC, ABCMeta, abstractmethod
 from datetime import datetime
+from typing import List
 from agency import util
-from agency.agent import ACCESS_PERMITTED, access_policy
-from agency.schema import MessageSchema
+from agency.schema import Message
 
 
 class PromptMethods(ABC, metaclass=ABCMeta):
@@ -17,10 +17,10 @@ class PromptMethods(ABC, metaclass=ABCMeta):
         """
         return self._prompt_head() + self._pre_prompt(agent_id=self.id())
 
-    def _message_log_to_list(self):
+    def _message_log_to_list(self, message_log: List[Message]) -> str:
         """Convert an array of message_log entries to a prompt ready list"""
         promptable_list = ""
-        for message in self._message_log:
+        for message in message_log:
             promptable_list += self._message_line(message)
         return promptable_list
 
@@ -38,7 +38,7 @@ class PromptMethods(ABC, metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def _message_line(self, message: MessageSchema) -> str:
+    def _message_line(self, message: Message) -> str:
         """
         Returns a single line for a prompt that represents a previous message
         """

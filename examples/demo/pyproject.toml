@@ -15,6 +15,7 @@ Flask-SocketIO = "^5.3"
 openai = "^0.27.8"
 eventlet = "^0.33.3"
 gradio = "^3.38.0"
+colorama = "^0.4.6"
 
 
 [build-system]
