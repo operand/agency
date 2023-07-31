@@ -33,7 +33,7 @@ exceptions, enforcing access restrictions, and more.
 * [_In development_](https://github.com/operand/agency/issues/26)
 
 ### Demo application available at [`examples/demo`](./examples/demo/)
-* Includes Gradio UI (Flask/React UI also available)
+* Includes Gradio UI (React UI also available)
 * Multiple agent examples for experimentation
   * Two OpenAI agent examples
   * HuggingFace transformers agent example
