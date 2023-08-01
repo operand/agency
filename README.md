@@ -144,7 +144,7 @@ To run the demo, please follow the directions at
 [examples/demo](./examples/demo/).
 
 The following is a screenshot of the Gradio UI that demonstrates the example
-`OpenAIFunctionAgent` following orders and interacting with the `Host`.
+`OpenAIFunctionAgent` following orders and interacting with the `Host` agent.
 
 <p align="center">
   <img src="https://i.ibb.co/h29m5S4/Screenshot-2023-07-26-at-4-53-05-PM.png"
