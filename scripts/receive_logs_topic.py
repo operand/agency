@@ -5,61 +5,39 @@
 # https://github.com/rabbitmq/rabbitmq-tutorials/blob/main/python/receive_logs_topic.py
 
 Usage:
--  python receive_logs_topic.py "#" :  To receive all the logs
--  python receive_logs_topic.py "kern.*" : To receive all logs from the facility "kern"
--  python receive_logs_topic.py "*.critical" : To hear only about "critical" logs
--  python receive_logs_topic.py "kern.*" "*.critical" :  Create multiple bindings
+-  python receive_logs_topic.py :  To receive all the logs
+-  python receive_logs_topic.py --topic "#" :  To receive all the logs
+-  python receive_logs_topic.py --topic "kern.*" : To receive all logs from the facility "kern"
+-  python receive_logs_topic.py --topic "*.critical" : To hear only about "critical" logs
 """
 
 import sys
 import os
 import time
-import socket
-import kombu
+import argparse
 
+from agency.agent import Agent
+from agency.amqp_space import AMQPSpace
 
-def main():
-    connection = kombu.Connection(
-        hostname="localhost",
-        port=5672,
-        userid="guest",
-        password="guest",
-        virtual_host="/",
-    )
+class Watcher(Agent):
+    def _receive(self, message: dict):
+        print(message)
 
-    with connection as conn:
-        exchange = kombu.Exchange("agency", type="topic", durable=False)
-        binding_keys = sys.argv[1:]
-        if not binding_keys:
-            sys.stderr.write("Usage: %s [binding_key]...\n" % sys.argv[0])
-            sys.exit(1)
+def main(topic):
+    space = AMQPSpace()
+    agent = Watcher("#")
+    space.add(agent, receive_broadcast=False) # receive_broadcast=False: to avoid getting __broadcast__ messages twice
 
-        queues = [
-            kombu.Queue("logs_topic", exchange=exchange, routing_key=binding_key)
-            for binding_key in binding_keys
-        ]
-
-        for queue in queues:
-            queue(conn.channel()).declare()
-
-        def callback(body, message):
-            message.ack()
-            print(" [x] %r:%r" % (message.delivery_info["routing_key"], body))
-
-        with conn.Consumer(queues, callbacks=[callback]):
-            print(" [*] Waiting for logs. To exit press CTRL+C")
-            while True:
-                time.sleep(0.01)
-                conn.heartbeat_check()  # sends heartbeat if necessary
-                try:
-                    conn.drain_events(timeout=0.01)
-                except socket.timeout:
-                    pass
-
+    while True:
+        time.sleep(1)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Message Watcher.")
+    parser.add_argument("--topic", default="#", help="Subscribe to the topic messages.")
+    args = parser.parse_args()
+
     try:
-        main()
+        main(args.topic)
     except KeyboardInterrupt:
         print("Interrupted")
         try:

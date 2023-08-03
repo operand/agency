@@ -66,16 +66,23 @@ class AMQPSpace(Space):
             heartbeat=60,
         )
 
-    def add(self, agent: Agent) -> None:
+    def add(self, agent: Agent, receive_broadcast=True) -> None:
         # define callback for incoming messages
         def _on_message(body, message):
             message.ack()
-            message_data = json.loads(body)
-            broadcast = 'to' not in message_data or message_data['to'] in [
-                None, ""]
-            if broadcast and message_data['from'] != agent.id() \
-               or not broadcast and message_data['to'] == agent.id():
-                agent._receive(message_data)
+            try:
+                message_data = json.loads(body)
+            except json.decoder.JSONDecodeError as e:
+                print("invalid message:", body)
+                return
+
+            broadcast = 'to' not in message_data or message_data['to'] in [None, ""]
+
+            if broadcast:
+                if message_data['from'] != agent.id():
+                    agent._receive(message_data)
+            else: # messages received by direct_queue
+                    agent._receive(message_data)
 
         def _consume_messages():
             with Connection(**self.__kombu_connection_options) as connection:
@@ -103,20 +110,22 @@ class AMQPSpace(Space):
                 )
                 direct_queue(connection.channel()).declare()
 
-                # Create a separate broadcast queue for each agent
-                broadcast_queue = Queue(
-                    f"{agent_qid}-broadcast",
-                    exchange=self.__topic_exchange,
-                    routing_key=self.BROADCAST_KEY,
-                    exclusive=True,
-                )
-                broadcast_queue(connection.channel()).declare()
+                if receive_broadcast:
+                    # Create a separate broadcast queue for each agent
+                    broadcast_queue = Queue(
+                        f"{agent_qid}-broadcast",
+                        exchange=self.__topic_exchange,
+                        routing_key=self.BROADCAST_KEY,
+                        exclusive=True,
+                    )
+                    broadcast_queue(connection.channel()).declare()
 
                 # Consume from direct and broadcast queues. The id_queue is
                 # included for tracking connections but does not receive
                 # messages.
+                queues = [id_queue, direct_queue, broadcast_queue] if receive_broadcast else [id_queue, direct_queue]
                 with connection.Consumer(
-                    [id_queue, direct_queue, broadcast_queue],
+                    queues,
                     callbacks=[_on_message],
                 ):
                     agent._space = self
