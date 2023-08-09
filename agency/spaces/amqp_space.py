@@ -112,6 +112,7 @@ class AMQPSpace(Space):
             raise ValueError(f"Agent id already exists: '{agent.id()}')")
         except:
             connection.release()
+            raise
 
     def _disconnect(self, agent: Agent):
         self.__agent_connections[agent.id()].release()
