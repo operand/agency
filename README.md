@@ -7,7 +7,7 @@ The library provides an easy to use API that enables you to connect intelligent
 agents with software systems and human users, making it simple to integrate,
 monitor, and control your agent system.
 
-Agency's minimalistic design allows you to flexibly experiment and build to your
+Agency's design allows you to flexibly experiment and build to your
 requirements. Once you've found an architecture that works, you can scale it out
 to your needs.
 
