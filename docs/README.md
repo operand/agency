@@ -394,7 +394,7 @@ Override or extend these actions to customize the behavior of your agent.
 * `help`\
 Returns a list of all actions on this agent. This is used by agents for action
 discovery. You normally do not need to implement this method but you may do so
-for example, to filter which actions are returned.
+for example, to control which actions are returned to other agents.
 
 * `response`\
 If an action method returns a value, this method will be called with the value.
@@ -445,14 +445,14 @@ The full message schema is summarized by this example:
 ```python
 {
     "id": "some optional id",     # used in response and error messages
-    "meta": {                     # optional for metadata
+    "meta": {                     # optional object for metadata
         "an": "optional",
         "object": {
             "for": "metadata",
         }
     }
-    "from": "TheSendingAgentID",  # the sender
-    "to": "TheReceivingAgentID",  # the receiver
+    "from": "TheSendingAgentID",  # the sender id
+    "to": "TheReceivingAgentID",  # the receiver id
     "action": {                   # the action
         "name": "the_action_name",
         "args": {
@@ -487,9 +487,15 @@ used for validation.
 ## Broadcast vs Point-to-Point
 
 All messages require the `to` field to be specified. The `to` field should be
-the `id` of an agent in the space or the special id `*` to broadcast the message
-to all agents in the space.
+the `id` of an agent in the space (point-to-point) or the special id `*` to
+broadcast the message to all agents in the space.
 
+By default, agents ignore their own broadcasts, but you may change this behavior
+with the `ignore_own_broadcasts` argument when creating the agent. For example:
+
+```python
+my_agent = MyAgent("MyAgent", ignore_own_broadcasts=False)
+```
 
 ## Non-Existent Agents or Actions
 
@@ -499,7 +505,7 @@ If you send a message to a specific agent, but specify a non-existent action,
 you will receive an `error` message in response.
 
 Broadcasts which specify a non-existent action are silently ignored, so that
-broadcasts do not result in numerous error messages.
+broadcasts do not result in many error messages.
 
 
 # Using AMQPSpace
