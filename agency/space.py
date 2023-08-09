@@ -44,8 +44,9 @@ class Space(ABC, metaclass=ABCMeta):
         Removes an agent from the space.
         """
         agent.before_remove()
-        self.__agent_processors[agent.id()]['processor'].stop()
-        del self.__agent_processors[agent.id()]
+        ap = self.__agent_processors.pop(agent.id(), None)
+        if ap is not None:
+            ap['processor'].stop()
         self._disconnect(agent)
         agent._space = None
 
