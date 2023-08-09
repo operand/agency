@@ -1,7 +1,5 @@
-import os
 from agency.spaces.amqp_space import AMQPSpace
 from agents.host import Host
-from agents.openai_function_agent import OpenAIFunctionAgent
 from apps.gradio_app import demo, gradio_user
 
 
