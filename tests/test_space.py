@@ -60,17 +60,22 @@ def test_unique_ids_native(native_space):
         native_space.add(Webster("Webster"))
 
 
-def test_unique_ids_amqp(amqp_space):
+def test_unique_ids_amqp():
     """
     Asserts that two agents may NOT have the same id
     """
-    # For the amqp test, we create another AMQPSpace instance to add the second
-    # agent.
+    # For the amqp test, we create two AMQPSpace instance to add each agent
+    amqp_space1 = AMQPSpace(exchange="agency-test")
     amqp_space2 = AMQPSpace(exchange="agency-test")
-
-    amqp_space.add(Webster("Webster"))
-    with pytest.raises(ValueError):
-        amqp_space2.add(Webster("Webster"))
+    webster1 = Webster("Webster")
+    webster2 = Webster("Webster")
+    try:
+        amqp_space1.add(webster1)
+        with pytest.raises(ValueError):
+            amqp_space2.add(webster2)
+    finally:
+        amqp_space1.remove_all()
+        amqp_space2.remove_all()
 
 
 def test_after_add_and_before_remove(either_space):
