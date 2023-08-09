@@ -10,11 +10,13 @@ class GradioUser(Agent):
     Represents the Gradio user as an Agent and contains methods for integrating
     with the Chatbot component
     """
+    def __init__(self, id: str) -> None:
+        super().__init__(id, receive_own_broadcasts=False)
 
     @action
     def say(self, content):
-        # We don't do anything to render here because the get_chatbot_messages
-        # method will render the full message history
+        # We don't do anything to render an incoming message here because the
+        # get_chatbot_messages method will render the full message history
         pass
 
     def send_message(self, text):

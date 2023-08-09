@@ -337,7 +337,8 @@ from the `@action` decorator arguments and the method's signature.
 ```
 
 The following example shows how the above help information can be defined using
-a docstring:
+a docstring that follows the [Google style
+guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md#383-functions-and-methods):
 
 ```python
 @action
@@ -353,12 +354,12 @@ def shell_command(self, command: str) -> str:
     """
 ```
 
-Note:
-* The name is determined by the method name.
-* Types are determined by looking at the docstring and the signature, with the
-  signature type hint taking precedence.
-* Descriptions are parsed from the docstring, and are used for action
-  description and arguments.
+The action name is determined by the method name.
+
+Types are determined by looking at the docstring and the signature, with the
+signature type hint taking precedence.
+
+Action and argument descriptions are parsed from the docstring.
 
 
 ### Overriding Help Information
@@ -379,7 +380,7 @@ def say(self, content: str) -> None:
 
 If a `help` object is provided to the decorator, it overrides the generated
 object entirely. You can use this to experiment with different help information
-structures.
+schemas.
 
 Merging the two objects, for example in order to only override specific fields,
 is not (yet) supported. Let me know if you'd like to see this feature developed.
@@ -444,16 +445,16 @@ The full message schema is summarized by this example:
 
 ```python
 {
-    "id": "some optional id",     # used in response and error messages
-    "meta": {                     # optional object for metadata
+    "id": "some optional id",
+    "meta": {
         "an": "optional",
         "object": {
             "for": "metadata",
         }
     }
-    "from": "TheSendingAgentID",  # the sender id
-    "to": "TheReceivingAgentID",  # the receiver id
-    "action": {                   # the action
+    "from": "the sender's id",
+    "to": "the receiver's id",
+    "action": {
         "name": "the_action_name",
         "args": {
             "the": "args",
@@ -462,12 +463,12 @@ The full message schema is summarized by this example:
 }
 ```
 
-Note that when sending, you may not need to send this entire structure. The `id`
-and `meta` fields are optional. Additionally, the `from` field is automatically
-populated for you in the `send()` method.
+Note that when sending, you may not need to supply this entire structure. The
+`id` and `meta` fields are optional. Additionally, the `from` field is
+automatically populated for you in the `send()` method.
 
 A minimal example of calling `Agent.send()` with only the required fields would
-be:
+look like:
 
 ```python
 my_agent.send({
