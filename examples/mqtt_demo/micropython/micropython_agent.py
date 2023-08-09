@@ -24,7 +24,7 @@ class UAgent:
     An Actor that may represent an AI agent, computing system, or human user
     """
 
-    ACTION_METHOD_PREFIX = "_action__"
+    ACTION_METHOD_PREFIX = ""
 
     def __init__(self, id: str) -> None:
         if len(id) < 1 or len(id) > 255:
@@ -182,7 +182,7 @@ class UAgent:
     # Override any of the following methods as needed to implement your agent
 
     @access_policy(ACCESS_PERMITTED)
-    def _action__help(self, action_name: str = None) -> list:
+    def help(self, action_name: str = None) -> list:
         """
         Returns list of actions on this agent matching action_name, or all if none
         is passed.
@@ -190,22 +190,22 @@ class UAgent:
         return self._help(action_name)
 
     @access_policy(ACCESS_PERMITTED)
-    def _action__return(self, original_message: dict, return_value: str):
+    def return(self, original_message: dict, return_value: str):
         """
         Implement this action to handle returned data from a prior action. By
         default this action simply replaces it with an incoming "say".
         """
         print(
-            f"WARNING: Data was returned from an action. Implement _action__return to handle it."
+            f"WARNING: Data was returned from an action. Implement return to handle it."
         )
 
     @access_policy(ACCESS_PERMITTED)
-    def _action__error(self, original_message: dict, error: str):
+    def error(self, original_message: dict, error: str):
         """
         Implement this action to handle errors from an action.
         """
         print(
-            f"WARNING: An error occurred in an action. Implement _action__error to handle it."
+            f"WARNING: An error occurred in an action. Implement error to handle it."
         )
 
     def _before_action(self, message: dict):

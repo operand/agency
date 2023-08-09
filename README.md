@@ -1,7 +1,7 @@
 # Summary
 
 Agency is a python library that provides a minimal framework for creating
-agent-integrated systems of any scale or purpose.
+agent-integrated systems for any scale or purpose.
 
 The library enables you to connect intelligent agents with software systems and
 human users in a scalable and flexible way making it easy to integrate, monitor,
@@ -24,7 +24,7 @@ you to scale as needed once you've identified the architecture that works.
 ### Performance and Scalability
 * Multithreaded (though python's GIL is a bottleneck for single process apps)
 * AMQP support for multiprocess and networked systems (avoids GIL)
-* [_Python multiprocess support is imminent for better scalability on
+* [_Python multiprocess support coming soon for better scalability on
   single-host systems_](https://github.com/operand/agency/issues/33)
 * [_Decentralized networking support planned_](https://github.com/operand/agency/issues/83)
 
@@ -82,10 +82,6 @@ For example:
 
 ```python
 @action(access_policy=ACCESS_PERMITTED) # This allows the action at any time
-def add(a, b):
-    ...
-
-@action(access_policy=ACCESS_DENIED) # This prevents the action
 def add(a, b):
     ...
 

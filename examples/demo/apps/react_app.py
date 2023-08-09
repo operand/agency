@@ -118,7 +118,7 @@ class ReactAppUser(Agent):
     # The following methods simply forward incoming messages to the web client
 
     @action
-    def _action__say(self, content: str):
+    def say(self, content: str):
         """
         Sends a message to the user
         """
@@ -126,11 +126,11 @@ class ReactAppUser(Agent):
             'message', self._current_message, room=self.sid)
 
     @action
-    def _action__return(self, original_message: dict, return_value):
+    def response(self, data, original_message_id: str):
         self.app.socketio.server.emit(
             'message', self._current_message, room=self.sid)
 
     @action
-    def _action__error(self, original_message: dict, error: str):
+    def error(self, error: str, original_message: dict):
         self.app.socketio.server.emit(
             'message', self._current_message, room=self.sid)
