@@ -1,15 +1,14 @@
 # Summary
 
 Agency is a python library that provides a minimal framework for creating
-agent-integrated systems.
+agent-integrated systems of any scale or purpose.
 
-The library enables you to connect agents with software systems and human users
-by defining actions, callbacks, and access policies making it easy to integrate,
-monitor, and control your agents.
+The library enables you to connect intelligent agents with software systems and
+human users in a scalable and flexible way making it easy to integrate, monitor,
+and control your agent system.
 
-Agency handles the communication details and allows discovering and invoking
-actions across parties, automatically handling things such as reporting
-exceptions, enforcing access restrictions, and more.
+Agency provides a simple API to flexibly build to your requirements, and allows
+you to scale as needed once you've identified the architecture that works.
 
 
 ## Features
@@ -19,13 +18,13 @@ exceptions, enforcing access restrictions, and more.
 * Supports defining single process applications or networked agent systems
 
 ### Observability and Control
-* Before/after action and lifecycle callbacks for observability or other needs
+* Callbacks for lifecycle observability or other needs
 * Access policies and permission callbacks for access control
 
 ### Performance and Scalability
 * Multithreaded (though python's GIL is a bottleneck for single process apps)
 * AMQP support for multiprocess and networked systems (avoids GIL)
-* [_Python multiprocess support is planned for better scalability on
+* [_Python multiprocess support is imminent for better scalability on
   single-host systems_](https://github.com/operand/agency/issues/33)
 * [_Decentralized networking support planned_](https://github.com/operand/agency/issues/83)
 
@@ -33,7 +32,7 @@ exceptions, enforcing access restrictions, and more.
 * [_In development_](https://github.com/operand/agency/issues/26)
 
 ### Demo application available at [`examples/demo`](./examples/demo/)
-* Includes Gradio UI (React UI also available)
+* Includes Gradio UI (React UI example also available)
 * Multiple agent examples for experimentation
   * Two OpenAI agent examples
   * HuggingFace transformers agent example
@@ -56,54 +55,61 @@ time. An example of a simple agent could be:
 
 ```python
 class CalculatorAgent(Agent):
-    def _action__add(a, b):
+    @action
+    def add(a, b):
         return a + b
 ```
 
-This defines an agent with a single action: `"add"`. Other agents will be able
+This defines an agent with a single action: `add`. Other agents will be able
 to call this method by sending a message to an instance of `CalculatorAgent` and
-specifying the `"add"` action.
+specifying the `add` action. For example:
 
 ```python
 other_agent.send({
     'to': 'CalcAgent',
-    'thoughts': 'Optionally explain here',
-    'action': 'add',
-    'args': {
-        'a': 1,
-        'b': 2,
+    'action': {
+        'name': 'add',
+        'args': {
+            'a': 1,
+            'b': 2,
+        }
     },
 })
 ```
 
-Actions must also specify an access policy, allowing you to control access for
-safety. For example:
+Actions may specify an access policy, allowing you to control access for safety.
+For example:
 
 ```python
-  @access_policy(ACCESS_PERMITTED) # This allows the action at any time
-  def _action__add(a, b):
+@action(access_policy=ACCESS_PERMITTED) # This allows the action at any time
+def add(a, b):
+    ...
+
+@action(access_policy=ACCESS_DENIED) # This prevents the action
+def add(a, b):
+    ...
+
+@action(access_policy=ACCESS_REQUESTED) # This requires review before the action
+def add(a, b):
     ...
 ```
 
-You can also define callbacks for various purposes:
+Agents may also define callbacks for various purposes:
 
 ```python
 class CalculatorAgent(Agent):
-  ...
-  def before_action(self, original_message: dict):
-    # Called before any action is attempted
+    ...
+    def before_action(self, original_message: dict):
+        """Called before an action is attempted"""
 
-  def after_action(self, original_message: dict, return_value: str, error: str):
-    # Called after any action is attempted
+    def after_action(self, original_message: dict, return_value: str, error: str):
+        """Called after an action is attempted"""
 
-  def after_add(self):
-    # Called after the agent is added to the space and may begin communicating
+    def after_add(self):
+        """Called after the agent is added to a space and may begin communicating"""
 
-  def before_remove(self):
-    # Called before the agent is removed from the space
-
-  def request_permission(self, proposed_message: dict) -> bool:
-    # Called before an ACCESS_REQUESTED action is attempted for run-time review
+    def before_remove(self):
+        """Called before the agent is removed from the space"""
 ```
 
 A `Space` is how you connect your agents together. An agent cannot communicate
@@ -123,8 +129,8 @@ space.add(AIAgent("AIAgent"))
 # The agents above can now communicate
 ```
 
-These are just some of the main features. For more detailed information
-please see [the docs directory](./docs/).
+These are just a few of the features that Agency provides. For more detailed
+information please see [the docs directory](./docs/).
 
 
 # Install
@@ -139,6 +145,9 @@ poetry add agency
 
 
 # The Demo Application
+
+The demo application is maintained as an experimental development environment
+and a showcase for library features.
 
 To run the demo, please follow the directions at
 [examples/demo](./examples/demo/).
@@ -166,7 +175,7 @@ Though you could entirely create a simple agent using only the primitives in
 Agency (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
 intended to be an all-inclusive toolset like other libraries. For example, it
 does not include support for constructing prompts or working with vector
-databases, etc. Implementation of agent behavior is left up to you.
+databases, etc. Implementation of agent architecture is left up to you.
 
 The goal of Agency is to enable developers to experiment and create their own
 agent solutions by providing a minimal set of functionality. So if you're
@@ -183,18 +192,6 @@ system, Agency might be for you.
   Expect changes to the API over time as features are added or changed. The
   library follows semver versioning starting at 1.x.x. Minor version updates may
   contain breaking API changes. Patch versions should not.
-
-* This library makes use of threads for each individual agent. Multithreading
-  is limited by [python's
-  GIL](https://wiki.python.org/moin/GlobalInterpreterLock), meaning that if you
-  run a local model or other heavy computation in the same process as other
-  agents, they may have to wait for their "turn". Note that I/O does not block,
-  so networked backends or services will execute in parallel.
-
-  For blocking processes, it's recommended to use the `AMQPSpace` class and run
-  heavy computations in isolation to avoid blocking other agents.
-  [Multiprocessing support](https://github.com/operand/agency/issues/33) is also
-  planned as another option for avoiding the GIL.
 
 * This API does not assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.
