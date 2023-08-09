@@ -6,13 +6,13 @@ suggestions for how to improve the documentation.
 
 ## Table of Contents
 
-* [API Walkthrough](#api-walkthrough)
+* [Example Application Walkthrough](#example-application-walkthrough)
 * [Agent Implementation](#agent-implementation)
 * [Messaging](#messaging)
 * [Using AMQPSpace](#using-amqpspace)
 
 
-# API Walkthrough
+# Example Application Walkthrough
 
 The following walkthrough will guide you through the basic concepts of
 Agency's API, and how to use it to build your own agent systems.
@@ -70,8 +70,7 @@ space.add(ChattyAI("Chatty", model="EleutherAI/gpt-neo-125m"))
 ```
 
 This creates a space and adds a new `ChattyAI` instance to it, with the `id` of
-`Chatty`. The `model` argument is used to initialize the HuggingFace
-transformers language model.
+`Chatty`.
 
 An agent's `id` is used to identify the agent within the space. Other agents may
 send messages to `Chatty` by using that `id`, as we'll see later.
@@ -85,7 +84,7 @@ space.
 Looking at `ChattyAI`'s source code, you'll see that it is a subclass of
 `Agent`, and that it exposes a single action called `say`.
 
-The following is a typical action method implementation taken from `ChattyAI`.
+The following is a typical action method signature taken from `ChattyAI`.
 
 ```python
 @action
@@ -127,12 +126,12 @@ self.send({
 This demonstrates the basic idea of how to invoke an action on another agent.
 
 When an agent receives a message, it invokes the action method specified by the
-`action.name` field of the message, passing the `args` dictionary to the action
+`action.name` field of the message, passing the `action.args` dictionary to the action
 method as keyword arguments.
 
 So here Chatty is invoking the `say` action on the sender of the original
-message, passing the response as the `"content"` argument. This way, the
-original sender and Chatty can have a conversation.
+message, passing the response as the `content` argument. This way, the original
+sender and Chatty can have a conversation.
 
 Note the use of the `_current_message` variable. That variable may be inspected
 during an action to access the entire incoming message which invoked the action.
@@ -242,8 +241,8 @@ review from elsewhere.
 
 ## Discovering Actions
 
-At this point, we can demonstrate how discovery works from the perspective of
-a human user of the web application.
+At this point, we can demonstrate how action discovery works from the
+perspective of a human user of the web application.
 
 Once added to a space, each agent may broadcast a `help` message to discover
 other agents and actions that are available in the space.
@@ -269,7 +268,7 @@ syntax:
 
 Note the agent name used before the action name. In this case, the `help` action
 takes an argument called `action_name`. So this will send the `help` action to
-the `Host` agent requestion information on the `say` action.
+the `Host` agent requesting information on the `say` action.
 
 
 ## Adding an Intelligent Agent
@@ -378,8 +377,9 @@ The default help data structure could be customized as well:
 def say(self, content: str) -> None:
 ```
 
-If a `help` object is provided, it overrides the generated object entirely.  You
-can use this to experiment with different help information structures.
+If a `help` object is provided to the decorator, it overrides the generated
+object entirely. You can use this to experiment with different help information
+structures.
 
 Merging the two objects, for example in order to only override specific fields,
 is not (yet) supported. Let me know if you'd like to see this feature developed.
