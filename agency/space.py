@@ -78,6 +78,9 @@ class Space(ABC, metaclass=ABCMeta):
         This method is called when adding an agent to the space. It should
         establish a queue or similar data structure for the agent to receive
         messages.
+
+        Raises:
+            ValueError: If the agent ID is already in use
         """
 
     @abstractmethod
