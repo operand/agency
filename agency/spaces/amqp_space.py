@@ -11,6 +11,7 @@ from agency.agent import Agent
 from agency.processors.native_thread_processor import NativeThreadProcessor
 from agency.schema import Message
 from agency.space import Space
+from agency.util import print_warning
 
 
 @dataclass
@@ -67,9 +68,9 @@ class AMQPSpace(Space):
         )
 
     def _connect(self, agent: Agent):
-        # Create a connection
-        connection = Connection(**self.__kombu_connection_options)
         try:
+            # Create a connection
+            connection = Connection(**self.__kombu_connection_options)
             connection.connect()
             if not connection.connected:
                 raise ConnectionError("Unable to connect to AMQP server")
@@ -108,7 +109,7 @@ class AMQPSpace(Space):
 
             # Start the consumer
             consumer.consume()
-        except amqp.exceptions.ResourceLocked:
+        except amqp.exceptions.ResourceLocked as e:
             raise ValueError(f"Agent id already exists: '{agent.id()}')")
         except:
             connection.release()

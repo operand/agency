@@ -51,7 +51,6 @@ def test_heartbeat():
     amqp_space_with_short_heartbeat.remove(hartford)
 
 
-@pytest.mark.focus
 def test_unique_ids_native(native_space):
     """
     Asserts that two agents may NOT have the same id in a native space
@@ -61,12 +60,11 @@ def test_unique_ids_native(native_space):
         native_space.add(Webster("Webster"))
 
 
-@pytest.mark.focus
 def test_unique_ids_amqp():
     """
     Asserts that two agents may NOT have the same id in an AMQP space
     """
-    # For the amqp test, we create two AMQPSpace instance to add each agent
+    # For the amqp test, we create two AMQPSpace instances
     amqp_space1 = AMQPSpace(exchange="agency-test")
     amqp_space2 = AMQPSpace(exchange="agency-test")
     webster1 = Webster("Webster")

@@ -1,10 +1,13 @@
 import subprocess
-import pytest
 import time
+import tracemalloc
+
+tracemalloc.start()
+
+import pytest
 
 from agency.spaces.amqp_space import AMQPSpace
 from agency.spaces.native_space import NativeSpace
-
 
 RABBITMQ_OUT = subprocess.DEVNULL  # use subprocess.PIPE for output
 

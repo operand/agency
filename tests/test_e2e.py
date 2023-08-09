@@ -1,17 +1,5 @@
-import time
-import pytest
-from unittest.mock import MagicMock
-
-import tracemalloc
-
 from tests.helpers import Webster, wait_for_messages
-tracemalloc.start()
-
 from agency.agent import (ACCESS_DENIED, ACCESS_REQUESTED, Agent, action)
-from agency.spaces.amqp_space import AMQPOptions, AMQPSpace
-
-
-
 
 
 def test_help_action(either_space):
@@ -68,7 +56,7 @@ def test_help_action(either_space):
     wait_for_messages(webster, count=2)
 
     assert webster._message_log[0] == first_message
-    assert webster._message_log[1] == { # chatty's response
+    assert webster._message_log[1] == {  # chatty's response
         "to": "Webster",
         "from": "Chatty",
         "action": {
@@ -190,6 +178,7 @@ def test_responses_have_original_message_id(either_space):
             }
         }
     }
+
 
 def test_errors_have_original_message_id(either_space):
     """Tests that original_message_id is populated on errors"""
@@ -543,5 +532,3 @@ def test_send_request_rejected_action(either_space):
             },
         },
     ]
-
-

@@ -20,12 +20,12 @@ class Space(ABC, metaclass=ABCMeta):
         """
         Adds an agent to the space allowing it to communicate
         """
-        self._connect(agent)
-
-        def process():
-            self._consume(agent)
-
         try:
+            self._connect(agent)
+
+            def process():
+                self._consume(agent)
+
             processor = self.__processor_class(process)
             self.__agent_processors[agent.id()] = {
                 "agent": agent,
