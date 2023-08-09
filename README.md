@@ -3,12 +3,13 @@
 Agency is a python library that provides a minimal framework for creating
 agent-integrated systems for any scale or purpose.
 
-The library enables you to connect intelligent agents with software systems and
-human users in a scalable and flexible way making it easy to integrate, monitor,
-and control your agent system.
+The library provides an easy to use API that enables you to connect intelligent
+agents with software systems and human users, making it simple to integrate,
+monitor, and control your agent system.
 
-Agency provides a simple API to flexibly build to your requirements, and allows
-you to scale as needed once you've identified the architecture that works.
+Agency's minimalistic design allows you to flexibly experiment and build to your
+requirements. Once you've found an architecture that works, you can scale it out
+to your needs.
 
 
 ## Features
@@ -28,7 +29,7 @@ you to scale as needed once you've identified the architecture that works.
   single-host systems_](https://github.com/operand/agency/issues/33)
 * [_Decentralized networking support planned_](https://github.com/operand/agency/issues/83)
 
-### Multimodal support
+### Multimodal/Multimedia support
 * [_In development_](https://github.com/operand/agency/issues/26)
 
 ### Demo application available at [`examples/demo`](./examples/demo/)
@@ -78,7 +79,6 @@ other_agent.send({
 ```
 
 Actions may specify an access policy, allowing you to control access for safety.
-For example:
 
 ```python
 @action(access_policy=ACCESS_PERMITTED) # This allows the action at any time
@@ -90,7 +90,7 @@ def add(a, b):
     ...
 ```
 
-Agents may also define callbacks for various purposes:
+In addition to actions, agents may also define callbacks for various purposes:
 
 ```python
 class CalculatorAgent(Agent):
@@ -116,7 +116,7 @@ There are two included `Space` implementations to choose from:
 * `AMQPSpace` - which connects agents across processes and systems using an AMQP
   server like RabbitMQ.
 
-Finally, here is an example of creating a `NativeSpace` and adding two agents to it.
+Finally, here is how to create a `NativeSpace` and add two agents to it.
 
 ```python
 space = NativeSpace()
@@ -171,12 +171,14 @@ Though you could entirely create a simple agent using only the primitives in
 Agency (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
 intended to be an all-inclusive toolset like other libraries. For example, it
 does not include support for constructing prompts or working with vector
-databases, etc. Implementation of agent architecture is left up to you.
+databases, etc. Implementation of agent behavior is left up to you.
 
-The goal of Agency is to enable developers to experiment and create their own
-agent solutions by providing a minimal set of functionality. So if you're
-looking for a flexible yet minimal foundation for building your own agent
-system, Agency might be for you.
+The goal of Agency is to enable developers to create custom agent solutions by
+providing a minimal set of functionality that can both support experimentation
+and scalable production systems.
+
+So if you're looking for a flexible, scalable, and minimal foundation for
+building your own agent system, Agency might be for you.
 
 
 ## What are some known limitations or issues?
@@ -194,8 +196,8 @@ system, Agency might be for you.
 
   Agency is intended to allow potentially large numbers of agents, systems, and
   people to come together. A small predefined set of roles gets in the way of
-  representing many things generally. This is a core design feature of Agency:
-  that all entities are represented similarly and may be interacted with through
+  representing many things generally. This is a design feature of Agency: that
+  all entities are represented similarly and may be interacted with through
   common means.
 
   The lack of roles may require extra work when integrating with role based
@@ -208,7 +210,7 @@ system, Agency might be for you.
   The `Agent` class implements a simple `_message_log` array which you can make
   use of or overwrite to back it with longer term storage. More direct support
   for storage APIs will likely be considered in the future.
-  
+
 
 # Contributing
 
@@ -231,7 +233,7 @@ The demo application is written to showcase both native and AMQP spaces and
 several agent examples. It can also be used for experimentation and development.
 
 The application is configured to read the agency library source when running,
-allowing changes to be tested manually.
+allowing library changes to be tested manually.
 
 ## Test Suite
 
@@ -246,6 +248,6 @@ poetry run pytest
 
 ## Planned Work
 
-[Please see the issues page.](https://github.com/operand/agency/issues)
+[See the issues page.](https://github.com/operand/agency/issues)
 
-If you have any suggestions or otherwise, feel free to add an issue!
+If you have any suggestions or otherwise, please add an issue!

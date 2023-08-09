@@ -8,6 +8,8 @@ suggestions for how to improve the documentation.
 
 * [API Walkthrough](#api-walkthrough)
 * [Agent Implementation](#agent-implementation)
+* [Messaging](#messaging)
+* [Using AMQPSpace](#using-amqpspace)
 
 
 # API Walkthrough
@@ -430,6 +432,73 @@ should be allowed. A rejected action will be returned as a permission error to
 the sender.
 
 
+# Messaging
+
+## Schema
+
+All messages are validated upon sending and must conform to the message schema.
+
+The full message schema is summarized by this example:
+
+```python
+{
+    "id": "some optional id",     # used in response and error messages
+    "meta": {                     # optional for metadata
+        "an": "optional",
+        "object": {
+            "for": "metadata",
+        }
+    }
+    "from": "TheSendingAgentID",  # the sender
+    "to": "TheReceivingAgentID",  # the receiver
+    "action": {                   # the action
+        "name": "the_action_name",
+        "args": {
+            "the": "args",
+        }
+    }
+}
+```
+
+Note that when sending, you may not need to send this entire structure. The `id`
+and `meta` fields are optional. Additionally, the `from` field is automatically
+populated for you in the `send()` method.
+
+A minimal example of calling `Agent.send()` with only the required fields would
+be:
+
+```python
+my_agent.send({
+    "to": "some_agent",
+    "action": {
+        "name": "say",
+        "args": {
+            "content": "Hello, world!"
+        }
+    }
+})
+```
+
+Please see [agency/schema.py](./agency/schema.py) for the pydantic model
+definition used for validation.
+
+## Broadcast vs Point-to-Point
+
+All message require the `to` field to be specified. The `to` field should be the
+`id` of an agent in the space or the special id `*` to broadcast the message to
+all agents in the space.
+
+
+## Non-Existent Agents or Actions
+
+If you send a message to a non-existent agent, it will silently fail.
+
+If you send a message to a specific agent, but specify a non-existent action,
+you will receive an `error` message in response.
+
+Broadcasts which specify a non-existent action are silently ignored.
+
+
 # Using AMQPSpace
 
 To use AMQP for multi-process or networked communication, you can simply swap
@@ -510,70 +579,3 @@ space = AMQPSpace(
         use_ssl=True,
         heartbeat=60))
 ```
-
-
-# Messaging
-
-## Schema
-
-All messages are validated upon sending and must conform to the message schema.
-
-The full message schema is summarized by this example:
-
-```python
-{
-    "id": "some optional id",     # used in response and error messages
-    "meta": {                     # optional for metadata
-        "an": "optional",
-        "object": {
-            "for": "metadata",
-        }
-    }
-    "from": "TheSendingAgentID",  # the sender
-    "to": "TheReceivingAgentID",  # the receiver
-    "action": {                   # the action
-        "name": "the_action_name",
-        "args": {
-            "the": "args",
-        }
-    }
-}
-```
-
-Note that when sending, you may not need to send this entire structure. The `id`
-and `meta` fields are optional. Additionally, the `from` field is automatically
-populated for you in the `send()` method.
-
-A minimal example of calling `Agent.send()` with only the required fields would
-be:
-
-```python
-my_agent.send({
-    "to": "some_agent",
-    "action": {
-        "name": "say",
-        "args": {
-            "content": "Hello, world!"
-        }
-    }
-})
-```
-
-Please see [agency/schema.py](./agency/schema.py) for the pydantic model
-definition used for validation.
-
-## Broadcast vs Point-to-Point
-
-All message require the `to` field to be specified. The `to` field should be the
-`id` of an agent in the space or the special id `*` to broadcast the message to
-all agents in the space.
-
-
-## Non-Existent Agents or Actions
-
-If you send a message to a non-existent agent, it will silently fail.
-
-If you send a message to a specific agent, but specify a non-existent action,
-you will receive an `error` message in response.
-
-Broadcasts which specify a non-existent action are silently ignored.
