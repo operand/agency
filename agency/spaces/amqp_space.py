@@ -3,6 +3,7 @@ import os
 import socket
 from dataclasses import dataclass
 from typing import Dict
+import amqp
 
 from kombu import Connection, Exchange, Queue
 
@@ -68,53 +69,49 @@ class AMQPSpace(Space):
     def _connect(self, agent: Agent):
         # Create a connection
         connection = Connection(**self.__kombu_connection_options)
-        connection.connect()
-        if not connection.connected:
-            raise ConnectionError("Unable to connect to AMQP server")
-        self.__agent_connections[agent.id()] = connection
+        try:
+            connection.connect()
+            if not connection.connected:
+                raise ConnectionError("Unable to connect to AMQP server")
+            self.__agent_connections[agent.id()] = connection
 
-        """
-        A unique queue name prefix for the agent instance based on:
-        - the agent id
-        - the hostname
-        - the process id
-        - the python object id
-        """
-        agent_qid = f"{agent.id()}-{socket.gethostname()}-{os.getpid()}-{id(agent)}"
+            # Create a queue for direct messages
+            direct_queue = Queue(
+                f"{agent.id()}-direct",
+                exchange=self.__topic_exchange,
+                routing_key=agent.id(),
+                exclusive=True,
+            )
+            direct_queue(connection.channel()).declare()
 
-        # Create a queue for direct messages
-        direct_queue = Queue(
-            f"{agent_qid}-direct",
-            exchange=self.__topic_exchange,
-            routing_key=agent.id(),
-            exclusive=True,
-        )
-        direct_queue(connection.channel()).declare()
+            # Create a separate broadcast queue
+            broadcast_queue = Queue(
+                f"{agent.id()}-broadcast",
+                exchange=self.__topic_exchange,
+                routing_key=self.BROADCAST_KEY,
+                exclusive=True,
+            )
+            broadcast_queue(connection.channel()).declare()
 
-        # Create a separate broadcast queue
-        broadcast_queue = Queue(
-            f"{agent_qid}-broadcast",
-            exchange=self.__topic_exchange,
-            routing_key=self.BROADCAST_KEY,
-            exclusive=True,
-        )
-        broadcast_queue(connection.channel()).declare()
+            # Define callback for incoming messages
+            def _on_message(body, message):
+                message.ack()
+                message_data = json.loads(body)
+                if message_data['to'] == '*' or message_data['to'] == agent.id():
+                    agent._receive(message_data)
 
-        # Define callback for incoming messages
-        def _on_message(body, message):
-            message.ack()
-            message_data = json.loads(body)
-            if message_data['to'] == '*' or message_data['to'] == agent.id():
-                agent._receive(message_data)
+            # Consume from direct and broadcast queues
+            consumer = connection.Consumer(
+                [direct_queue, broadcast_queue],
+                callbacks=[_on_message],
+            )
 
-        # Consume from direct and broadcast queues
-        consumer = connection.Consumer(
-            [direct_queue, broadcast_queue],
-            callbacks=[_on_message],
-        )
-
-        # Start the consumer
-        consumer.consume()
+            # Start the consumer
+            consumer.consume()
+        except amqp.exceptions.ResourceLocked:
+            raise ValueError(f"Agent id already exists: '{agent.id()}')")
+        except:
+            connection.release()
 
     def _disconnect(self, agent: Agent):
         self.__agent_connections[agent.id()].release()
