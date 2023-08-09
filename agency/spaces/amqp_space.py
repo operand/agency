@@ -109,15 +109,14 @@ class AMQPSpace(Space):
 
             # Start the consumer
             consumer.consume()
+
         except amqp.exceptions.ResourceLocked as e:
             raise ValueError(f"Agent id already exists: '{agent.id()}')")
-        except:
-            connection.release()
-            raise
 
     def _disconnect(self, agent: Agent):
-        self.__agent_connections[agent.id()].release()
-        del self.__agent_connections[agent.id()]
+        connection = self.__agent_connections.pop(agent.id(), None)
+        if connection is not None:
+            connection.release()
 
     def _deliver(self, message: Message) -> dict:
         if message['to'] == '*':

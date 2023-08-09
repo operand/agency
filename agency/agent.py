@@ -264,7 +264,7 @@ class Agent():
             action_name: (Optional) The name of an action to request help for
 
         Returns:
-            A list actions
+            A list of actions
         """
         special_actions = ["help", "response", "error"]
         help_list = {
