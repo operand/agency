@@ -451,7 +451,7 @@ The full message schema is summarized by this example:
         "object": {
             "for": "metadata",
         }
-    }
+    },
     "from": "the sender's id",
     "to": "the receiver's id",
     "action": {
@@ -594,7 +594,7 @@ my_agent = MyAgent("MyAgent", receive_own_broadcasts=False)
 
 If you send a message to a non-existent agent, it will silently fail.
 
-If you send a message to a specific agent, but specify a non-existent action,
+If you send a message to an existent agent, but specify a non-existent action,
 you will receive an `error` message in response.
 
 Broadcasts which specify a non-existent action are silently ignored, so that
