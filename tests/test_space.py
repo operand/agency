@@ -8,7 +8,7 @@ from agency.spaces.amqp_space import AMQPOptions, AMQPSpace
 from tests.helpers import Webster, wait_for_messages
 
 
-def test_heartbeat():
+def test_amqp_heartbeat():
     """
     Tests the amqp heartbeat is sent by setting a short heartbeat interval and
     ensuring the connection remains open.
@@ -80,8 +80,8 @@ def test_unique_ids_amqp():
 
 def test_after_add_and_before_remove(either_space):
     """
-    Tests that the _after_add and _before_remove methods are called when an
-    agent is added to and removed from a space.
+    Tests that the after_add and before_remove methods are called when an agent
+    is added to and removed from a space.
     """
     agent = Webster("Webster")
     agent.after_add = MagicMock()
