@@ -1,11 +1,10 @@
 import inspect
 import re
-import traceback
 from typing import List
 from docstring_parser import DocstringStyle, parse
 from agency import util
 from agency.schema import Message
-from agency.util import print_warning, debug
+from agency.util import print_warning
 
 
 # access keys
@@ -112,7 +111,7 @@ class Agent():
     An Actor that may represent an AI agent, computing system, or human user
     """
 
-    def __init__(self, id: str, ignore_own_broadcasts: bool = True) -> None:
+    def __init__(self, id: str, receive_own_broadcasts: bool = True) -> None:
         if len(id) < 1 or len(id) > 255:
             raise ValueError("id must be between 1 and 255 characters")
         if re.match(r"^amq\.", id):
@@ -120,7 +119,7 @@ class Agent():
         if id == "*":
             raise ValueError("id cannot be \"*\"")
         self.__id: str = id
-        self.__ignore_own_broadcasts = ignore_own_broadcasts
+        self.__receive_own_broadcasts = receive_own_broadcasts
         self._space = None  # set by Space when added
         self._message_log: List[Message] = []  # stores all messages
 
@@ -142,7 +141,7 @@ class Agent():
         """
         Receives and processes an incoming message
         """
-        if self.__ignore_own_broadcasts \
+        if not self.__receive_own_broadcasts \
            and message['from'] == self.id() \
            and message['to'] == '*':
             return
@@ -275,7 +274,6 @@ class Agent():
             and method.action_properties["name"] not in special_actions
             or method.action_properties["name"] == action_name
         }
-        debug(f"Help list:", help_list)
         return help_list
 
     @action

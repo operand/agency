@@ -13,14 +13,16 @@ from agency.util import debug
 
 
 class Webster(Agent):
-    """A fake agent for testing"""
+    """A fake agent for testing that ignores its own broadcasts by default"""
+    def __init__(self, id: str, receive_own_broadcasts: bool = False):
+        super().__init__(id, receive_own_broadcasts=receive_own_broadcasts)
 
     @action
     def say(self, content: str):
         """Use this action to say something to Webster"""
 
     @action
-    def response(self, data: str, original_message_id: str):
+    def response(self, data, original_message_id: str):
         """Handles responses"""
 
     @action
@@ -380,41 +382,13 @@ def test_before_and_after_action():
     agent.after_action.assert_called_once()
 
 
-def test_non_self_received_broadcast(either_space):
-    class Chatty(Agent):
-        @action
-        def say(self, content: str):
-            pass
-
-    webster = Webster("Webster")
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
-
-    first_message = {
-        "from": "Webster",
-        "to": "*",  # makes it a broadcast
-        "action": {
-            "name": "say",
-            "args": {
-                "content": "Hello, everyone!",
-            },
-        },
-    }
-    webster.send(first_message)
-    wait_for_messages(webster, count=1)
-    wait_for_messages(chatty, count=1)
-    assert webster._message_log == [first_message]
-    assert chatty._message_log == [first_message]
-
-
 def test_self_received_broadcast(either_space):
     class Chatty(Agent):
         @action
         def say(self, content: str):
             pass
 
-    webster = Webster("Webster", ignore_own_broadcasts=False)
+    webster = Webster("Webster", receive_own_broadcasts=True)
     chatty = Chatty("Chatty")
     either_space.add(webster)
     either_space.add(chatty)
@@ -433,6 +407,34 @@ def test_self_received_broadcast(either_space):
     wait_for_messages(webster, count=2)
     wait_for_messages(chatty, count=1)
     assert webster._message_log == [first_message, first_message]
+    assert chatty._message_log == [first_message]
+
+
+def test_non_self_received_broadcast(either_space):
+    class Chatty(Agent):
+        @action
+        def say(self, content: str):
+            pass
+
+    webster = Webster("Webster", receive_own_broadcasts=False)
+    chatty = Chatty("Chatty")
+    either_space.add(webster)
+    either_space.add(chatty)
+
+    first_message = {
+        "from": "Webster",
+        "to": "*",  # makes it a broadcast
+        "action": {
+            "name": "say",
+            "args": {
+                "content": "Hello, everyone!",
+            },
+        },
+    }
+    webster.send(first_message)
+    wait_for_messages(webster, count=1)
+    wait_for_messages(chatty, count=1)
+    assert webster._message_log == [first_message]
     assert chatty._message_log == [first_message]
 
 

@@ -490,12 +490,14 @@ All messages require the `to` field to be specified. The `to` field should be
 the `id` of an agent in the space (point-to-point) or the special id `*` to
 broadcast the message to all agents in the space.
 
-By default, agents ignore their own broadcasts, but you may change this behavior
-with the `ignore_own_broadcasts` argument when creating the agent. For example:
+By default, agents receive their own broadcasts, but you may change this
+behavior with the `receive_own_broadcasts` argument when creating the agent. For
+example:
 
 ```python
-my_agent = MyAgent("MyAgent", ignore_own_broadcasts=False)
+my_agent = MyAgent("MyAgent", receive_own_broadcasts=False)
 ```
+
 
 ## Non-Existent Agents or Actions
 
