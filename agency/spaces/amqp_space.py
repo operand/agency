@@ -135,7 +135,7 @@ class AMQPSpace(Space):
                     routing_key=routing_key,
                 )
 
-    def _consume(self, agent: Agent):
+    def _retrieve(self, agent: Agent):
         connection = self.__agent_connections[agent.id()]
         connection.heartbeat_check()  # sends heartbeat if necessary
         try:

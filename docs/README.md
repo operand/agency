@@ -485,6 +485,96 @@ my_agent.send({
 See [agency/schema.py](./agency/schema.py) for the pydantic model definition
 used for validation.
 
+
+## Using the `id` Field
+
+The message `id` field may be used to correlate an incoming message with a
+previously sent message, for example to associate response data with the
+request.
+
+The `id` field is _not_ populated by default. To use the `id` field, you must
+explicitly specify it in the outgoing message object. You can set it to any
+string identifier you choose.
+
+By default, the `id` field is used by the `response` and `error` actions. If a
+`response` or `error` is received, the `original_message_id` argument will be
+populated with the `id` of the original message.
+
+For example, say we have an `add` action which returns the sum of its arguments.
+```python
+@action
+def add(self, a: int, b: int) -> int:
+    return a + b
+```
+
+Sending the following message:
+```python
+my_agent.send({
+    "id": "a custom message id",
+    "to": "calculator_agent",
+    "action": {
+        "name": "add",
+        "args": {
+            "a": 1,
+            "b": 2
+        }
+    }
+})
+```
+
+... would result in a subsequent `response` message like the following:
+```json
+{
+    "from": "calculator_agent",
+    "to": "my_agent",
+    "action": {
+        "response": {
+            "data": 3,
+            "original_message_id": "a custom message id"
+        }
+    }
+}
+```
+
+Notice the `original_message_id` argument populated with the `id` of the
+original message.
+
+
+## Using the `meta` Field
+
+The `meta` field may be used to store arbitrary key-value metadata about the
+message. It is entirely optional. Possible uses of the `meta` field include:
+
+* Storing "thoughts" associated with an action. This is a common pattern used
+  with LLM agents. For example, an LLM agent may send the following message:
+  ```python
+  {
+      "meta": {
+          "thoughts": "I should say hello to everyone",
+      },
+      "to": "my_agent",
+      "action": {
+          "name": "say",
+          "args": {
+              "content": "Hello, world!"
+          }
+      }
+  }
+  ```
+
+* Storing timestamps associated with an action. For example:
+  ```python
+  {
+      "meta": {
+          "timestamp": 12345,
+      },
+      ...
+  }
+  ```
+
+These are just a couple ideas to illustrate the use of the `meta` field.  
+
+
 ## Broadcast vs Point-to-Point
 
 All messages require the `to` field to be specified. The `to` field should be

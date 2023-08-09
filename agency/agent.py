@@ -314,21 +314,21 @@ class Agent():
 
     def before_action(self, message: dict):
         """
-        Called before every action. Override and use this method for logging or
-        other situations where you may want to process all actions.
+        Called before every action. Override this method for logging or other
+        situations where you may want to process all actions.
         """
 
     def after_action(self, original_message: dict, return_value: str, error: str):
         """
-        Called after every action. Override and use this method for logging or other
+        Called after every action. Override this method for logging or other
         situations where you may want to pass through all actions.
         """
 
     def request_permission(self, proposed_message: dict) -> bool:
         """
-        Implement this method to receive a proposed action message and present it to
-        the agent for review. Return true or false to indicate whether access
-        should be permitted.
+        Implement this method to receive a proposed action message and present
+        it to the agent for review. Return true or false to indicate whether
+        access should be permitted.
         """
         raise NotImplementedError(
-            f"You must implement {self.__class__.__name__}._request_permission to use ACCESS_REQUESTED")
+            f"You must implement {self.__class__.__name__}.request_permission to use ACCESS_REQUESTED")

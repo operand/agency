@@ -24,7 +24,7 @@ class Space(ABC, metaclass=ABCMeta):
             self._connect(agent)
 
             def process():
-                self._consume(agent)
+                self._retrieve(agent)
 
             processor = self.__processor_class(process)
             self.__agent_processors[agent.id()] = {
@@ -102,9 +102,9 @@ class Space(ABC, metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def _consume(self, agent: Agent):
+    def _retrieve(self, agent: Agent):
         """
-        Consumes messages from an agent's queue.
+        Retrieves messages from an agent's queue.
 
         This method may be called many times per second. It should check for
         messages on the agent's queue and pass any to agent._receive(). If no
