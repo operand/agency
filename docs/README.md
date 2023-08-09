@@ -378,8 +378,7 @@ If a `help` object is provided, it _overwrites_ the generated object entirely.
 You can use this to experiment with different help information structures.
 
 Merging the two objects, for example in order to only override specific fields,
-is not currently supported. Let me know if you'd like to see this feature
-developed.
+is not (yet) supported. Let me know if you'd like to see this feature developed.
 
 
 ## Special Actions
@@ -514,30 +513,67 @@ space = AMQPSpace(
 
 
 # Messaging
-TODO
 
 ## Schema
 
+All messages are validated upon sending and must conform to the message schema.
+
+The full message schema is summarized by this example:
+
+```python
+{
+    "id": "some optional id",     # used in response and error messages
+    "meta": {                     # optional for metadata
+        "an": "optional",
+        "object": {
+            "for": "metadata",
+        }
+    }
+    "from": "TheSendingAgentID",  # the sender
+    "to": "TheReceivingAgentID",  # the receiver
+    "action": {                   # the action
+        "name": "the_action_name",
+        "args": {
+            "the": "args",
+        }
+    }
+}
+```
+
+Note that when sending, you may not need to send this entire structure. The `id`
+and `meta` fields are optional. Additionally, the `from` field is automatically
+populated for you in the `send()` method.
+
+A minimal example of calling `Agent.send()` with only the required fields would
+be:
+
+```python
+my_agent.send({
+    "to": "some_agent",
+    "action": {
+        "name": "say",
+        "args": {
+            "content": "Hello, world!"
+        }
+    }
+})
+```
+
+Please see [agency/schema.py](./agency/schema.py) for the pydantic model
+definition used for validation.
+
 ## Broadcast vs Point-to-Point
 
-Note the use of the `id` of `Host` used with the `to:` field.
+All message require the `to` field to be specified. The `to` field should be the
+`id` of an agent in the space or the special id `*` to broadcast the message to
+all agents in the space.
 
-If we omit the `to:Host` portion of the command above, the message
-will be broadcast, and any agents who implement a `list_files` action will
-respond.
 
-This is also how the `/help` command works. If you want to request help from
-just a single agent you can use something like:
+## Non-Existent Agents or Actions
 
-```
-/Host.help
-```
+If you send a message to a non-existent agent, it will silently fail.
 
-Note that point-to-point messages (messages that define the `"to"` field) will
-result in an error if the action is not defined on the target agent, or if no
-agent with that `id` exists in the space.
+If you send a message to a specific agent, but specify a non-existent action,
+you will receive an `error` message in response.
 
-Broadcast messages will _not_ return an error, but will silently be ignored by
-agents who do not implement the given action.
-
-##
+Broadcasts which specify a non-existent action are silently ignored.

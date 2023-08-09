@@ -134,10 +134,7 @@ class Agent():
         """
         Sends (out) a message
         """
-        message = {
-            "from": self.id(),
-            **message
-        }
+        message["from"] = self.id()
         self._message_log.append(message)
         self._space._route(message)
 
