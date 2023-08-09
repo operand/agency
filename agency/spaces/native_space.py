@@ -29,7 +29,7 @@ class NativeSpace(Space):
             if message['to'] == '*' or message['to'] == agent_id:
                 self.__agent_queues[agent_id].put(message)
 
-    def _retrieve(self, agent: Agent):
+    def _consume(self, agent: Agent):
         agent_queue = self.__agent_queues[agent.id()]
         try:
             message = agent_queue.get(block=False)

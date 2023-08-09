@@ -172,27 +172,9 @@ intended to be an all-inclusive toolset like other libraries. For example, it
 does not include support for constructing prompts or working with vector
 databases, etc. Implementation of agent behavior is left up to you.
 
-
-Agency provides a minimalist API consisting of only two classes. 
-
-
-
-
-
-
-Agency's goal is to enable others to create custom agent solutions by providing
-a minimal set of functionality that can support many different use cases
-
-
-
-
-scalable production systems.
-
-
-
-If you're looking for a flexible, scalable, and
+The goal of Agency is to enable others to develop custom agent solutions by
+providing a minimal set of features. So if you're looking for a flexible yet
 minimal foundation for building your own agent system, Agency might be for you.
-
 
 ## What are some known limitations or issues?
 
