@@ -19,7 +19,7 @@ to your needs.
 * Supports defining single process applications or networked agent systems
 
 ### Observability and Control
-* Callbacks for lifecycle observability or other needs
+* Action and lifecycle callbacks for observability or other needs
 * Access policies and permission callbacks for access control
 
 ### Performance and Scalability
@@ -89,7 +89,7 @@ def add(a, b):
     ...
 ```
 
-In addition to actions, agents may also define callbacks for various purposes:
+Agents may also define callbacks for various purposes:
 
 ```python
 class CalculatorAgent(Agent):
@@ -155,12 +155,6 @@ The following is a screenshot of the Gradio UI that demonstrates the example
       alt="Screenshot-2023-07-26-at-4-53-05-PM" border="0">
 </p>
 
-The screenshot above also demonstrates rejecting an action and directing an
-agent to use a different approach in real time. After I explained my rejection
-of the `read_file` action (which happened behind the scenes on the terminal),
-`"FunctionAI"` appropriately used the `shell_command` action with `head -n 2
-Dockerfile`.
-
 
 # FAQ
 
@@ -172,9 +166,10 @@ intended to be an all-inclusive toolset like other libraries. For example, it
 does not include support for constructing prompts or working with vector
 databases, etc. Implementation of agent behavior is left up to you.
 
-The goal of Agency is to enable others to develop custom agent solutions by
-providing a minimal set of features. So if you're looking for a flexible yet
-minimal foundation for building your own agent system, Agency might be for you.
+The goal of Agency is to enable others to create custom agent solutions by
+providing a minimal, flexible, and scalable foundation that can support a wide
+variety of use cases. So if you're looking to build a custom agent system,
+Agency might be for you.
 
 ## What are some known limitations or issues?
 
