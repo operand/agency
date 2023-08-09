@@ -1,4 +1,4 @@
-from agency.amqp_space import AMQPSpace
+from agency.spaces.amqp_space import AMQPSpace
 from agents.openai_function_agent import OpenAIFunctionAgent
 import os
 

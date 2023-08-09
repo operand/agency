@@ -42,7 +42,7 @@ class SmartHomeAgent(UAgent):
             return help
 
     def _after_add(self):
-        self._send(
+        self.send(
             {
                 "thoughts": "Here is a list of actions you can take on me.",
                 "action": "return",
@@ -56,7 +56,7 @@ class SmartHomeAgent(UAgent):
         )
 
     @access_policy(ACCESS_PERMITTED)
-    def _action__set(self, device: str, state: str):
+    def set(self, device: str, state: str):
         print(device, state)
         map_ = {"on": 1, "off": 0}
         if device == "fan":
@@ -88,7 +88,7 @@ class RobotAgent(UAgent):
             return help
 
     def _after_add(self):
-        self._send(
+        self.send(
             {
                 "thoughts": "Here is a list of actions you can take on me.",
                 "action": "return",
@@ -102,7 +102,7 @@ class RobotAgent(UAgent):
         )
 
     @access_policy(ACCESS_PERMITTED)
-    def _action__say(self, content: str):
+    def say(self, content: str):
         print(content)
 
 

@@ -1,69 +1,55 @@
-from agency import util
-from agency.agent import ACCESS_PERMITTED, access_policy
+from typing import Dict
+from agency.agent import action
 
 
 class HelpMethods():
     """
-    A utility mixin containing:
-    - default implementations of return/error actions for converting into
-      "say" messages.
-    - _after_add callback for sending a help message on agent addition,
-      available as self._available_actions
+    A utility mixin for simple discovery of actions upon agent addition
+
+    Adds a member dictionary named `_available_actions`, of the form:
+    {
+        "agent id": {
+            "action name": <action help object>
+            ...
+        }
+    }
+
+    Where the help object above is whatever is returned by the `help` method for
+    each action.
+
+    NOTE This does not handle agent removal
     """
 
-    def _after_add(self):
+    def after_add(self):
         """
-        Sends two messages on add:
-        1. a broadcast to announce its actions to other agents
-        2. a help message to the space to receive available actions
-
-        This allows all agents to auto-discover actions upon addition.
-        NOTE this does not handle agent removal
+        Broadcasts two messages on add:
+        1. a message to request actions from other agents
+        2. a message to announce its actions to other agents
         """
-        self._available_actions = []
-        self._send({
-            "thoughts": "Here is a list of actions you can take on me.",
-            "action": "return",
-            "args": {
-                "original_message": {
-                    "action": "help",
-                },
-                "return_value": self._help(),
+        self._available_actions: Dict[str, Dict[str, dict]] = {}
+        self.send({
+            "id": "help_request",
+            "to": "*",
+            "action": {
+                "name": "help",
+                "args": {},
             }
         })
-        self._send({
-            "thoughts": "I should see what actions are available.",
-            "action": "help",
-            "args": {},
-        })
-
-    @access_policy(ACCESS_PERMITTED)
-    def _action__return(self, original_message: dict, return_value):
-        if original_message['action'] == "help":
-            # add to the list of available actions
-            for action_help in return_value:
-                if action_help not in self._available_actions:
-                    self._available_actions.append(action_help)
-        else:
-            # convert to a "say"
-            self._receive({
-                "from": self._current_message['from'],
-                "to": self._current_message['to'],
-                "thoughts": f"A value was returned for your action '{original_message['action']}'",
-                "action": "say",
+        self.send({
+            "to": "*",
+            "action": {
+                "name": "response",
                 "args": {
-                    "content": return_value.__str__(),
-                },
-            })
-
-    @access_policy(ACCESS_PERMITTED)
-    def _action__error(self, original_message: dict, error: str):
-        self._receive({
-            "from": self._current_message['from'],
-            "to": self._current_message['to'],
-            "thoughts": "An error occurred",
-            "action": "say",
-            "args": {
-                "content": f"ERROR: {error}",
-            },
+                    "data": self.help(),
+                    "original_message_id": "help_request",
+                }
+            }
         })
+
+    @action
+    def response(self, data, original_message_id: str):
+        if original_message_id == "help_request":
+            self._available_actions[self._current_message['from']] = data
+        else:
+            # this was in response to something else, call the original
+            super().response(data, original_message_id)

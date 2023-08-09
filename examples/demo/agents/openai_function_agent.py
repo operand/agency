@@ -1,11 +1,15 @@
 import json
 import textwrap
+
 import openai
-from .mixins.help_methods import HelpMethods
-from agency.agent import ACCESS_PERMITTED, Agent, access_policy
+from agents.mixins.help_methods import HelpMethods
+from agents.mixins.say_response_methods import SayResponseMethods
+
+from agency.agent import Agent, action
+from agency.util import debug
 
 
-class OpenAIFunctionAgent(HelpMethods, Agent):
+class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
     """
     An agent which uses OpenAI's function calling API
     """
@@ -27,8 +31,7 @@ class OpenAIFunctionAgent(HelpMethods, Agent):
         like yourself and how you may integrate with the world.
 
         Your goal is to demonstrate your accurate understanding of the world and
-        your ability to communicate with as needed to solve any problems at
-        hand.
+        your ability to solve any problems at hand.
 
         The following is your current conversation. Respond appropriately.
         """)
@@ -47,28 +50,28 @@ class OpenAIFunctionAgent(HelpMethods, Agent):
         # best to translate to them here.
         for message in self._message_log:
             # "return" and "error" are converted by default to "say" so ignore
-            if message['action'] not in ["return", "error"]:
+            if message['action']['name'] not in ["response", "error"]:
                 # "say" actions are converted to messages using the content arg
-                if message['action'] == "say":
+                if message['action']['name'] == "say":
                     # assistant
                     if message['from'] == self.id():
                         open_ai_messages.append({
                             "role": "assistant",
-                            "content": message["args"]["content"],
+                            "content": message["action"]["args"]["content"],
                         })
                     # user
                     elif message['from'] == self.__kwargs['user_id']:
                         open_ai_messages.append({
                             "role": "user",
-                            "content": message["args"]["content"],
+                            "content": message["action"]["args"]["content"],
                         })
 
                     # a "say" from anyone else is considered a function message
                     else:
                         open_ai_messages.append({
                             "role": "function",
-                            "name": f"{'-'.join(message['from'].split('.'))}-{message['action']}",
-                            "content": message["args"]["content"],
+                            "name": f"{'-'.join(message['from'].split('.'))}-{message['action']['name']}",
+                            "content": message["action"]["args"]["content"],
                         })
 
                 # all other actions are considered a function_call
@@ -84,7 +87,7 @@ class OpenAIFunctionAgent(HelpMethods, Agent):
                     # during inference.
                     open_ai_messages.append({
                         "role": "system",
-                        "content": f"""{message['from']} called function "{message['action']}" with args {message['args']}""",
+                        "content": f"""{message['from']} called function "{message['action']['name']}" with args {message['action']['args']}""",
                     })
 
         return open_ai_messages
@@ -98,50 +101,28 @@ class OpenAIFunctionAgent(HelpMethods, Agent):
             {
                 # note that we send a fully qualified name for the action and
                 # convert '.' to '-' since openai doesn't allow '.'
-                "name": f"{action_help['to']}-{action_help['action']}",
-                "description": action_help['thoughts'],
+                "name": f"{agent_id}-{action_name}",
+                "description": action_help.get("description", ""),
                 "parameters": {
                     "type": "object",
-                    "properties": {
-                        arg_name: {
-                            "type": self.__arg_type_to_openai_type(arg_type),
-                            # this library doesn't support descriptions for
-                            # args. maybe in the future. for now we skip it
-                            "description": f"",
-                        }
-                        for arg_name, arg_type in action_help['args'].items()
-                    },
+                    "properties": action_help['args'],
                     "required": [
-                        arg_name for arg_name, _ in action_help['args'].items()
+                        # We don't currently support a notion of required args
+                        # so we make everything required
+                        arg_name for arg_name in action_help['args'].keys()
                     ],
                 }
             }
-            for action_help in self._available_actions
-            if not (action_help['to'] == self.__kwargs['user_id'] and action_help['action'] == "say")
-            # the openai chat api handles "say" specially to the main user, by
-            # treating it as a normal chat message
+            for agent_id, actions in self._available_actions.items()
+            for action_name, action_help in actions.items()
+            if not (agent_id == self.__kwargs['user_id'] and action_name == "say")
+            # the openai chat api handles a chat message differently than a
+            # function, so we don't list the user's "say" action as a function
         ]
         return functions
 
-    def __arg_type_to_openai_type(self, arg_type):
-        """
-        Converts an arg type to an openai type
-        """
-        if arg_type == "str":
-            return "string"
-        elif arg_type == "bool":
-            return "boolean"
-        elif arg_type == "list":
-            return "array"
-        elif arg_type == "dict":
-            return "object"
-        elif arg_type == "int":
-            return "integer"
-        else:
-            raise ValueError(f"Unknown openai arg type for: {arg_type}")
-
-    @access_policy(ACCESS_PERMITTED)
-    def _action__say(self, content: str) -> bool:
+    @action
+    def say(self, content: str) -> bool:
         """
         Sends a message to this agent
         """
@@ -154,31 +135,27 @@ class OpenAIFunctionAgent(HelpMethods, Agent):
         )
 
         # parse the output
-        action = {
-            # defaults
+        message = {
             "to": self.__kwargs['user_id'],
-            # TODO we can add "thoughts" as an additional arg to each action but
-            # for now this implementation will ignore it. the text completion
-            # implementation does use the "thoughts" field correctly.
-            "thoughts": "",
+            "action": {}
         }
         response_message = completion['choices'][0]['message']
         if 'function_call' in response_message:
             # extract receiver and action
             function_parts = response_message['function_call']['name'].split(
                 '-')
-            action['to'] = "-".join(function_parts[:-1])  # all but last
-            action['action'] = function_parts[-1]  # last
+            message['to'] = "-".join(function_parts[:-1])  # all but last
+            message['action']['name'] = function_parts[-1]  # last
             # arguments comes as a string when it probably should be an object
             if isinstance(response_message['function_call']['arguments'], str):
-                action['args'] = json.loads(
+                message['action']['args'] = json.loads(
                     response_message['function_call']['arguments'])
             else:
-                action['args'] = response_message['function_call']['arguments']
+                message['action']['args'] = response_message['function_call']['arguments']
         else:
-            action['action'] = "say"
-            action['args'] = {
+            message['action']['name'] = "say"
+            message['action']['args'] = {
                 "content": response_message['content'],
             }
 
-        self._send(action)
+        self.send(message)

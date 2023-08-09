@@ -1,10 +1,8 @@
 import json
+import re
 import gradio as gr
-from agency import util
-from agency.agent import ACCESS_PERMITTED, Agent, access_policy
-
-
-# Adapted from: https://www.gradio.app/docs/chatbot#demos
+from agency.agent import Agent, action
+from agency.schema import Message
 
 
 class GradioUser(Agent):
@@ -12,19 +10,21 @@ class GradioUser(Agent):
     Represents the Gradio user as an Agent and contains methods for integrating
     with the Chatbot component
     """
+    def __init__(self, id: str) -> None:
+        super().__init__(id, receive_own_broadcasts=False)
 
-    @access_policy(ACCESS_PERMITTED)
-    def _action__say(self, content):
-        # We don't do anything to render here because the get_chatbot_messages
-        # method will render the full message history
+    @action
+    def say(self, content):
+        # We don't do anything to render an incoming message here because the
+        # get_chatbot_messages method will render the full message history
         pass
 
     def send_message(self, text):
         """
         Sends a message as this user
         """
-        action = util.parse_slash_syntax_action(text)
-        self._send(action)
+        message = self.__parse_input_message(text)
+        self.send(message)
         return "", self.get_chatbot_messages()
 
     def get_chatbot_messages(self):
@@ -41,8 +41,8 @@ class GradioUser(Agent):
         Returns a single message as a tuple for the Chatbot component
         """
         text = f"**{message['from']}:** "
-        if message['action'] == 'say':
-            text += f"{message['args']['content']}"
+        if message['action']['name'] == 'say':
+            text += f"{message['action']['args']['content']}"
         else:
             text += f"\n```javascript\n{json.dumps(message, indent=2)}\n```"
 
@@ -51,8 +51,65 @@ class GradioUser(Agent):
         else:
             return None, text
 
+    def __parse_input_message(self, text) -> Message:
+        """
+        Parses input text into a message.
+
+        If the text does not begin with "/", it is assumed to be a broadcasted
+        "say" action, with the content argument set to the text.
+
+        If the text begins with "/", it is assumed to be of the form:
+
+            /agent_id.action_name arg1:val1 arg2:val2 ...
+
+        Where agent_id and all argument names and values must be enclosed in
+        quotes if they contain spaces. For example:
+
+            /"agent with a space in the id".say content:"Hello, agent!"
+
+        Returns:
+            Message: The parsed message for sending
+        """
+        text = text.strip()
+
+        if not text.startswith("/"):
+            # assume it's a broadcasted "say"
+            return {
+                "to": "*",
+                "action": {
+                    "name": "say",
+                    "args": {
+                        "content": text
+                    }
+                }
+            }
+
+        pattern = r'^/(?:((?:"[^"]+")|(?:[^.\s]+))\.)?(\w+)\s*(.*)$'
+        match = re.match(pattern, text)
+
+        if not match:
+            raise ValueError("Invalid input format")
+
+        agent_id, action_name, args_str = match.groups()
+
+        if agent_id is None:
+            raise ValueError("Agent ID must be provided. Example: '/MyAgent.say' or '/*.say'")
+
+        args_pattern = r'(\w+):"([^"]*)"'
+        args = dict(re.findall(args_pattern, args_str))
+
+        return {
+            "to": agent_id.strip('"'),
+            "action": {
+                "name": action_name,
+                "args": args
+            }
+        }
+
 
 gradio_user = GradioUser("User")
+
+# The following adapted from: https://www.gradio.app/docs/chatbot#demos
 
 # Custom css to:
 # - Expand text area to fill vertical space
@@ -79,11 +136,11 @@ css = """
 }
 """
 
-with gr.Blocks(css=css) as demo:
+with gr.Blocks(css=css, title="Agency Demo") as demo:
     # Chatbot area
     chatbot = gr.Chatbot(
         gradio_user.get_chatbot_messages,
-        label="Agency Demo",
+        show_label=False,
         elem_id="chatbot",
     )
 

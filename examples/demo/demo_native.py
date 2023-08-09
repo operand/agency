@@ -1,8 +1,12 @@
-from agency.native_space import NativeSpace
+import os
+
+from agents.chatty_ai import ChattyAI
 from agents.host import Host
+from agents.openai_completion_agent import OpenAICompletionAgent
 from agents.openai_function_agent import OpenAIFunctionAgent
 from apps.gradio_app import demo, gradio_user
-import os
+
+from agency.spaces.native_space import NativeSpace
 
 
 # Create the space instance

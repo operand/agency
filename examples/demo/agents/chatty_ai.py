@@ -1,4 +1,4 @@
-from agency.agent import ACCESS_PERMITTED, Agent, access_policy
+from agency.agent import ACCESS_PERMITTED, Agent, action
 from agents.mixins.prompt_methods import PromptMethods
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import agency.util as util
@@ -27,22 +27,22 @@ class ChattyAI(PromptMethods, Agent):
         Below is a conversation between "ChattyAI", an awesome AI that follows
         instructions and a human who they serve.
         """) + \
-            self._message_log_to_list()
+            self._message_log_to_list(self._message_log)
 
     def _message_line(self, message: dict, indent: int = None) -> str:
         pre_prompt = self._pre_prompt(message['from'].split('.')[0])
         # Here we format what a previous message looks like in the prompt
         # For "say" actions, we just present the content as a line of text
-        if message['action'] == 'say':
-            return f"\n{pre_prompt} {message['args']['content']}"
+        if message['action']['name'] == 'say':
+            return f"\n{pre_prompt} {message['action']['args']['content']}"
         else:
             return ""
 
     def _pre_prompt(self, agent_id: str, timestamp=util.to_timestamp()) -> str:
         return f"\n### {agent_id.split('.')[0]}: "
 
-    @access_policy(ACCESS_PERMITTED)
-    def _action__say(self, content: str):
+    @action
+    def say(self, content: str):
         """
         Use this action to say something to Chatty
         """
@@ -60,11 +60,12 @@ class ChattyAI(PromptMethods, Agent):
           skip_special_tokens=True,
         )
         response_content = response_text.split('\n###')[0]
-        self._send({
+        self.send({
           "to": self._current_message['from'],
-          "thoughts": "",
-          "action": "say",
-          "args": {
-            "content": response_content,
+          "action": {
+            "name": "say",
+            "args": {
+                "content": response_content,
+            }
           }
         })

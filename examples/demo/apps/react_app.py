@@ -4,8 +4,8 @@ from eventlet import wsgi
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
-from agency.agent import ACCESS_PERMITTED, Agent, access_policy
-from agency.schema import MessageSchema
+from agency.agent import Agent, action
+from agency.schema import Message
 from agency.space import Space
 
 
@@ -80,7 +80,7 @@ class ReactApp():
             """
             Handles sending incoming actions from the web interface
             """
-            self.__current_user._send(action)
+            self.__current_user.send(action)
 
         @self.socketio.on('permission_response')
         def handle_alert_response(allowed: bool):
@@ -107,7 +107,7 @@ class ReactAppUser(Agent):
         self.app = app
         self.sid = sid
 
-    def _request_permission(self, proposed_message: MessageSchema) -> bool:
+    def request_permission(self, proposed_message: Message) -> bool:
         """
         Raises an alert in the users browser and returns true if the user
         approves the action
@@ -117,20 +117,20 @@ class ReactAppUser(Agent):
 
     # The following methods simply forward incoming messages to the web client
 
-    @access_policy(ACCESS_PERMITTED)
-    def _action__say(self, content: str):
+    @action
+    def say(self, content: str):
         """
         Sends a message to the user
         """
         self.app.socketio.server.emit(
             'message', self._current_message, room=self.sid)
 
-    @access_policy(ACCESS_PERMITTED)
-    def _action__return(self, original_message: dict, return_value):
+    @action
+    def response(self, data, original_message_id: str):
         self.app.socketio.server.emit(
             'message', self._current_message, room=self.sid)
 
-    @access_policy(ACCESS_PERMITTED)
-    def _action__error(self, original_message: dict, error: str):
+    @action
+    def error(self, error: str, original_message: dict):
         self.app.socketio.server.emit(
             'message', self._current_message, room=self.sid)
