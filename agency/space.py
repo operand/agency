@@ -20,9 +20,6 @@ class Space(ABC, metaclass=ABCMeta):
         """
         Adds an agent to the space allowing it to communicate
         """
-        if agent.id() in self.__agent_processors.keys():
-            raise ValueError(f"Agent id already exists: '{agent.id()}'")
-
         self._connect(agent)
 
         def process():
@@ -59,6 +56,7 @@ class Space(ABC, metaclass=ABCMeta):
         agents = [ap['agent'] for ap in self.__agent_processors.values()]
         for agent in agents:
             self.remove(agent)
+        self.__agent_processors.clear()
 
     def _route(self, message: Message) -> None:
         """
