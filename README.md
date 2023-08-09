@@ -1,7 +1,7 @@
 # Summary
 
 Agency is a python library that provides a minimal framework for creating
-agent-integrated systems for any scale or purpose.
+agent-integrated systems for any purpose or scale.
 
 The library provides an easy to use API that enables you to connect intelligent
 agents with software systems and human users, making it simple to integrate,
