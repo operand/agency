@@ -138,6 +138,6 @@ class AMQPSpace(Space):
         connection = self.__agent_connections[agent.id()]
         connection.heartbeat_check()  # sends heartbeat if necessary
         try:
-            connection.drain_events(timeout=0)
+            connection.drain_events(timeout=0.001)
         except socket.timeout:
             pass
