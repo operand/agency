@@ -3,7 +3,7 @@ import time
 import network
 from machine import Pin
 
-from micropython_agent import UAgent, access_policy, ACCESS_PERMITTED
+from micropython_agent import UAgent, action
 from micropython_space import UMQTTSpace
 
 # configure wifi
@@ -24,38 +24,36 @@ class SmartHomeAgent(UAgent):
         super().__init__(id)
 
     def _help(self, action_name: str = None) -> list:
-        help = [
-            {
-                "to": self.id(),
-                "thoughts": "can set device state of Smart Home. device: [fan, light], state: [on, off]",
-                "action": "set",
+        help = {
+            "set": {
+                "description": "can set device state of Smart Home. device: [fan, light], state: [on, off]",
                 "args": {
-                    "device": "str",
-                    "state": "str",
+                    "device": {"type": "string"},
+                    "state": {"type": "string"},
                 },
-            },
-        ]
+            }
+        }
 
         if action_name:
-            return [item for item in help if item["action"] == action_name]
+            return help.get(action_name)
         else:
             return help
 
-    def _after_add(self):
+    def after_add(self):
         self.send(
             {
-                "thoughts": "Here is a list of actions you can take on me.",
-                "action": "return",
-                "args": {
-                    "original_message": {
-                        "action": "help",
+                "to": "*",
+                "action": {
+                    "name": "response",
+                    "args": {
+                        "data": self._help(),
+                        "original_message_id": "help_request",
                     },
-                    "return_value": self._help(),
                 },
             }
         )
 
-    @access_policy(ACCESS_PERMITTED)
+    @action
     def set(self, device: str, state: str):
         print(device, state)
         map_ = {"on": 1, "off": 0}
@@ -71,37 +69,35 @@ class RobotAgent(UAgent):
         super().__init__(id)
 
     def _help(self, action_name: str = None) -> list:
-        help = [
-            {
-                "to": self.id(),
-                "thoughts": "Sends a message to this agent",
-                "action": "say",
+        help = {
+            "set": {
+                "description": "Sends a message to this agent",
                 "args": {
-                    "content": "str",
+                    "content": {"type": "string"},
                 },
-            },
-        ]
+            }
+        }
 
         if action_name:
-            return [item for item in help if item["action"] == action_name]
+            return help.get(action_name)
         else:
             return help
 
-    def _after_add(self):
+    def after_add(self):
         self.send(
             {
-                "thoughts": "Here is a list of actions you can take on me.",
-                "action": "return",
-                "args": {
-                    "original_message": {
-                        "action": "help",
+                "to": "*",
+                "action": {
+                    "name": "response",
+                    "args": {
+                        "data": self._help(),
+                        "original_message_id": "help_request",
                     },
-                    "return_value": self._help(),
                 },
             }
         )
 
-    @access_policy(ACCESS_PERMITTED)
+    @action
     def say(self, content: str):
         print(content)
 
