@@ -275,7 +275,7 @@ the `Host` agent requesting information on the `say` action.
 
 Lastly we can add an intelligent agent into the space.
 
-To add the [`OpenAIFunctionAgent`](./agency/agents/demo_agent.py) class to the
+To add the [`OpenAIFunctionAgent`](../agency/agents/demo_agent.py) class to the
 environment:
 ```python
 space.add(
@@ -482,7 +482,7 @@ my_agent.send({
 })
 ```
 
-See [agency/schema.py](./agency/schema.py) for the pydantic model definition
+See [agency/schema.py](../agency/schema.py) for the pydantic model definition
 used for validation.
 
 
