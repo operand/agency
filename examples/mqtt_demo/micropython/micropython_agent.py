@@ -8,15 +8,24 @@ ACCESS_DENIED = "denied"
 ACCESS_REQUESTED = "requested"
 
 
-_function_access_policies = {} # work with access_policy
+_function_access_policies = {}  # work with action decorator
 
-def access_policy(level):
-    def decorator(func):
-        # func.access_policy = level # MicroPython does not support
-        _function_access_policies[func.__name__] = {"access_policy": level}
-        return func
+def action(*args, **kwargs):
+    def decorator(method):
+        _function_access_policies[method.__name__] = {
+            "name": method.__name__,
+            "access_policy": ACCESS_PERMITTED,
+            "help": None,
+            # **kwargs, # not supported by micropython
+        }
+        _function_access_policies[method.__name__].update(kwargs)
 
-    return decorator
+        return method
+
+    if len(args) == 1 and callable(args[0]) and not kwargs:
+        return decorator(args[0])  # The decorator was used without parentheses
+    else:
+        return decorator  # The decorator was used with parentheses
 
 
 class UAgent:
@@ -24,58 +33,61 @@ class UAgent:
     An Actor that may represent an AI agent, computing system, or human user
     """
 
-    ACTION_METHOD_PREFIX = ""
-
-    def __init__(self, id: str) -> None:
+    def __init__(self, id: str, receive_own_broadcasts: bool = True) -> None:
         if len(id) < 1 or len(id) > 255:
             raise ValueError("id must be between 1 and 255 characters")
         if re.match(r"^amq\.", id):
             raise ValueError('id cannot start with "amq."')
+        if id == "*":
+            raise ValueError('id cannot be "*"')
         self.__id: str = id
-        # threading state
-        # self._thread_started = threading.Event()
-        # self._thread_stopping = threading.Event()
-        # self._thread_stopped = threading.Event()
-        # set by Space when added
-        self._space = None
-        # a basic approach to storing messages
-        self._message_log = []
+        self.__receive_own_broadcasts = receive_own_broadcasts
+        self._space = None  # set by Space when added
+        self._message_log = []  # stores all messages
 
     def id(self) -> str:
         """
-        Returns the id of this agent. The id is a string that identifies this
-        agent within the space. ID's are not necessarily unique. If two agents
-        have the same id they will both receive messages sent to that id.
+        Returns the id of this agent
         """
         return self.__id
 
-    def send(self, action: dict):
+    def send(self, message: dict):
         """
-        Sends (out) an action
+        Sends (out) an message
         """
-        self._space._route(sender=self, action=action)
+        message["from"] = self.id()
+        self._message_log.append(message)
+        self._space._route(message=message)
 
     def _receive(self, message: dict):
         """
         Receives and processes an incoming message
         """
-        assert "from" in message
+        if (
+            not self.__receive_own_broadcasts
+            and message["from"] == self.id()
+            and message["to"] == "*"
+        ):
+            return
+
         try:
             # Record message and commit action
             self._message_log.append(message)
             self.__commit(message)
         except Exception as e:
-            # Here we handle exceptions that occur while committing an
-            # action, including PermissionError's from access denial, by
-            # reporting the error back to the sender.
+            # Here we handle exceptions that occur while committing an action,
+            # including PermissionError's from access denial, by reporting the
+            # error back to the sender.
             self.send(
                 {
                     "to": message["from"],
-                    "thoughts": "An error occurred",
-                    "action": "error",
-                    "args": {
-                        "original_message": message,
-                        "error": f"{e}",
+                    "from": self.id(),
+                    "action": {
+                        "name": "error",
+                        "args": {
+                            "error": f"{e}",
+                            "original_message_id": message.get("id"),
+                        },
                     },
                 }
             )
@@ -87,21 +99,23 @@ class UAgent:
         # Check if the action method exists
         action_method = None
         try:
-            action_method = getattr(
-                self, f"{self.ACTION_METHOD_PREFIX}{message['action']}"
-            )
-        except AttributeError as e:
+            # action_method = self.__action_method(message["action"]["name"])
+            action_method = getattr(self, f"{message['action']['name']}")
+            assert (
+                message["action"]["name"] in _function_access_policies
+            )  # security check
+        except KeyError:
             # the action was not found
             if message["to"] == self.id():
                 # if it was point to point, raise an error
                 raise AttributeError(
-                    f"\"{message['action']}\" action not found on \"{self.id()}\""
+                    f"\"{message['action']['name']}\" not found on \"{self.id()}\""
                 )
             else:
                 # broadcasts will not raise an error
                 return
 
-        self._before_action(message)
+        self.before_action(message)
 
         return_value = None
         error = None
@@ -111,40 +125,39 @@ class UAgent:
                 # Invoke the action method
                 # (set _current_message so that it can be used by the action)
                 self._current_message = message
-                return_value = action_method(**message["args"])
+                return_value = action_method(**message["action"]["args"])
                 self._current_message = None
 
-                # An immediate data structure response (return value) if any, from an
-                # action method is sent back to the sender as a "return" action. This is
-                # useful for actions that simply need to return a value to the sender.
+                # The return value if any, from an action method is sent back to
+                # the sender as a "response" action.
                 if return_value is not None:
                     self.send(
                         {
                             "to": message["from"],
-                            "thoughts": "A value was returned for your action",
-                            "action": "return",
-                            "args": {
-                                "original_message": message,
-                                "return_value": return_value,
+                            "action": {
+                                "name": "response",
+                                "args": {
+                                    "data": return_value,
+                                    "original_message_id": message.get("id"),
+                                },
                             },
                         }
                     )
             else:
                 raise PermissionError(
-                    f"\"{self.id()}.{message['action']}\" not permitted"
+                    f"\"{self.id()}.{message['action']['name']}\" not permitted"
                 )
         except Exception as e:
-            error = e  # save the error for _after_action
-            raise Exception(e)
+            error = e  # save the error for after_action
+            raise
         finally:
-            self._after_action(message, return_value, error)
+            self.after_action(message, return_value, error)
 
     def __permitted(self, message: dict) -> bool:
         """
         Checks whether the action represented by the message is allowed
         """
-        # policy = getattr(self, f"{self.ACTION_METHOD_PREFIX}{message['action']}").access_policy
-        policy = _function_access_policies[f"{self.ACTION_METHOD_PREFIX}{message['action']}"][
+        policy = _function_access_policies[f"{message['action']['name']}"][
             "access_policy"
         ]
         if policy == ACCESS_PERMITTED:
@@ -152,92 +165,84 @@ class UAgent:
         elif policy == ACCESS_DENIED:
             return False
         elif policy == ACCESS_REQUESTED:
-            return self._request_permission(message)
+            return self.request_permission(message)
         else:
             raise Exception(
                 f"Invalid access policy for method: {message['action']}, got '{policy}'"
             )
 
-    def _help(self, action_name: str = None) -> list:
-        """
-        Returns an array of all action methods on this class that match
-        'action_name'. If no action_name is passed, returns all actions.
-        [
-          {
-            "to": "<agent_id>",
-            "thoughts": "<docstring_of_action_method>",
-            "action": "<action_method_name>",
-            "args": {
-              "arg_name": "<arg_type>",
-              ...
-            }
-          },
-          ...
-        ]
-        """
-        print(
-            f"WARNING: Returns list of actions on this agent matching action_name, or all if none is passed.."
-        )
-
-    # Override any of the following methods as needed to implement your agent
-
-    @access_policy(ACCESS_PERMITTED)
+    @action
     def help(self, action_name: str = None) -> list:
         """
-        Returns list of actions on this agent matching action_name, or all if none
-        is passed.
+        Returns a list of actions on this agent.
+
+        If action_name is passed, returns a list with only that action.
+        If no action_name is passed, returns all actions.
+
+        Args:
+            action_name: (Optional) The name of an action to request help for
+
+        Returns:
+            A list of actions
         """
         return self._help(action_name)
 
-    @access_policy(ACCESS_PERMITTED)
-    def return(self, original_message: dict, return_value: str):
+    @action
+    def response(self, data, original_message_id: str = None):
         """
-        Implement this action to handle returned data from a prior action. By
-        default this action simply replaces it with an incoming "say".
+        Receives a return value from a prior action.
+
+        Args:
+            data: The returned value from the action.
+            original_message_id: The id field of the original message
         """
         print(
-            f"WARNING: Data was returned from an action. Implement return to handle it."
+            f"Data was returned from an action. Implement a `response` action to handle it."
         )
 
-    @access_policy(ACCESS_PERMITTED)
-    def error(self, original_message: dict, error: str):
+    @action
+    def error(self, error: str, original_message_id: str = None):
         """
-        Implement this action to handle errors from an action.
+        Receives errors from a prior action.
+
+        Args:
+            error: The error message
+            original_message_id: The id field of the original message
         """
         print(
-            f"WARNING: An error occurred in an action. Implement error to handle it."
+            f"An error occurred in an action. Implement an `error` action to handle it."
         )
 
-    def _before_action(self, message: dict):
-        """
-        Called before every action. Override and use this method for logging or
-        other situations where you may want to pass through all actions.
-        """
-
-    def _after_action(self, original_message: dict, return_value: str, error: str):
-        """
-        Called after every action. Override and use this method for logging or other
-        situations where you may want to pass through all actions.
-        """
-
-    def _request_permission(self, proposed_message: dict) -> bool:
-        """
-        Implement this method to receive a proposed action message and present it to
-        the agent for review. Return true or false to indicate whether access
-        should be permitted.
-        """
-        raise NotImplementedError(
-            "You must implement _request_permission to use ACCESS_REQUESTED"
-        )
-
-    def _after_add(self):
+    def after_add(self):
         """
         Called after the agent is added to a space. Override this method to
         perform any additional setup.
         """
 
-    def _before_remove(self):
+    def before_remove(self):
         """
         Called before the agent is removed from a space. Override this method to
         perform any cleanup.
         """
+
+    def before_action(self, message: dict):
+        """
+        Called before every action. Override this method for logging or other
+        situations where you may want to process all actions.
+        """
+
+    def after_action(self, original_message: dict, return_value: str, error: str):
+        """
+        Called after every action. Override this method for logging or other
+        situations where you may want to pass through all actions.
+        """
+
+    def request_permission(self, proposed_message: dict) -> bool:
+        """
+        Implement this method to receive a proposed action message and present
+        it to the agent for review. Return true or false to indicate whether
+        access should be permitted.
+        """
+        raise NotImplementedError(
+            f"You must implement {self.__class__.__name__}.request_permission to use ACCESS_REQUESTED"
+        )

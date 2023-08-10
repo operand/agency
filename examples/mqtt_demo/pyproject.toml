@@ -15,6 +15,7 @@ Flask-SocketIO = "^5.3"
 openai = "^0.27.8"
 eventlet = "^0.33.3"
 cryptography = "^41.0.2"
+gradio = "^3.39.0"
 
 
 [build-system]
