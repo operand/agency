@@ -7,9 +7,9 @@ The library provides an easy to use API that enables you to connect intelligent
 agents with software systems and human users, making it simple to integrate,
 monitor, and control your agent system.
 
-Agency's design allows you to flexibly experiment and build to your
-requirements. Once you've found an architecture that works, you can scale it out
-to your needs.
+Agency's goal is to enable others to create custom agent solutions by providing
+a minimal and scalable foundation to both experiment and build upon. So if
+you're looking to build a custom agent system, Agency might be for you.
 
 
 ## Features
@@ -166,10 +166,14 @@ intended to be an all-inclusive toolset like other libraries. For example, it
 does not include support for constructing prompts or working with vector
 databases, etc. Implementation of agent behavior is left up to you.
 
-The goal of Agency is to enable others to create custom agent solutions by
-providing a minimal, flexible, and scalable foundation that can support a wide
-variety of use cases. So if you're looking to build a custom agent system,
-Agency might be for you.
+Agency focuses on lower level concerns like communication, observation,
+scalability, and security. The library strives to provide the basic building
+blocks of an agent system without imposing additional structure on you.
+
+The goal is to allow you to experiment and discover the right approaches that
+work for you. And once you've found an implementation that works, you can scale
+it out to your needs.
+
 
 ## What are some known limitations or issues?
 
