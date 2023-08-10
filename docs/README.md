@@ -528,7 +528,8 @@ my_agent.send({
     "from": "calculator_agent",
     "to": "my_agent",
     "action": {
-        "response": {
+        "name": "response",
+        "args": {
             "data": 3,
             "original_message_id": "a custom message id"
         }

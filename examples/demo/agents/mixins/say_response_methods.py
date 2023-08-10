@@ -16,7 +16,7 @@ class SayResponseMethods():
             "action": {
                 "name": "say",
                 "args": {
-                    "content": data,
+                    "content": str(data),
                 }
             },
         })
