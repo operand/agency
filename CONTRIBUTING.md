@@ -1,5 +1,7 @@
 # Contributing
 
+Thanks for considering contributing to the Agency library!
+
 There are two high level areas where you might want to contribute: examples, or
 the core library itself.
 
@@ -25,13 +27,13 @@ personal work.
 
 ## Core Library Contributions
 
-Contributions to the core Agency library itself are encouraged as well, though
-expect more scrutiny.
+Contributions to the core Agency library are encouraged as well, though expect
+more scrutiny.
 
-There isn't a formal process yet aside from opening a PR and having it reviewed
-by maintainers, but other than bug fixes or small improvements, significant
+There isn't a complex process aside from opening a PR and having it reviewed by
+maintainers, but other than bug fixes or trivial improvements, significant
 changes to the core library should be discussed in order to ensure alignment on
-design and implementation. If you're unsure, open an issue first to discuss.
+design and implementation. If you're unsure, open an issue or discussion first.
 
 A couple informal guidelines for core contributions:
 
