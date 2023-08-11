@@ -19,10 +19,13 @@ effort to maintain it if possible. Library maintainers will not be responsible
 for maintaining examples, except for the main `demo` application.
 
 The main demo located at [`examples/demo/`](./examples/demo/) is maintained
-closely with the core library, so if you'd like to make significant changes to
-it (not a simple change or bug fix for example), please discuss this first. But
-feel free to copy the demo application as a basis for your own examples or
+closely with the core library.
+
+Feel free to copy the demo application as a basis for your own examples or
 personal work.
+
+If you'd like to make significant changes to the main demo (not a simple bug fix
+or something trivial), please discuss this first.
 
 
 ## Core Library Contributions
@@ -38,6 +41,6 @@ design and implementation. If you're unsure, open an issue or discussion first.
 A couple informal guidelines for core contributions:
 
 * Tests should be updated or added with any core changes. If you're adding
-  functionality there should be new tests for it.
+  functionality there should probably be new tests for it.
 
 * Documentation should be updated or added as needed.
