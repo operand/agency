@@ -19,13 +19,11 @@ effort to maintain it if possible. Library maintainers will not be responsible
 for maintaining examples, except for the main `demo` application.
 
 The main demo located at [`examples/demo/`](./examples/demo/) is maintained
-closely with the core library.
-
-Feel free to copy the demo application as a basis for your own examples or
-personal work.
+closely with the core library. Feel free to copy the demo application as a basis
+for your own examples or personal work. That is its main purpose.
 
 If you'd like to make significant changes to the main demo (not a simple bug fix
-or something trivial), please discuss this first.
+or something trivial), please discuss this with the maintainers.
 
 
 ## Core Library Contributions
