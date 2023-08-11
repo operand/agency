@@ -213,38 +213,9 @@ Please do!
 If you're considering a contribution, please check out the [contributing
 guide](./CONTRIBUTING.md).
 
-## Development Installation
-
-```bash
-git clone git@github.com:operand/agency.git
-cd agency
-poetry install
-```
-
-## Developing with the Demo Application
-
-See [the demo directory](./examples/demo/) for instructions on how to run the
-demo.
-
-The demo application is written to showcase both native and AMQP spaces and
-several agent examples. It can also be used for experimentation and development.
-
-The application is configured to read the agency library source when running,
-allowing library changes to be tested manually.
-
-## Test Suite
-
-Ensure you have Docker installed. A small RabbitMQ container will be
-automatically created.
-
-You can run the test suite with:
-
-```bash
-poetry run pytest
-```
-
-## Planned Work
+# Planned Work
 
 [See the issues page.](https://github.com/operand/agency/issues)
 
-If you have any suggestions or otherwise, please add an issue!
+If you have any suggestions or otherwise, feel free to add an issue or open a
+[discussion](https://github.com/operand/agency/discussions).
