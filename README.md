@@ -164,15 +164,16 @@ Though you could entirely create a simple agent using only the primitives in
 Agency (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
 intended to be an all-inclusive toolset like other libraries. For example, it
 does not include support for constructing prompts or working with vector
-databases, etc. Implementation of agent behavior is left up to you.
+databases, etc. Implementation of agent behavior is left up to you, and you are
+free to use other libraries as needed for those purposes.
 
 Agency focuses on lower level concerns like communication, observation,
 scalability, and security. The library strives to provide the basic building
 blocks of an agent system without imposing additional structure on you.
 
-The goal is to allow you to experiment and discover the right approaches that
-work for you. And once you've found an implementation that works, you can scale
-it out to your needs.
+The goal is to allow you to experiment and discover the right approaches and
+technologies that work for you. And once you've found an implementation that
+works, you can scale it out to your needs.
 
 
 ## What are some known limitations or issues?
