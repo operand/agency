@@ -210,9 +210,8 @@ it out to your needs.
 
 Please do!
 
-If you'd like to contribute, please check out the [contributing
-guide](./CONTRIBUTING.md) file.
-
+If you're considering a contribution, please check out the [contributing
+guide](./CONTRIBUTING.md).
 
 ## Development Installation
 

@@ -3,8 +3,7 @@
 Thanks for considering contributing to the Agency library!
 
 There are two high level areas where you might want to contribute: examples, or
-the core library itself.
-
+the core library.
 
 ## Adding to the Examples Directory
 
@@ -24,7 +23,6 @@ for your own examples or personal work. That is its main purpose.
 
 If you'd like to make significant changes to the main demo (not a simple bug fix
 or something trivial), please discuss this with the maintainers.
-
 
 ## Core Library Contributions
 
