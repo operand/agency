@@ -69,7 +69,6 @@ design and implementation. If you're unsure, open an issue or discussion first.
 
 A couple informal guidelines for core contributions:
 
-* Tests should be updated or added with any library changes. If you're adding
-  functionality there should probably be new tests for it.
+* If you're adding functionality you should probably add new tests for it.
 
 * Documentation should be updated or added as needed.
