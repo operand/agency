@@ -3,8 +3,9 @@
 Welcome to the Agency help site. Help information is broken into two sections:
 API documentation and help articles.
 
-If you're not sure where to start, the [demo application
-walkthrough](./articles/walkthrough.md) is a good choice.
+If you're not sure where to start, the
+[demo application walkthrough](./articles/walkthrough.md)
+is a good choice.
 
 ## API Documentation
 
