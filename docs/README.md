@@ -1,6 +1,6 @@
 <head><link rel="stylesheet" href="/style.css"></head>
 
-Welcome to the Agency help site. Help information is broken into two sections:
+Welcome to the Agency help page. Help information is broken into two sections:
 API documentation and help articles.
 
 If you're not sure where to start, the
