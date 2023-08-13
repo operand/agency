@@ -1,3 +1,5 @@
+<head><link rel="stylesheet" href="style.css"></head>
+
 # Agent Implementation
 
 To create an agent, extend the `Agent` class.

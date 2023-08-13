@@ -1,7 +1,4 @@
-<head>
-  <title>Agency</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+<head><link rel="stylesheet" href="style.css"></head>
 
 # [`Agency`](https://createwith.agency/)
 

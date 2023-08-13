@@ -1,12 +1,9 @@
-<head>
-  <title>Agency | Demo Application Walkthrough</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+<head><link rel="stylesheet" href="style.css"></head>
 
 # Demo Application Walkthrough
 
-The following walkthrough will guide you through the basic concepts of
-Agency's API, and how to use it to build your own agent systems.
+The following walkthrough will guide you through the basic concepts of Agency's
+API, and how to use it to build your own agent systems.
 
 
 ## Creating an Agency Application
