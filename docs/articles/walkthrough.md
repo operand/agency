@@ -1,4 +1,4 @@
-<head><link rel="stylesheet" href="style.css"></head>
+<head><link rel="stylesheet" href="/style.css"></head>
 
 # Demo Application Walkthrough
 
