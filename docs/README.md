@@ -1,9 +1,5 @@
 # Documentation
 
-The following could be better organized. Please open an issue if you have
-suggestions for how to improve the documentation.
-
-
 ## Table of Contents
 
 * [Example Application Walkthrough](#example-application-walkthrough)
