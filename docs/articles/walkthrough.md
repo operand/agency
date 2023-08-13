@@ -1,17 +1,9 @@
-# Documentation
+<head><link rel="stylesheet" href="style.css"></head>
 
-## Table of Contents
+# Demo Application Walkthrough
 
-* [Example Application Walkthrough](#example-application-walkthrough)
-* [Agent Implementation](#agent-implementation)
-* [Messaging](#messaging)
-* [Using AMQPSpace](#using-amqpspace)
-
-
-# Example Application Walkthrough
-
-The following walkthrough will guide you through the basic concepts of
-Agency's API, and how to use it to build your own agent systems.
+The following walkthrough will guide you through the basic concepts of Agency's
+API, and how to use it to build your own agent systems.
 
 
 ## Creating an Agency Application
