@@ -29,7 +29,7 @@ you're looking to build a custom agent system, Agency might be for you.
 * [_Decentralized networking support planned_](https://github.com/operand/agency/issues/83)
 
 ### Multimodal/Multimedia support
-* [_In development_](https://github.com/operand/agency/issues/26)
+* [_In progress_](https://github.com/operand/agency/issues/26)
 
 ### Demo application available at [`examples/demo`](./examples/demo/)
 * Includes Gradio UI (React UI example also available)
