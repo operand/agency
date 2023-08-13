@@ -1,7 +1,5 @@
 <head><link rel="stylesheet" href="style.css"></head>
 
-# [`Agency`](https://createwith.agency/)
-
 Welcome to the Agency help site. Help information is broken into two sections:
 API documentation and help articles.
 
