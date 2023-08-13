@@ -10,7 +10,7 @@ API documentation and help articles.
 
 ## API Documentation
 
-[API Documentation](./api)
+_(Under construction)_
 
 ## Help Articles
 
