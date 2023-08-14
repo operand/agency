@@ -47,8 +47,8 @@ model](https://en.wikipedia.org/wiki/Actor_model) for building AI agent
 integrated systems.
 
 In Agency, all entities are represented as instances of the `Agent` class. This
-includes all human users, software, and AI-driven agents that may communicate as
-part of your application.
+includes all AI-driven agents, software systems, or human users that may
+communicate as part of your application.
 
 All agents may expose "actions" that other agents can discover and invoke at run
 time. An example of a simple agent could be:
