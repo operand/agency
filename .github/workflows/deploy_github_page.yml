@@ -38,6 +38,8 @@ jobs:
         ruby-version: '3.2.2'
 
     - name: Build the site
+      env:
+        JEKYLL_ENV: production
       run: |
         cd docs
         gem install bundler
