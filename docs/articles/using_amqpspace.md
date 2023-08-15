@@ -48,7 +48,7 @@ to connect and communicate with each other over AMQP. This approach allows you
 to scale your agents across multiple processes or hosts, and avoids the
 multithreading limitations of python's GIL.
 
-See the [example application](../examples/demo/) for a full working example.
+See the [example application](https://github.com/operand/agency/tree/main/examples/demo/) for a full working example.
 
 
 ## Configuring AMQP Connectivity
