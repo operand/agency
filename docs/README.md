@@ -1,19 +1,3 @@
-<head><link rel="stylesheet" href="/style.css"></head>
+Help information for Agency is hosted at https://createwith.agency.
 
-Welcome to the Agency help page. Help information is broken into two sections:
-API documentation and help articles.
-
-If you're not sure where to start, the
-[demo application walkthrough](./articles/walkthrough.md)
-is a good choice.
-
-## API Documentation
-
-_(Under construction)_
-
-## Help Articles
-
-* [Demo Application Walkthrough](./articles/walkthrough.md)
-* [Agent Implementation](./articles/agent_implementation.md)
-* [Messaging](./articles/messaging.md)
-* [Using AMQPSpace](./articles/using_amqpspace.md)
+This directory contains the source files for generating the help site.
