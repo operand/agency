@@ -26,7 +26,6 @@ you're looking to build a custom agent system, Agency might be for you.
 * Multithreaded (though python's GIL is a bottleneck for single process apps)
 * AMQP support for multiprocess and networked systems (avoids GIL)
 * [_Python multiprocess support coming soon_](https://github.com/operand/agency/issues/33)
-* [_Decentralized networking support planned_](https://github.com/operand/agency/issues/83)
 
 ### Multimodal/Multimedia support
 * [_In progress_](https://github.com/operand/agency/issues/26)
