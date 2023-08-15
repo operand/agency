@@ -125,7 +125,7 @@ space.add(AIAgent("AIAgent"))
 ```
 
 These are just a few of the features that Agency provides. For more detailed
-information please see [the docs directory](./docs/).
+information please see [the help site](https://createwith.agency).
 
 
 # Install
