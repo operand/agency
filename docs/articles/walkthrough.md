@@ -169,7 +169,7 @@ application used for development and demonstration purposes, that allows human
 users to connect to a space and chat with the connected agents.
 
 It is defined in
-[examples/demo/apps/gradio_app.py](../examples/demo/apps/gradio_app.py) and
+[examples/demo/apps/gradio_app.py](https://github.com/operand/agency/tree/main/examples/demo/apps/gradio_app.py) and
 simply needs to be imported and used like so:
 
 ```python
@@ -261,7 +261,7 @@ the `Host` agent requesting information on the `say` action.
 
 Lastly we can add an intelligent agent into the space.
 
-To add the [`OpenAIFunctionAgent`](../agency/agents/demo_agent.py) class to the
+To add the [`OpenAIFunctionAgent`](https://github.com/operand/agency/tree/main/agency/agents/demo_agent.py) class to the
 environment:
 ```python
 space.add(
@@ -273,7 +273,7 @@ space.add(
 ```
 
 For more agent examples that you can try, see the
-[`examples/demo/agents/`](../examples/demo/agents/) directory.
+[`examples/demo/agents/`](https://github.com/operand/agency/tree/main/examples/demo/agents/) directory.
 
 That concludes the example walkthrough. To try the demo application, please jump
-to the [examples/demo/](../examples/demo/) directory.
+to the [examples/demo/](https://github.com/operand/agency/tree/main/examples/demo/) directory.

@@ -45,8 +45,9 @@ my_agent.send({
 })
 ```
 
-See [agency/schema.py](../agency/schema.py) for the pydantic model definition
-used for validation.
+See
+[agency/schema.py](https://github.com/operand/agency/tree/main/agency/schema.py)
+for the pydantic model definition used for validation.
 
 
 ## Using the `id` Field
