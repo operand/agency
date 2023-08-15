@@ -1,5 +1,3 @@
-<head><link rel="stylesheet" href="/style.css"></head>
-
 # Using AMQPSpace
 
 To use AMQP for multi-process or networked communication, you can simply swap

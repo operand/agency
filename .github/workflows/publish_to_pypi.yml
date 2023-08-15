@@ -1,4 +1,4 @@
-name: publish
+name: publish-to-pypi
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  publish:
+  publish-to-pypi:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository

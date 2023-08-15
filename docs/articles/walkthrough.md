@@ -1,5 +1,3 @@
-<head><link rel="stylesheet" href="/style.css"></head>
-
 # Demo Application Walkthrough
 
 The following walkthrough will guide you through the basic concepts of Agency's

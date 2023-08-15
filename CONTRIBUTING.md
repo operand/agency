@@ -35,40 +35,46 @@ poetry run pytest
 
 ## Areas to Contribute
 
-There are two general areas where you might want to contribute: examples, or the
-core library.
+These are the general areas where you might want to contribute:
 
-### Adding to the Examples Directory
+### The Examples Directory
 
 The [`examples/`](./examples/) directory is intended to be an informal directory
-of example implementations, experiments, or ideas.
+of example implementations or related sources.
 
 Feel free to add a folder under [`examples/`](./examples/) with anything you'd
-like to share. It's unlikely to be rejected.
+like to share. Please add a README file if you do.
 
-Please document it well enough for others to understand and please understand
-that library maintainers will not maintain examples, except for the main `demo`
+Library maintainers will not maintain examples, except for the main `demo`
 application. So if you want it kept up-to-date, that is up to you.
 
-The main demo located at [`examples/demo/`](./examples/demo/) is maintained
-closely with the core library. Feel free to copy the demo application as a basis
-for your own examples or personal work. That's what it's for.
+The main demo located at [`examples/demo/`](./examples/demo/) is maintained with
+the core library. Feel free to copy the demo application as a basis for your own
+examples or personal work.
 
-If you'd like to make significant changes to the main demo (not a simple bug fix
-or something trivial), please discuss it with the maintainers.
+If you'd like to make significant changes to the main demo (not a bug fix or
+something trivial), please discuss it with the maintainers.
 
 ### Core Library Contributions
 
-Contributions to the core Agency library are encouraged as well, though expect
-more scrutiny.
+Contributions to the core library are appreciated as well. There isn't a complex
+process. Just open a PR and have it approved.
 
-There isn't a complex process aside from opening a PR and having it approved by
-maintainers, but other than bug fixes or trivial improvements, significant
-changes to the core library should be discussed in order to ensure alignment on
-design and implementation. If you're unsure, open an issue or discussion first.
+Anything other than bug fixes or trivial improvements should be discussed in
+order to ensure alignment on design and implementation. If you're unsure, open
+an issue or discussion first, or reach out on discord.
 
 A couple informal guidelines for core contributions:
 
 * If you're adding functionality you should probably add new tests for it.
-
 * Documentation should be updated or added as needed.
+
+### Maintaining the Help Site
+
+The help site source is located under the [`./docs`](./docs/) directory. It uses
+the [Jekyll](https://jekyllrb.com/) static site generator along with the [GitHub
+Pages](https://pages.github.com/) service to host the site.
+
+Ruby dependencies are defined in the `docs` directory using Bundler (Gemfile).
+
+...

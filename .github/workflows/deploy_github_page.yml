@@ -1,0 +1,53 @@
+name: deploy-github-page
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-github-page:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python3 -m pip install --upgrade pip poetry
+        poetry install
+        poetry add pdoc docstring-parser
+
+    - name: Generate API documentation
+      run: |
+        poetry run pdoc agency --output-dir docs/api
+
+    - name: Set up Ruby and Jekyll
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2.2'
+
+    - name: Build the site
+      env:
+        JEKYLL_ENV: production
+      run: |
+        cd docs
+        gem install bundler
+        bundle install
+        bundle exec jekyll build
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/_site
+        cname: createwith.agency
