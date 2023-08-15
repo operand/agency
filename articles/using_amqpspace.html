@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Using AMQPSpace | Agency</title>
+<meta name="generator" content="Jekyll v3.9.3" />
+<meta property="og:title" content="Using AMQPSpace" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="A fast and minimal framework for building agent-integrated systems" />
+<meta property="og:description" content="A fast and minimal framework for building agent-integrated systems" />
+<link rel="canonical" href="https://createwith.agency/articles/using_amqpspace.html" />
+<meta property="og:url" content="https://createwith.agency/articles/using_amqpspace.html" />
+<meta property="og:site_name" content="Agency" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Using AMQPSpace" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"A fast and minimal framework for building agent-integrated systems","headline":"Using AMQPSpace","url":"https://createwith.agency/articles/using_amqpspace.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://createwith.agency/feed.xml" title="Agency" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Agency</a></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Using AMQPSpace</h1>
+  </header>
+
+  <div class="post-content">
+    <h1 id="using-amqpspace">Using AMQPSpace</h1>
+
+<p>To use AMQP for multi-process or networked communication, you can simply swap
+the <code class="language-plaintext highlighter-rouge">AMQPSpace</code> class for the <code class="language-plaintext highlighter-rouge">NativeSpace</code> class.</p>
+
+<p>Then to take advantage of parallelism, you would also separate your agents into
+multiple processes configured to use the same AMQP server.</p>
+
+<p>For example, the following would separate the <code class="language-plaintext highlighter-rouge">Host</code> agent into its own
+application:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">'__main__'</span><span class="p">:</span>
+
+    <span class="c1"># Create a space
+</span>    <span class="n">space</span> <span class="o">=</span> <span class="n">AMQPSpace</span><span class="p">()</span>
+
+    <span class="c1"># Add a host agent to the space
+</span>    <span class="n">space</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Host</span><span class="p">(</span><span class="s">"Host"</span><span class="p">))</span>
+
+    <span class="c1"># keep alive
+</span>    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>And the following would separate the <code class="language-plaintext highlighter-rouge">ChattyAI</code> agent into its own application:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">'__main__'</span><span class="p">:</span>
+
+    <span class="c1"># Create a space
+</span>    <span class="n">space</span> <span class="o">=</span> <span class="n">AMQPSpace</span><span class="p">()</span>
+
+    <span class="c1"># Add a simple HF based chat agent to the space
+</span>    <span class="n">space</span><span class="p">.</span><span class="n">add</span><span class="p">(</span>
+        <span class="n">ChattyAI</span><span class="p">(</span><span class="s">"Chatty"</span><span class="p">,</span>
+                 <span class="n">model</span><span class="o">=</span><span class="s">"EleutherAI/gpt-neo-125m"</span><span class="p">))</span>
+
+    <span class="c1"># keep alive
+</span>    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Make sure to reuse the same AMQP server and configuration for both applications.</p>
+
+<p>Then you can run both applications at the same time, and the agents will be able
+to connect and communicate with each other over AMQP. This approach allows you
+to scale your agents across multiple processes or hosts, and avoids the
+multithreading limitations of python’s GIL.</p>
+
+<p>See the <a href="../examples/demo/">example application</a> for a full working example.</p>
+
+<h2 id="configuring-amqp-connectivity">Configuring AMQP Connectivity</h2>
+
+<p>By default, the <code class="language-plaintext highlighter-rouge">AMQPSpace</code> class will read the following environment variables
+and will otherwise use default settings.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>AMQP_HOST
+AMQP_PORT
+AMQP_USERNAME
+AMQP_PASSWORD
+AMQP_VHOST
+</code></pre></div></div>
+
+<p>You may also customize the full list of options if you provide your own
+<code class="language-plaintext highlighter-rouge">AMQPOptions</code> object when instantiating an <code class="language-plaintext highlighter-rouge">AMQPSpace</code>. For example:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">space</span> <span class="o">=</span> <span class="n">AMQPSpace</span><span class="p">(</span>
+    <span class="n">amqp_options</span><span class="o">=</span><span class="n">AMQPOptions</span><span class="p">(</span>
+        <span class="n">hostname</span><span class="o">=</span><span class="s">"localhost"</span><span class="p">,</span>
+        <span class="n">port</span><span class="o">=</span><span class="mi">5672</span><span class="p">,</span>
+        <span class="n">username</span><span class="o">=</span><span class="s">"guest"</span><span class="p">,</span>
+        <span class="n">password</span><span class="o">=</span><span class="s">"guest"</span><span class="p">,</span>
+        <span class="n">virtual_host</span><span class="o">=</span><span class="s">"/"</span><span class="p">,</span>
+        <span class="n">use_ssl</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">heartbeat</span><span class="o">=</span><span class="mi">60</span><span class="p">))</span>
+</code></pre></div></div>
+
+  </div>
+
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Agency</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/operand/agency"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">operand/agency</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>A fast and minimal framework for building agent-integrated systems</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
