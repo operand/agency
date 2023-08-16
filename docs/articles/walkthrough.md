@@ -20,7 +20,6 @@ with the following implementation.
 
 
 ```python
-
 # Create a space
 space = NativeSpace()
 
