@@ -48,7 +48,7 @@ demo.launch()
 ```
 
 
-## Creating a `Space` and adding an `Agent`
+## Creating a Space and adding an Agent
 
 ```python
 space = NativeSpace()
@@ -197,7 +197,7 @@ than `say`, you can use the following format:
 ```
 
 
-## Adding OS Access with the `Host` class
+## Adding OS Access with the Host Agent
 
 ```python
 space.add(Host("Host"))
