@@ -3,9 +3,9 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Demo Application Walkthrough | Agency</title>
+<title>Example Application Walkthrough | Agency</title>
 <meta name="generator" content="Jekyll v3.9.3" />
-<meta property="og:title" content="Demo Application Walkthrough" />
+<meta property="og:title" content="Example Application Walkthrough" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="A fast and minimal framework for building agent-integrated systems" />
 <meta property="og:description" content="A fast and minimal framework for building agent-integrated systems" />
@@ -14,9 +14,9 @@
 <meta property="og:site_name" content="Agency" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Demo Application Walkthrough" />
+<meta property="twitter:title" content="Example Application Walkthrough" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","description":"A fast and minimal framework for building agent-integrated systems","headline":"Demo Application Walkthrough","url":"https://createwith.agency/articles/walkthrough.html"}</script>
+{"@context":"https://schema.org","@type":"WebPage","description":"A fast and minimal framework for building agent-integrated systems","headline":"Example Application Walkthrough","url":"https://createwith.agency/articles/walkthrough.html"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://createwith.agency/feed.xml" title="Agency" /><!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-76DYGNV0GJ"></script>
@@ -30,18 +30,25 @@
 </head>
 <body><header class="site-header" role="banner">
 
-  <div class="wrapper"><a class="site-title" rel="author" href="/">Agency</a></div>
+  <div class="wrapper">
+    <a class="site-title" rel="author" href="/">
+      Agency
+    </a>
+    <div class="site-nav">
+      <a href="https://github.com/operand/agency">
+        <svg class="svg-icon">
+          <use xlink:href="/assets/minima-social-icons.svg#github"></use>
+        </svg>
+      </a>
+    </div>
+  </div>
 </header>
 <main class="page-content" aria-label="Content">
       <div class="wrapper">
         <article class="post">
 
-  <header class="post-header">
-    <h1 class="post-title">Demo Application Walkthrough</h1>
-  </header>
-
   <div class="post-content">
-    <h1 id="demo-application-walkthrough">Demo Application Walkthrough</h1>
+    <h1 id="example-application-walkthrough">Example Application Walkthrough</h1>
 
 <p>The following walkthrough will guide you through the basic concepts of Agency’s
 API, and how to use it to build your own agent systems.</p>
@@ -60,8 +67,7 @@ transformers based chat agent named <code class="language-plaintext highlighter-
 Gradio based web application hosted at <code class="language-plaintext highlighter-rouge">http://localhost:8080</code>, all integrated
 with the following implementation.</p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-<span class="c1"># Create a space
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Create a space
 </span><span class="n">space</span> <span class="o">=</span> <span class="n">NativeSpace</span><span class="p">()</span>
 
 <span class="c1"># Add a simple HF based chat agent to the space
@@ -87,7 +93,7 @@ with the following implementation.</p>
 </span><span class="n">demo</span><span class="p">.</span><span class="n">launch</span><span class="p">()</span>
 </code></pre></div></div>
 
-<h2 id="creating-a-space-and-adding-an-agent">Creating a <code class="language-plaintext highlighter-rouge">Space</code> and adding an <code class="language-plaintext highlighter-rouge">Agent</code></h2>
+<h2 id="creating-a-space-and-adding-an-agent">Creating a Space and adding an Agent</h2>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">space</span> <span class="o">=</span> <span class="n">NativeSpace</span><span class="p">()</span>
 <span class="n">space</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">ChattyAI</span><span class="p">(</span><span class="s">"Chatty"</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s">"EleutherAI/gpt-neo-125m"</span><span class="p">))</span>
@@ -225,7 +231,7 @@ than <code class="language-plaintext highlighter-rouge">say</code>, you can use 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/agent_id.action_name arg1:"value 1" arg2:"value 2"
 </code></pre></div></div>
 
-<h2 id="adding-os-access-with-the-host-class">Adding OS Access with the <code class="language-plaintext highlighter-rouge">Host</code> class</h2>
+<h2 id="adding-os-access-with-the-host-agent">Adding OS Access with the Host Agent</h2>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">space</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">Host</span><span class="p">(</span><span class="s">"Host"</span><span class="p">))</span>
 </code></pre></div></div>
@@ -304,28 +310,8 @@ to the <a href="https://github.com/operand/agency/tree/main/examples/demo/">exam
 </article>
 
       </div>
-    </main><footer class="site-footer h-card">
-  <data class="u-url" href="/"></data>
+    </main>
 
-  <div class="wrapper">
-
-    <div class="footer-col-wrapper">
-      <div class="footer-col footer-col-1">
-        <ul class="contact-list">
-          <li class="p-name">Agency</li></ul>
-      </div>
-
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/operand/agency"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">operand/agency</span></a></li></ul>
-</div>
-
-      <div class="footer-col footer-col-3">
-        <p>A fast and minimal framework for building agent-integrated systems</p>
-      </div>
-    </div>
-
-  </div>
-
-</footer>
-</body>
+  </body>
 
 </html>
