@@ -1,4 +1,4 @@
-# Demo Application Walkthrough
+# Example Application Walkthrough
 
 The following walkthrough will guide you through the basic concepts of Agency's
 API, and how to use it to build your own agent systems.
@@ -20,7 +20,6 @@ with the following implementation.
 
 
 ```python
-
 # Create a space
 space = NativeSpace()
 
@@ -48,7 +47,7 @@ demo.launch()
 ```
 
 
-## Creating a `Space` and adding an `Agent`
+## Creating a Space and adding an Agent
 
 ```python
 space = NativeSpace()
@@ -197,7 +196,7 @@ than `say`, you can use the following format:
 ```
 
 
-## Adding OS Access with the `Host` class
+## Adding OS Access with the Host Agent
 
 ```python
 space.add(Host("Host"))

@@ -69,12 +69,25 @@ A couple informal guidelines for core contributions:
 * If you're adding functionality you should probably add new tests for it.
 * Documentation should be updated or added as needed.
 
-### Maintaining the Help Site
 
-The help site source is located under the [`./docs`](./docs/) directory. It uses
-the [Jekyll](https://jekyllrb.com/) static site generator along with the [GitHub
-Pages](https://pages.github.com/) service to host the site.
+### Maintaining Documentation
 
-Ruby dependencies are defined in the `docs` directory using Bundler (Gemfile).
+Documentation is hosted at https://createwith.agency. The source for the help
+site is maintained in the [`docs/`](./docs/) directory.
 
-...
+The help site uses the [Jekyll](https://jekyllrb.com/) static site generator
+along with the [GitHub Pages](https://pages.github.com/) service to host the
+site. Ruby dependencies are defined using Bundler (Gemfile).
+
+The help site includes two kinds of documentation:
+
+#### Articles
+
+Articles are located at [`docs/articles/`](./docs/articles/). Feel free to
+update or add new articles as needed.
+
+#### API Documentation
+
+API documentation is generated automatically using [pdoc](https://pdoc.dev/).
+Any docstrings that are defined in the codebase will be included in the API
+documentation.
