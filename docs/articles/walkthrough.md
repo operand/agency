@@ -1,4 +1,4 @@
-# Demo Application Walkthrough
+# Example Application Walkthrough
 
 The following walkthrough will guide you through the basic concepts of Agency's
 API, and how to use it to build your own agent systems.
