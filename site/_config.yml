@@ -66,10 +66,11 @@ keep_files:
 # https://just-the-docs.com/docs/configuration/
 
 aux_links:
-  "Agency on Github": "//github.com/operand/agency"
+  "Agency on Github": "https://github.com/operand/agency"
 aux_links_new_tab: true
 heading_anchors: true
 ga_tracking: G-76DYGNV0GJ # Google Analytics
+
 
 just_the_docs:
   collections:
