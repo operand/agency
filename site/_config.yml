@@ -65,6 +65,8 @@ keep_files:
 # just-the-docs theme options
 # https://just-the-docs.com/docs/configuration/
 
+color_scheme: light-customized
+
 aux_links:
   "Agency on Github": "https://github.com/operand/agency"
 aux_links_new_tab: true
