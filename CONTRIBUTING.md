@@ -83,7 +83,7 @@ The help site includes two kinds of documentation:
 
 #### Articles
 
-Articles are located at [`site/_pages/`](./docs/_pages/). Feel free to update or
+Articles are located at [`site/articles/`](./site/articles/). Feel free to update or
 add new articles as needed.
 
 #### API Documentation
