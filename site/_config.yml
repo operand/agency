@@ -45,3 +45,12 @@ exclude:
 
 keep_files:
   - api
+  - CNAME
+
+
+# just-the-docs theme options
+# https://just-the-docs.com/docs/configuration/
+
+aux_links_new_tab: true
+heading_anchors: true
+ga_tracking: G-76DYGNV0GJ # Google Analytics
