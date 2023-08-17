@@ -33,6 +33,7 @@ plugins:
 defaults:
   - scope:
       path: ""
+      type: articles
     values:
       layout: default
 
@@ -66,6 +67,7 @@ keep_files:
 # https://just-the-docs.com/docs/configuration/
 
 color_scheme: light-customized
+search_enabled: true
 
 aux_links:
   "Agency on Github": "https://github.com/operand/agency"
