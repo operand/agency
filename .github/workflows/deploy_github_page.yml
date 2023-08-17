@@ -29,7 +29,7 @@ jobs:
 
     - name: Generate API documentation
       run: |
-        poetry run pdoc agency --output-dir docs/api
+        poetry run pdoc agency --output-dir site/api
 
     - name: Set up Ruby and Jekyll
       uses: ruby/setup-ruby@v1
@@ -40,7 +40,7 @@ jobs:
       env:
         JEKYLL_ENV: production
       run: |
-        cd docs
+        cd site
         gem install bundler
         bundle install
         bundle exec jekyll build
@@ -49,5 +49,5 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/_site
+        publish_dir: ./site/_site
         cname: createwith.agency

@@ -73,7 +73,7 @@ A couple informal guidelines for core contributions:
 ### Maintaining Documentation
 
 Documentation is hosted at https://createwith.agency. The source for the help
-site is maintained in the [`docs/`](./docs/) directory.
+site is maintained in the [`site/`](./site/) directory.
 
 The help site uses the [Jekyll](https://jekyllrb.com/) static site generator
 along with the [GitHub Pages](https://pages.github.com/) service to host the
@@ -83,8 +83,8 @@ The help site includes two kinds of documentation:
 
 #### Articles
 
-Articles are located at [`docs/articles/`](./docs/articles/). Feel free to
-update or add new articles as needed.
+Articles are located at [`site/articles/`](./site/articles/). Feel free to update or
+add new articles as needed.
 
 #### API Documentation
 

@@ -1,3 +1,7 @@
+---
+title: Agent Implementation
+---
+
 # Agent Implementation
 
 To create an agent, extend the `Agent` class.

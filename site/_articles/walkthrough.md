@@ -1,3 +1,8 @@
+---
+title: Example Application Walkthrough
+nav_order: 0
+---
+
 # Example Application Walkthrough
 
 The following walkthrough will guide you through the basic concepts of Agency's
