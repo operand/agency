@@ -3,7 +3,7 @@ layout: home
 ---
 
 Welcome to the Agency help site.
-Below you'll find links to articles and the API documentation.
+Below you'll find links to articles and API documentation.
 
 If you're not sure where to start, the [example application
 walkthrough](/articles/walkthrough) is a good choice.
