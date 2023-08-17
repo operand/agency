@@ -29,6 +29,20 @@ plugins:
   - jekyll-feed
 
 
+# default front matter
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+
+# define collections config for articles
+collections:
+  articles:
+    output: true
+    permalink: /:collection/:path
+
+
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.
@@ -51,6 +65,13 @@ keep_files:
 # just-the-docs theme options
 # https://just-the-docs.com/docs/configuration/
 
+aux_links:
+  "Agency on Github": "//github.com/operand/agency"
 aux_links_new_tab: true
 heading_anchors: true
 ga_tracking: G-76DYGNV0GJ # Google Analytics
+
+just_the_docs:
+  collections:
+    articles:
+      name: Articles

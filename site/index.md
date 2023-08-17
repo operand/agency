@@ -1,8 +1,4 @@
----
-layout: home
----
-
-Welcome to the Agency help site. Below you'll find links to articles and API
+Welcome to the Agency help site. Here you'll find help articles and API
 documentation.
 
 If you're not sure where to start, the [example application

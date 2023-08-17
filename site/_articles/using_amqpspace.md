@@ -1,3 +1,7 @@
+---
+title: Using AMQPSpace
+---
+
 # Using AMQPSpace
 
 To use AMQP for multi-process or networked communication, you can simply swap
