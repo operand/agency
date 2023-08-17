@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - docs # TEMP
 
 permissions:
   contents: write
