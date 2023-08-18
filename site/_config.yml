@@ -35,11 +35,6 @@ defaults:
       type: articles
     values:
       layout: default
-  # - scope:
-  #     path: ""
-  #     type: api_docs
-  #   values:
-  #     layout: default
 
 # define collections config for articles
 collections:
