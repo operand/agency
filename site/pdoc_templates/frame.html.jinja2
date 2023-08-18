@@ -3,6 +3,10 @@ title: {{ module.modulename if module else "API Reference" }}
 ---
 
 <div>
+    <nav class="pdoc">
+        <div>{% block nav_submodules %}{% endblock %}</div>
+    </nav>
+
     {% block content %}{% endblock %}
 
     {% filter minify_css %}
