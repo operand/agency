@@ -57,11 +57,11 @@ something trivial), please discuss it with the maintainers.
 
 ### Core Library Contributions
 
-Contributions to the core library are appreciated as well. There isn't a complex
-process. Just open a PR and have it approved.
+There isn't a complex process to contribute. Just open a PR and have it
+approved.
 
 For significant changes (not bug fixes or trivial improvements) please discuss
-it with the maintainers in order to ensure alignment on design and
+the changes with the maintainers in order to ensure alignment on design and
 implementation. You can open an
 [issue](https://github.com/operand/agency/issues) or
 [discussion](https://github.com/operand/agency/discussions) or reach out on
@@ -76,22 +76,5 @@ A couple informal guidelines for core contributions:
 ### Maintaining Documentation
 
 Documentation is hosted at https://createwith.agency. The source for the help
-site is maintained in the [`site/`](./site/) directory.
-
-The help site uses the [Jekyll](https://jekyllrb.com/) static site generator
-with the [Just the Docs](https://just-the-docs.com/) theme. Hosting is on
-[GitHub Pages](https://pages.github.com/). Ruby dependencies are defined using
-Bundler (Gemfile).
-
-The help site includes two kinds of documentation:
-
-#### Articles
-
-Articles are located at [`site/articles/`](./site/articles/). Feel free to
-update or add new articles as needed.
-
-#### API Documentation
-
-API documentation is generated automatically using [pdoc](https://pdoc.dev/).
-Any docstrings that are defined in the codebase will be included in the API
-documentation.
+site is maintained in the [`site/`](./site/) directory. Please see that
+directory for the information on editing documentation.
