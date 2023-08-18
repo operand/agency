@@ -76,15 +76,16 @@ Documentation is hosted at https://createwith.agency. The source for the help
 site is maintained in the [`site/`](./site/) directory.
 
 The help site uses the [Jekyll](https://jekyllrb.com/) static site generator
-along with the [GitHub Pages](https://pages.github.com/) service to host the
-site. Ruby dependencies are defined using Bundler (Gemfile).
+with the [Just the Docs](https://just-the-docs.com/) theme. Hosting is on
+[GitHub Pages](https://pages.github.com/). Ruby dependencies are defined using
+Bundler (Gemfile).
 
 The help site includes two kinds of documentation:
 
 #### Articles
 
-Articles are located at [`site/articles/`](./site/articles/). Feel free to update or
-add new articles as needed.
+Articles are located at [`site/articles/`](./site/articles/). Feel free to
+update or add new articles as needed.
 
 #### API Documentation
 
