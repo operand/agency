@@ -60,9 +60,12 @@ something trivial), please discuss it with the maintainers.
 Contributions to the core library are appreciated as well. There isn't a complex
 process. Just open a PR and have it approved.
 
-Anything other than bug fixes or trivial improvements should be discussed in
-order to ensure alignment on design and implementation. If you're unsure, open
-an issue or discussion first, or reach out on discord.
+For significant changes (not bug fixes or trivial improvements) please discuss
+it with the maintainers in order to ensure alignment on design and
+implementation. You can open an
+[issue](https://github.com/operand/agency/issues) or
+[discussion](https://github.com/operand/agency/discussions) or reach out on
+[discord](https://discord.gg/C6F6245z2C).
 
 A couple informal guidelines for core contributions:
 
