@@ -80,3 +80,4 @@ just_the_docs:
       name: Articles
     api_docs:
       name: API Documentation
+      nav_fold: true
