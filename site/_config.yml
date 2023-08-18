@@ -48,7 +48,7 @@ collections:
     permalink: /:collection/:path
   api_docs:
     output: true
-    permalink: /:collection/:path
+    permalink: /:collection/:path:output_ext
 
 # Exclude from processing
 exclude:
@@ -78,3 +78,5 @@ just_the_docs:
   collections:
     articles:
       name: Articles
+    api_docs:
+      name: API Documentation
