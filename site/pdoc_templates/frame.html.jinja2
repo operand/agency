@@ -1,0 +1,14 @@
+---
+layout: default
+title: API Documentation
+---
+{% block content %}{% endblock %}
+
+{% filter minify_css %}
+    {% block style %}
+        {# The same CSS files as in pdoc's default template, except for layout.css. #}
+        <style>{% include "syntax-highlighting.css" %}</style>
+        <style>{% include "theme.css" %}</style>
+        <style>{% include "content.css" %}</style>
+    {% endblock %}
+{% endfilter %}

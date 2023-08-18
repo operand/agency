@@ -13,4 +13,4 @@ walkthrough](/articles/walkthrough) is a good choice.
 
 ## API Documentation
 
-Visit [here](/api) to browse the API.
+Visit [here](/api_docs) to browse the API.
