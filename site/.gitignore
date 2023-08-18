@@ -2,5 +2,5 @@
 .jekyll-metadata
 .sass-cache
 _site
-api
+_api_docs
 vendor

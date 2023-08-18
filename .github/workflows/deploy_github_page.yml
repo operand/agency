@@ -29,7 +29,11 @@ jobs:
 
     - name: Generate API documentation
       run: |
-        poetry run pdoc agency --output-dir site/api
+        poetry run pdoc agency \
+          --template-directory site/pdoc_templates \
+          --docformat google \
+          --output-dir site/_api_docs
+
 
     - name: Set up Ruby and Jekyll
       uses: ruby/setup-ruby@v1

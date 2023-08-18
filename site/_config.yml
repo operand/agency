@@ -28,12 +28,16 @@ theme: just-the-docs
 plugins:
   - jekyll-feed
 
-
 # default front matter
 defaults:
   - scope:
       path: ""
       type: articles
+    values:
+      layout: default
+  - scope:
+      path: ""
+      type: api_docs
     values:
       layout: default
 
@@ -42,40 +46,38 @@ collections:
   articles:
     output: true
     permalink: /:collection/:path
+  api_docs:
+    output: true
+    permalink: /:collection/:path:output_ext
 
-
-# Exclude from processing.
-# The following items will not be processed, by default. Create a custom list
-# to override the default setting.
-# exclude:
-#   - Gemfile
-#   - Gemfile.lock
-#   - node_modules
-#   - vendor/bundle/
-#   - vendor/cache/
-#   - vendor/gems/
-#   - vendor/ruby/
+# Exclude from processing
 exclude:
+  - Gemfile
+  - Gemfile.lock
   - README.md
+  - pdoc_templates
 
+# Copy without processing
 keep_files:
   - api
   - CNAME
 
 
-# just-the-docs theme options
+### just-the-docs theme options ###
 # https://just-the-docs.com/docs/configuration/
 
 color_scheme: light-customized
 search_enabled: true
-
-aux_links:
+aux_links: # links on the top right of layout
   "Agency on Github": "https://github.com/operand/agency"
 aux_links_new_tab: true
-heading_anchors: true
+heading_anchors: true # allows deeplinking
 ga_tracking: G-76DYGNV0GJ # Google Analytics
 
 just_the_docs:
   collections:
     articles:
       name: Articles
+    api_docs:
+      name: API Documentation
+      nav_fold: true
