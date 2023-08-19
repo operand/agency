@@ -1,62 +1,47 @@
-from tests.helpers import Webster, wait_for_messages
-from agency.agent import (ACCESS_DENIED, ACCESS_REQUESTED, Agent, action)
+from agency.agent import (ACCESS_DENIED, ACCESS_REQUESTED, action)
+from tests.helpers import ObservableAgent, add_agent, assert_message_log
 
 
-def test_help_action(either_space):
+# NOTE: Tests below define one or two agent classes before each test function
+
+
+class _HelpActionAgent(ObservableAgent):
+    @action
+    def action_with_docstring(self, content: str, number, thing: dict, foo: bool) -> dict:
+        """
+        A test action
+
+        Some more description text
+
+        Args:
+            content (str): some string
+            number (int): some number without the type in the signature
+            thing: some object without the type in the docstring
+            foo (str): some boolean with the wrong type in the docstring
+
+        Returns:
+            dict: a return value
+        """
+
+    @action(
+        help={
+            "something": "made up",
+            "anything": {
+                "whatever": {
+                    "I": "want"
+                },
+            },
+            "stuff": ["a", "b", "c"]
+        }
+    )
+    def action_with_custom_help():
+        """The docstring here is ignored"""
+
+
+def test_help_action(any_space):
     """Tests defining help info, requesting it, receiving the response"""
 
-    # Define Chatty class
-    class Chatty(Agent):
-        @action
-        def action_with_docstring(self, content: str, number, thing: dict, foo: bool) -> dict:
-            """
-            A test action
-
-            Some more description text
-
-            Args:
-                content (str): some string
-                number (int): some number without the type in the signature
-                thing: some object without the type in the docstring
-                foo (str): some boolean with the wrong type in the docstring
-
-            Returns:
-                dict: a return value
-            """
-
-        @action(
-            help={
-                "something": "made up",
-                "anything": {
-                    "whatever": {
-                        "I": "want"
-                    },
-                },
-                "stuff": ["a", "b", "c"]
-            }
-        )
-        def action_with_custom_help():
-            """The docstring here is ignored"""
-
-    webster = Webster("Webster")
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
-
-    # Send the first message and wait for a response
-    first_message = {
-        'to': '*',  # broadcast
-        'from': 'Webster',
-        'action': {
-            'name': 'help',
-            'args': {}
-        }
-    }
-    webster.send(first_message)
-    wait_for_messages(webster, count=2)
-
-    assert webster._message_log[0] == first_message
-    assert webster._message_log[1] == {  # chatty's response
+    chattys_expected_response = {
         "to": "Webster",
         "from": "Chatty",
         "action": {
@@ -88,24 +73,38 @@ def test_help_action(either_space):
         }
     }
 
+    websters_log = add_agent(any_space, ObservableAgent, "Webster")
+    chattys_log = add_agent(any_space, _HelpActionAgent, "Chatty")
 
-def test_help_specific_action(either_space):
+    # Send the first message and wait for a response
+    first_message = {
+        'to': '*',  # broadcast
+        'from': 'Webster',
+        'action': {
+            'name': 'help',
+            'args': {}
+        }
+    }
+    any_space.send_test_message(first_message)
+    assert_message_log(websters_log, [chattys_expected_response])
+    assert_message_log(chattys_log, [first_message, chattys_expected_response])
+
+
+class _HelpSpecificActionAgent(ObservableAgent):
+    @action
+    def action_i_will_request_help_on():
+        pass
+
+    @action
+    def action_i_dont_care_about():
+        pass
+
+
+def test_help_specific_action(any_space):
     """Tests requesting help for a specific action"""
 
-    # Define Chatty class
-    class Chatty(Agent):
-        @action
-        def action_i_will_request_help_on():
-            pass
-
-        @action
-        def action_i_dont_care_about():
-            pass
-
-    webster = Webster("Webster")
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
+    websters_log = add_agent(any_space, ObservableAgent, "Webster")
+    chattys_log = add_agent(any_space, _HelpSpecificActionAgent, "Chatty")
 
     # Send the first message and wait for a response
     first_message = {
@@ -118,41 +117,41 @@ def test_help_specific_action(either_space):
             }
         }
     }
-    webster.send(first_message)
-    wait_for_messages(webster, count=2)
-
-    assert webster._message_log[0] == first_message
-    assert webster._message_log[1] == {
-        "to": "Webster",
-        "from": "Chatty",
-        "action": {
-            "name": "response",
-            "args": {
-                "data": {
-                    "action_i_will_request_help_on": {
-                        "args": {},
+    any_space.send_test_message(first_message)
+    assert_message_log(websters_log, [
+        {
+            "to": "Webster",
+            "from": "Chatty",
+            "action": {
+                "name": "response",
+                "args": {
+                    "data": {
+                        "action_i_will_request_help_on": {
+                            "args": {},
+                        },
                     },
-                },
-                "original_message_id": None,
+                    "original_message_id": None,
+                }
             }
         }
-    }
+    ])
 
 
-def test_responses_have_original_message_id(either_space):
+class _ResponsesHaveOriginalMessageIdAgent(ObservableAgent):
+    @action
+    def say(self, content: str):
+        return ["Hello!"]
+
+
+def test_responses_have_original_message_id(any_space):
     """Tests that original_message_id is populated on responses and errors"""
-    class Chatty(Agent):
-        @action
-        def say(self, content: str):
-            return ["Hello!"]
 
-    webster = Webster("Webster")
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
+    websters_log = add_agent(any_space, ObservableAgent, "Webster")
+    chattys_log = add_agent(
+        any_space, _ResponsesHaveOriginalMessageIdAgent, "Chatty")
 
     # this message will result in a response with data
-    first_message = {
+    any_space.send_test_message({
         'id': '123 whatever i feel like here',
         'to': 'Chatty',
         'from': 'Webster',
@@ -162,12 +161,9 @@ def test_responses_have_original_message_id(either_space):
                 'content': 'Hi Chatty!'
             }
         }
-    }
-    webster.send(first_message)
+    })
 
-    wait_for_messages(webster, count=2)
-    assert webster._message_log[0] == first_message
-    assert webster._message_log[1] == {
+    assert_message_log(websters_log, [{
         "to": "Webster",
         "from": "Chatty",
         "action": {
@@ -177,21 +173,17 @@ def test_responses_have_original_message_id(either_space):
                 "original_message_id": "123 whatever i feel like here",
             }
         }
-    }
+    }])
 
 
-def test_errors_have_original_message_id(either_space):
+def test_errors_have_original_message_id(any_space):
     """Tests that original_message_id is populated on errors"""
-    class Chatty(Agent):
-        pass
 
-    webster = Webster("Webster")
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
+    websters_log = add_agent(any_space, ObservableAgent, "Webster")
+    chattys_log = add_agent(any_space, ObservableAgent, "Chatty")
 
     # this message will result in an error
-    first_message = {
+    any_space.send_test_message({
         'id': '456 whatever i feel like here',
         'to': 'Chatty',
         'from': 'Webster',
@@ -201,12 +193,9 @@ def test_errors_have_original_message_id(either_space):
                 'content': 'Hi Chatty!'
             }
         }
-    }
-    webster.send(first_message)
+    })
 
-    wait_for_messages(webster, count=2)
-    assert webster._message_log[0] == first_message
-    assert webster._message_log[1] == {
+    assert_message_log(websters_log, [{
         "to": "Webster",
         "from": "Chatty",
         "action": {
@@ -216,19 +205,45 @@ def test_errors_have_original_message_id(either_space):
                 "original_message_id": "456 whatever i feel like here",
             }
         }
+    }])
+
+
+class _SelfReceivedBroadcastAgent(ObservableAgent):
+    @action
+    def say(self, content: str):
+        pass
+
+
+def test_self_received_broadcast(any_space):
+    websters_log = add_agent(any_space, ObservableAgent,
+                             "Webster", receive_own_broadcasts=True)
+    chattys_log = add_agent(any_space, _SelfReceivedBroadcastAgent, "Chatty")
+    first_message = {
+        "from": "Webster",
+        "to": "*",  # makes it a broadcast
+        "action": {
+            "name": "say",
+            "args": {
+                "content": "Hello, everyone!",
+            },
+        },
     }
+    any_space.send_test_message(first_message)
+    assert_message_log(websters_log, [first_message])
+    assert_message_log(chattys_log, [first_message])
 
 
-def test_self_received_broadcast(either_space):
-    class Chatty(Agent):
-        @action
-        def say(self, content: str):
-            pass
+class _NonSelfReceivedBroadcastAgent(ObservableAgent):
+    @action
+    def say(self, content: str):
+        pass
 
-    webster = Webster("Webster", receive_own_broadcasts=True)
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
+
+def test_non_self_received_broadcast(any_space):
+    websters_log = add_agent(any_space, ObservableAgent, "Webster",
+                             receive_own_broadcasts=False)
+    chattys_log = add_agent(
+        any_space, _NonSelfReceivedBroadcastAgent, "Chatty")
 
     first_message = {
         "from": "Webster",
@@ -240,66 +255,40 @@ def test_self_received_broadcast(either_space):
             },
         },
     }
-    webster.send(first_message)
-    wait_for_messages(webster, count=2)
-    wait_for_messages(chatty, count=1)
-    assert webster._message_log == [first_message, first_message]
-    assert chatty._message_log == [first_message]
+    any_space.send_test_message(first_message)
+    assert_message_log(websters_log, [])
+    assert_message_log(chattys_log, [first_message])
 
 
-def test_non_self_received_broadcast(either_space):
-    class Chatty(Agent):
-        @action
-        def say(self, content: str):
-            pass
-
-    webster = Webster("Webster", receive_own_broadcasts=False)
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
-
-    first_message = {
-        "from": "Webster",
-        "to": "*",  # makes it a broadcast
-        "action": {
-            "name": "say",
-            "args": {
-                "content": "Hello, everyone!",
-            },
-        },
-    }
-    webster.send(first_message)
-    wait_for_messages(webster, count=1)
-    wait_for_messages(chatty, count=1)
-    assert webster._message_log == [first_message]
-    assert chatty._message_log == [first_message]
+class _SendAndReceiveAgentOne(ObservableAgent):
+    @action
+    def say(self, content: str):
+        pass
 
 
-def test_send_and_receive(either_space):
-    """Tests sending a basic "say" message receiving a "return"ed reply"""
-
-    class Chatty(Agent):
-        @action
-        def say(self, content: str):
-            self.send({
-                "to": "Webster",
-                "action": {
-                    "name": "say",
-                    "args": {
-                        "content": f"Hello, {self._current_message['from']}!",
-                    }
+class _SendAndReceiveAgentTwo(ObservableAgent):
+    @action
+    def say(self, content: str):
+        self.send({
+            "to": "Webster",
+            "action": {
+                "name": "say",
+                "args": {
+                    "content": f"Hello, {self._current_message['from']}!",
                 }
-            })
+            }
+        })
 
-    webster = Webster("Webster")
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
+
+def test_send_and_receive(any_space):
+    """Tests sending a basic "say" message receiving a reply"""
+    websters_log = add_agent(any_space, _SendAndReceiveAgentOne, "Webster")
+    chattys_log = add_agent(any_space, _SendAndReceiveAgentTwo, "Chatty")
 
     # Send the first message and wait for a response
     first_message = {
         'from': 'Webster',
-        'to': chatty.id(),
+        'to': 'Chatty',
         'action': {
             'name': 'say',
             'args': {
@@ -307,11 +296,8 @@ def test_send_and_receive(either_space):
             }
         }
     }
-    webster.send(first_message)
-    wait_for_messages(webster, count=2)
-
-    assert webster._message_log == [
-        first_message,
+    any_space.send_test_message(first_message)
+    assert_message_log(websters_log, [
         {
             "from": "Chatty",
             "to": "Webster",
@@ -322,22 +308,22 @@ def test_send_and_receive(either_space):
                 }
             },
         },
-    ]
+    ])
 
 
-def test_meta(either_space):
+class MetaAgent(ObservableAgent):
+    @action
+    def say(self, content: str):
+        pass
+
+
+def test_meta(any_space):
     """
-    Tests that the meta field is transmitted when populated
+    Tests that the meta field is transmitted
     """
-    class Chatty(Agent):
-        @action
-        def say(self, content: str):
-            pass
 
-    webster = Webster("Webster")
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
+    websters_log = add_agent(any_space, ObservableAgent, "Webster")
+    chattys_log = add_agent(any_space, MetaAgent, "Chatty")
 
     first_message = {
         "meta": {
@@ -354,24 +340,18 @@ def test_meta(either_space):
             }
         },
     }
-    webster.send(first_message)
-    wait_for_messages(chatty, count=1)
-    assert chatty._message_log == [first_message]
+    any_space.send_test_message(first_message)
+    assert_message_log(chattys_log, [first_message])
 
 
-def test_send_undefined_action(either_space):
+def test_send_undefined_action(any_space):
     """Tests sending an undefined action and receiving an error response"""
 
     # In this test we skip defining a say action on chatty in order to test the
     # error response
 
-    class Chatty(Agent):
-        pass
-
-    webster = Webster("Webster")
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
+    websters_log = add_agent(any_space, ObservableAgent, "Webster")
+    chattys_log = add_agent(any_space, ObservableAgent, "Chatty")
 
     first_message = {
         'from': 'Webster',
@@ -383,11 +363,8 @@ def test_send_undefined_action(either_space):
             }
         }
     }
-    webster.send(first_message)
-    wait_for_messages(webster, count=2)
-
-    assert webster._message_log == [
-        first_message,
+    any_space.send_test_message(first_message)
+    assert_message_log(websters_log, [
         {
             "from": "Chatty",
             "to": "Webster",
@@ -399,25 +376,24 @@ def test_send_undefined_action(either_space):
                 },
             }
         },
-    ]
+    ])
 
 
-def test_send_unpermitted_action(either_space):
+class _SendUnpermittedActionAgent(ObservableAgent):
+    @action(access_policy=ACCESS_DENIED)
+    def say(self, content: str):
+        pass
+
+
+def test_send_unpermitted_action(any_space):
     """Tests sending an unpermitted action and receiving an error response"""
 
-    class Chatty(Agent):
-        @action(access_policy=ACCESS_DENIED)
-        def say(self, content: str):
-            pass
-
-    webster = Webster("Webster")
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
+    websters_log = add_agent(any_space, ObservableAgent, "Webster")
+    chattys_log = add_agent(any_space, _SendUnpermittedActionAgent, "Chatty")
 
     first_message = {
         'from': 'Webster',
-        'to': chatty.id(),
+        'to': 'Chatty',
         'action': {
             'name': 'say',
             'args': {
@@ -425,11 +401,8 @@ def test_send_unpermitted_action(either_space):
             }
         }
     }
-    webster.send(first_message)
-    wait_for_messages(webster, count=2)
-
-    assert webster._message_log == [
-        first_message,
+    any_space.send_test_message(first_message)
+    assert_message_log(websters_log, [
         {
             "from": "Chatty",
             "to": "Webster",
@@ -441,24 +414,23 @@ def test_send_unpermitted_action(either_space):
                 }
             }
         },
-    ]
+    ])
 
 
-def test_send_request_permitted_action(either_space):
+class _SendRequestPermittedActionAgent(ObservableAgent):
+    @action(access_policy=ACCESS_REQUESTED)
+    def say(self, content: str):
+        return "42"
+
+    def request_permission(self, proposed_message: dict) -> bool:
+        return True
+
+
+def test_send_request_permitted_action(any_space):
     """Tests sending an action, granting permission, and returning response"""
-
-    class Chatty(Agent):
-        @action(access_policy=ACCESS_REQUESTED)
-        def say(self, content: str):
-            return "42"
-
-        def request_permission(self, proposed_message: dict) -> bool:
-            return True
-
-    webster = Webster("Webster")
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
+    websters_log = add_agent(any_space, ObservableAgent, "Webster")
+    chattys_log = add_agent(
+        any_space, _SendRequestPermittedActionAgent, "Chatty")
 
     first_message = {
         'from': 'Webster',
@@ -470,11 +442,8 @@ def test_send_request_permitted_action(either_space):
             }
         }
     }
-    webster.send(first_message)
-    wait_for_messages(webster, count=2)
-
-    assert webster._message_log == [
-        first_message,
+    any_space.send_test_message(first_message)
+    assert_message_log(websters_log, [
         {
             "from": "Chatty",
             "to": "Webster",
@@ -486,28 +455,27 @@ def test_send_request_permitted_action(either_space):
                 }
             },
         },
-    ]
+    ])
 
 
-def test_send_request_rejected_action(either_space):
+class _SendRequestReceivedActionAgent(ObservableAgent):
+    @action(access_policy=ACCESS_REQUESTED)
+    def say(self, content: str):
+        return "42"
+
+    def request_permission(self, proposed_message: dict) -> bool:
+        return False
+
+
+def test_send_request_rejected_action(any_space):
     """Tests sending an action, rejecting permission, and returning error"""
 
-    class Chatty(Agent):
-        @action(access_policy=ACCESS_REQUESTED)
-        def say(self, content: str):
-            return "42"
-
-        def request_permission(self, proposed_message: dict) -> bool:
-            return False
-
-    webster = Webster("Webster")
-    chatty = Chatty("Chatty")
-    either_space.add(webster)
-    either_space.add(chatty)
+    websters_log = add_agent(any_space, ObservableAgent, "Webster")
+    chattys_log = add_agent(any_space, _SendRequestReceivedActionAgent, "Chatty")
 
     first_message = {
         'from': 'Webster',
-        'to': chatty.id(),
+        'to': 'Chatty',
         'action': {
             'name': 'say',
             'args': {
@@ -515,11 +483,8 @@ def test_send_request_rejected_action(either_space):
             }
         }
     }
-    webster.send(first_message)
-    wait_for_messages(webster, count=2)
-
-    assert webster._message_log == [
-        first_message,
+    any_space.send_test_message(first_message)
+    assert_message_log(websters_log, [
         {
             "from": "Chatty",
             "to": "Webster",
@@ -531,4 +496,4 @@ def test_send_request_rejected_action(either_space):
                 }
             },
         },
-    ]
+    ])

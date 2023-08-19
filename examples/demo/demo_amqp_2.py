@@ -1,10 +1,10 @@
-from agency.spaces.amqp_space import AMQPSpace
+from agency.processors.amqp_processor import AMQPProcessor
 from agents.openai_function_agent import OpenAIFunctionAgent
 import os
 
 
 # Create the space instance
-space = AMQPSpace()
+space = AMQPProcessor()
 
 # Add an OpenAI function API agent to the space
 space.add(

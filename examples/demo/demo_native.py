@@ -6,11 +6,11 @@ from agents.openai_completion_agent import OpenAICompletionAgent
 from agents.openai_function_agent import OpenAIFunctionAgent
 from apps.gradio_app import demo, gradio_user
 
-from agency.spaces.native_space import NativeSpace
+from agency.spaces.thread_space import ThreadSpace
 
 
 # Create the space instance
-space = NativeSpace()
+space = ThreadSpace()
 
 # Add a host agent to the space, exposing access to the host system
 space.add(Host("Host"))

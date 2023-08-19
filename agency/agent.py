@@ -1,10 +1,10 @@
 import inspect
 import re
-from typing import List
-from docstring_parser import DocstringStyle, parse
+from typing import List, Protocol
+
 from agency import util
 from agency.schema import Message
-from agency.util import print_warning
+from agency.util import debug, print_warning
 
 
 # access keys
@@ -13,89 +13,15 @@ ACCESS_DENIED = "denied"
 ACCESS_REQUESTED = "requested"
 
 
-def __generate_help(method: callable) -> dict:
-    """
-    Generates a help object from a method's docstring and signature
-
-    Args:
-        method: the method
-
-    Returns:
-        A help object of the form:
-
-        {
-            "description": <description>,
-            "args": {
-                "arg_name": {
-                    "type": <type>,
-                    "description": <description>
-                },
-            }
-            "returns": {
-                "type": <type>,
-                "description": <description>
-            }
-        }
-    """
-    signature = inspect.signature(method)
-    parsed_docstring = parse(method.__doc__, DocstringStyle.GOOGLE)
-
-    help_object = {}
-
-    # description
-    if parsed_docstring.short_description is not None:
-        description = parsed_docstring.short_description
-        if parsed_docstring.long_description is not None:
-            description += " " + parsed_docstring.long_description
-        help_object["description"] = re.sub(r"\s+", " ", description).strip()
-
-    # args
-    help_object["args"] = {}
-    docstring_args = {arg.arg_name: arg for arg in parsed_docstring.params}
-    arg_names = list(signature.parameters.keys())[1:]  # skip 'self' argument
-    for arg_name in arg_names:
-        arg_object = {}
-
-        # type
-        sig_annotation = signature.parameters[arg_name].annotation
-        if sig_annotation is not None and sig_annotation.__name__ != "_empty":
-            arg_object["type"] = util.python_to_json_type_name(
-                signature.parameters[arg_name].annotation.__name__)
-        elif arg_name in docstring_args and docstring_args[arg_name].type_name is not None:
-            arg_object["type"] = util.python_to_json_type_name(
-                docstring_args[arg_name].type_name)
-
-        # description
-        if arg_name in docstring_args and docstring_args[arg_name].description is not None:
-            arg_object["description"] = docstring_args[arg_name].description.strip()
-
-        help_object["args"][arg_name] = arg_object
-
-    # returns
-    if parsed_docstring.returns is not None:
-        help_object["returns"] = {}
-
-        # type
-        if signature.return_annotation is not None:
-            help_object["returns"]["type"] = util.python_to_json_type_name(
-                signature.return_annotation.__name__)
-        elif parsed_docstring.returns.type_name is not None:
-            help_object["returns"]["type"] = util.python_to_json_type_name(
-                parsed_docstring.returns.type_name)
-
-        # description
-        if parsed_docstring.returns.description is not None:
-            help_object["returns"]["description"] = parsed_docstring.returns.description.strip()
-
-    return help_object
-
-
 def action(*args, **kwargs):
+    """
+    Declares instance methods as actions making them accessible to other agents.
+    """
     def decorator(method):
         method.action_properties = {
             "name": method.__name__,
+            "help": util.generate_help(method),
             "access_policy": ACCESS_PERMITTED,
-            "help": __generate_help(method),
             **kwargs,
         }
         return method
@@ -106,12 +32,27 @@ def action(*args, **kwargs):
         return decorator  # The decorator was used with parentheses
 
 
+class RouterProtocol(Protocol):
+    def route(self, message: Message):
+        """
+        Routes a message to the appropriate agent
+        """
+
+
 class Agent():
     """
     An Actor that may represent an AI agent, computing system, or human user
     """
 
-    def __init__(self, id: str, receive_own_broadcasts: bool = True) -> None:
+    def __init__(self, id: str, router: RouterProtocol, receive_own_broadcasts: bool = True) -> None:
+        """
+        Initializes an Agent.
+
+        Args:
+            id: The id of the agent
+            router: The router object used to send messages
+            receive_own_broadcasts: Whether the agent will receive its own broadcasts
+        """
         if len(id) < 1 or len(id) > 255:
             raise ValueError("id must be between 1 and 255 characters")
         if re.match(r"^amq\.", id):
@@ -119,32 +60,35 @@ class Agent():
         if id == "*":
             raise ValueError("id cannot be \"*\"")
         self.__id: str = id
-        self.__receive_own_broadcasts = receive_own_broadcasts
-        self._space = None  # set by Space when added
+        self._router = router
+        self._receive_own_broadcasts = receive_own_broadcasts
         self._message_log: List[Message] = []  # stores all messages
 
     def id(self) -> str:
         """
-        Returns the id of this agent
+        The id of this agent.
         """
         return self.__id
 
     def send(self, message: dict):
         """
-        Sends (out) a message
+        Sends (out) a message from this agent.
         """
         message["from"] = self.id()
+        debug(f"{self.id()} sending message:", message)
         self._message_log.append(message)
-        self._space._route(message)
+        self._router.route(message)
 
     def _receive(self, message: dict):
         """
-        Receives and processes an incoming message
+        Processes an incoming message.
         """
-        if not self.__receive_own_broadcasts \
+        if not self._receive_own_broadcasts \
            and message['from'] == self.id() \
            and message['to'] == '*':
             return
+
+        debug(f"{self.id()} processing message:", message)
 
         try:
             # Record message and commit action
@@ -188,7 +132,6 @@ class Agent():
         return_value = None
         error = None
         try:
-
             # Check if the action is permitted
             if self.__permitted(message):
 
@@ -222,7 +165,7 @@ class Agent():
 
     def __permitted(self, message: dict) -> bool:
         """
-        Checks whether the action represented by the message is allowed
+        Checks whether the message's action is allowed
         """
         action_method = self.__action_method(message['action']['name'])
         policy = action_method.action_properties["access_policy"]
@@ -302,33 +245,39 @@ class Agent():
 
     def after_add(self):
         """
-        Called after the agent is added to a space. Override this method to
-        perform any additional setup.
+        Called after the agent is added to a space and before it has processed
+        its first message. The agent may send initial messages during this
+        callback.
         """
 
     def before_remove(self):
         """
-        Called before the agent is removed from a space. Override this method to
-        perform any cleanup.
+        Called before the agent is removed from a space and after it has
+        processed its last message. The agent may send final messages during
+        this callback but will not be able to receive any more.
         """
 
     def before_action(self, message: dict):
         """
-        Called before every action. Override this method for logging or other
-        situations where you may want to process all actions.
+        Called before every action.
+        
+        Override this method for logging or other situations where you may want
+        to process all actions.
         """
 
     def after_action(self, original_message: dict, return_value: str, error: str):
         """
-        Called after every action. Override this method for logging or other
-        situations where you may want to pass through all actions.
+        Called after every action.
+        
+        Override this method for logging or other situations where you may want
+        to pass through all actions.
         """
 
     def request_permission(self, proposed_message: dict) -> bool:
         """
-        Implement this method to receive a proposed action message and present
-        it to the agent for review. Return true or false to indicate whether
-        access should be permitted.
+        Receives a proposed action message and presents it to the agent for
+        review. Return true or false to indicate whether access should be
+        permitted.
         """
         raise NotImplementedError(
             f"You must implement {self.__class__.__name__}.request_permission to use ACCESS_REQUESTED")

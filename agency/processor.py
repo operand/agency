@@ -1,18 +1,21 @@
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Callable
+from typing import Protocol
+
+from agency.agent import Agent
 
 
 class Processor(ABC, metaclass=ABCMeta):
     """
-    Implements the form of concurrent processing used by a Space instance.
+    Implements the form of message queuing and processing used by a Space
+    instance for its agents.
 
-    A processor simply calls the process method frequently. It is intended to
-    run concurrently with other processors, so it must do this in a way that
-    cooperates with other processor instances.
+    Processor implementations are responsible for maintaining an inbound message
+    queue for an Agent and handling incoming messages by invoking the Agent's
+    _receive() method.
     """
 
-    def __init__(self, process: Callable):
-        self._process = process
+    def __init__(self, agent: Agent):
+        self.agent = agent
 
     @abstractmethod
     def start(self):

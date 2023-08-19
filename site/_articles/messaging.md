@@ -166,5 +166,4 @@ If you send a message to a non-existent agent, it will silently fail.
 If you send a message to an existent agent, but specify a non-existent action,
 you will receive an `error` message in response.
 
-Broadcasts which specify a non-existent action are silently ignored, so that
-broadcasts do not result in many error messages.
+Broadcasts which specify a non-existent action are silently ignored.

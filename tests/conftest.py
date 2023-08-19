@@ -1,13 +1,15 @@
 import subprocess
 import time
 import tracemalloc
+from agency.agent import RouterProtocol
 
 tracemalloc.start()
 
-import pytest
+from agency.spaces.amqp_space import _AMQPRouter, AMQPOptions, AMQPSpace
+from agency.spaces.multiprocess_space import MultiprocessSpace
+from agency.spaces.thread_space import ThreadSpace
 
-from agency.spaces.amqp_space import AMQPSpace
-from agency.spaces.native_space import NativeSpace
+import pytest
 
 RABBITMQ_OUT = subprocess.DEVNULL  # use subprocess.PIPE for output
 
@@ -62,27 +64,60 @@ def wait_for_rabbitmq():
 
 
 @pytest.fixture
-def native_space():
-    return NativeSpace()
+def thread_space():
+    class TestableThreadSpace(ThreadSpace):
+        def send_test_message(self, message: dict):
+            """Send a message into the space for testing purposes"""
+            self._ThreadSpace__router.route(message)
+
+    try:
+        space = TestableThreadSpace()
+        yield space
+    finally:
+        space.remove_all()
+
+
+@pytest.fixture
+def multiprocess_space():
+    class TestableMultiprocessSpace(MultiprocessSpace):
+        def send_test_message(self, message: dict):
+            """Send a message into the space for testing purposes"""
+            self._MultiprocessSpace__router.route(message)
+
+    try:
+        space = TestableMultiprocessSpace()
+        yield space
+    finally:
+        space.remove_all()
 
 
 @pytest.fixture
 def amqp_space():
-    return AMQPSpace(exchange="agency-test")
+    class TestableAMQPSpace(AMQPSpace):
+        def __init__(self, amqp_options: AMQPOptions = None, exchange_name: str = "agency"):
+            super().__init__(amqp_options, exchange_name)
+            self.__test_router: RouterProtocol = _AMQPRouter(
+                self._AMQPSpace__kombu_connection_options, exchange_name)
 
-
-@pytest.fixture(params=['native_space', 'amqp_space'])
-def either_space(request, native_space, amqp_space):
-    """
-    Used for tests that should be run for both NativeSpace and AMQPSpace.
-    """
-    space = None
-    if request.param == 'native_space':
-        space = native_space
-    elif request.param == 'amqp_space':
-        space = amqp_space
+        def send_test_message(self, message: dict):
+            """Send a message into the space for testing purposes"""
+            self.__test_router.route(message)
 
     try:
+        space = TestableAMQPSpace(exchange_name="agency-test")
         yield space
     finally:
         space.remove_all()
+
+
+@pytest.fixture(params=['thread_space', 'multiprocess_space', 'amqp_space'])
+def any_space(request, thread_space, multiprocess_space, amqp_space):
+    """
+    Used for testing all space types
+    """
+    if request.param == 'thread_space':
+        return thread_space
+    elif request.param == 'multiprocess_space':
+        return multiprocess_space
+    elif request.param == 'amqp_space':
+        return amqp_space
