@@ -1,25 +1,17 @@
 # Welcome to Jekyll!
 #
-# This config file is meant for settings that affect your whole blog, values
-# which you are expected to set up once and rarely edit after that. If you find
-# yourself editing this file very often, consider using Jekyll's data files
-# feature for the data you need to update frequently.
-#
 # For technical reasons, this file is *NOT* reloaded automatically when you use
 # 'bundle exec jekyll serve'. If you change this file, please restart the server process.
 
 # Site settings
-# These are used to personalize your new site. If you look in the HTML files,
-# you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
-# You can create any custom variable you would like, and they will be accessible
-# in the templates via {{ site.myvariable }}.
 
+# SEO
 title: Agency
 # email: your-email@example.com
-description: >- # this means to ignore newlines until "baseurl:"
-  A fast and minimal framework for building agent-integrated systems
-baseurl: "" # the subpath of your site, e.g. /blog
+tagline: A fast and minimal framework for building agent-integrated systems
+description: A fast and minimal framework for building agent-integrated systems
 url: "https://createwith.agency"
+baseurl: "" # the subpath of your site, e.g. /blog
 
 
 # Build settings
@@ -69,7 +61,7 @@ keep_files:
 color_scheme: light-customized
 search_enabled: true
 aux_links: # links on the top right of layout
-  "Agency on Github": "https://github.com/operand/agency"
+  "Agency on Github️": "https://github.com/operand/agency"
 aux_links_new_tab: true
 heading_anchors: true # allows deeplinking
 ga_tracking: G-76DYGNV0GJ # Google Analytics
