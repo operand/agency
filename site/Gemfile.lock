@@ -259,7 +259,6 @@ PLATFORMS
 
 DEPENDENCIES
   github-pages
-  jekyll-feed (~> 0.12)
   just-the-docs
   webrick (~> 1.8)
 

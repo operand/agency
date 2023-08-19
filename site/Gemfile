@@ -1,8 +1,13 @@
 source "https://rubygems.org"
 
 # jekyll plugins
-gem "github-pages" # automatically requires the "jekyll" gem
-gem "jekyll-feed", "~> 0.12"
+group :jekyll_plugins do
+  gem "github-pages" # automatically requires the following commented gems
+  # gem "jekyll"
+  # gem "jekyll-feed"
+  # gem "jekyll-seo-tag"
+  # gem "jekyll-sitemap"
+end
 
 # jekyll theme
 gem "just-the-docs"
