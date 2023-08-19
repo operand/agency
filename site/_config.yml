@@ -69,7 +69,7 @@ keep_files:
 color_scheme: light-customized
 search_enabled: true
 aux_links: # links on the top right of layout
-  "Agency on Github": "https://github.com/operand/agency"
+  "Agency on Github️": "https://github.com/operand/agency"
 aux_links_new_tab: true
 heading_anchors: true # allows deeplinking
 ga_tracking: G-76DYGNV0GJ # Google Analytics
