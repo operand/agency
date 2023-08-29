@@ -9,13 +9,13 @@ from multiprocessing import Event, Process
 from typing import Dict, Type
 
 import amqp
-from kombu import Connection, Exchange
+from kombu import Connection, Exchange, Queue
 
 from agency.agent import Agent
 from agency.schema import Message, validate_message
 from agency.space import Space
 
-context = multiprocessing.get_context('spawn')
+multiprocessing_context = multiprocessing.get_context('spawn')
 
 
 def _check_queue_exists(kombu_connection_options, exchange_name, queue_name):
@@ -49,7 +49,7 @@ class _AgentAMQPProcess():
     def start(self):
         self.__started = Event()
         self.__stopping = Event()
-        error_queue = context.Queue()
+        error_queue = multiprocessing_context.Queue()
         self.__process = Process(
             target=self._process,
             args=(
@@ -102,7 +102,7 @@ class _AgentAMQPProcess():
                 raise ConnectionError("Unable to connect to AMQP server")
 
             # Create a queue for direct messages
-            direct_queue = context.Queue(
+            direct_queue = Queue(
                 f"{agent_id}-direct",
                 exchange=exchange,
                 routing_key=agent_id,
@@ -111,7 +111,7 @@ class _AgentAMQPProcess():
             direct_queue(connection.channel()).declare()
 
             # Create a separate broadcast queue
-            broadcast_queue = context.Queue(
+            broadcast_queue = Queue(
                 f"{agent_id}-broadcast",
                 exchange=exchange,
                 routing_key=_AMQPRouter.BROADCAST_KEY,

@@ -8,7 +8,7 @@ from agency.agent import Agent, RouterProtocol
 from agency.schema import Message, validate_message
 from agency.space import Space
 
-context = multiprocessing.get_context('spawn')
+multiprocessing_context = multiprocessing.get_context('spawn')
 
 class _AgentProcess():
     def __init__(
@@ -72,8 +72,8 @@ class _AgentProcess():
 
 
 class _MultiprocessRouter():
-    def __init__(self, agent_queues: Dict[str, Queue]):
-        self.__agent_queues: Dict[str, Queue] = agent_queues
+    def __init__(self, agent_queues: Dict[str, multiprocessing.Queue]):
+        self.__agent_queues: Dict[str, multiprocessing.Queue] = agent_queues
 
     def route(self, message: Message):
         message = validate_message(message)
@@ -100,7 +100,7 @@ class MultiprocessSpace(Space):
             raise ValueError(f"Agent id already exists: '{agent_id}'")
 
         try:
-            self.__agent_queues[agent_id] = context.Queue()
+            self.__agent_queues[agent_id] = multiprocessing_context.Queue()
             self.__agent_processes[agent_id] = _AgentProcess(
                 agent_type=agent_type,
                 agent_id=agent_id,
