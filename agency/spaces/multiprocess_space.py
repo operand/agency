@@ -1,12 +1,14 @@
 import queue
 import time
-from multiprocessing import Event, Process, Queue
+import multiprocessing
+from multiprocessing import Event, Process
 from typing import Dict, Type
 
 from agency.agent import Agent, RouterProtocol
 from agency.schema import Message, validate_message
 from agency.space import Space
 
+context = multiprocessing.get_context('spawn')
 
 class _AgentProcess():
     def __init__(
@@ -14,12 +16,12 @@ class _AgentProcess():
             agent_type: Type[Agent],
             agent_id: str,
             agent_kwargs: Dict,
-            message_queue: Queue,
+            message_queue: multiprocessing.Queue,
             router: RouterProtocol):
         self.__agent_type: Type[Agent] = agent_type
         self.__agent_id: str = agent_id
         self.__agent_kwargs: Dict = agent_kwargs
-        self.__message_queue: Queue = message_queue
+        self.__message_queue: multiprocessing.Queue = message_queue
         self.__router: RouterProtocol = router
 
     def start(self):
@@ -89,7 +91,7 @@ class MultiprocessSpace(Space):
 
     def __init__(self):
         self.__agent_processes: Dict[str, _AgentProcess] = {}
-        self.__agent_queues: Dict[str, Queue] = {}
+        self.__agent_queues: Dict[str, multiprocessing.Queue] = {}
         self.__router: RouterProtocol = _MultiprocessRouter(
             self.__agent_queues)
 
@@ -98,7 +100,7 @@ class MultiprocessSpace(Space):
             raise ValueError(f"Agent id already exists: '{agent_id}'")
 
         try:
-            self.__agent_queues[agent_id] = Queue()
+            self.__agent_queues[agent_id] = context.Queue()
             self.__agent_processes[agent_id] = _AgentProcess(
                 agent_type=agent_type,
                 agent_id=agent_id,
