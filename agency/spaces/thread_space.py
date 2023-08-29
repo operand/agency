@@ -25,13 +25,13 @@ class _AgentThread():
 
     def start(self):
         def _thread():
-            self.__started.set()
             self.agent = self.__agent_type(
                 self.__agent_id,
                 router=self.__router,
                 **self.__agent_kwargs,
             )
             self.agent.after_add()
+            self.__started.set()
             while not self.__stopping.is_set():
                 time.sleep(0.001)
                 try:
@@ -72,9 +72,7 @@ class _ThreadSpaceRouter():
 
 
 class ThreadSpace(Space):
-    """
-    A Space implementation that uses native threads and queues.
-    """
+    """A Space implementation that uses the threading module."""
 
     def __init__(self):
         self.__agent_threads: Dict[str, _AgentThread] = {}
@@ -95,10 +93,9 @@ class ThreadSpace(Space):
             )
             self.__agent_threads[agent_id].start()
 
-        except:
-            # clean up and raise if an error occurs
+        finally:
+            # clean up if an error occurs
             self.remove(agent_id)
-            raise
 
     def remove(self, agent_id: str):
         agent_thread = self.__agent_threads[agent_id]
