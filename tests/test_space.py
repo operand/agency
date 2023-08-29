@@ -62,13 +62,38 @@ def test_amqp_heartbeat():
         amqp_space_with_short_heartbeat.remove_all()
 
 
-def test_thread_space_unique_ids(any_space):
+def test_thread_space_unique_ids(thread_space):
     """
     Asserts that two agents may not have the same id in a ThreadSpace
     """
-    any_space.add(Agent, "Webster")
+    thread_space.add(Agent, "Webster")
     with pytest.raises(ValueError):
-        any_space.add(Agent, "Webster")
+        thread_space.add(Agent, "Webster")
+
+
+def test_multiprocess_space_unique_ids(multiprocess_space):
+    """
+    Asserts that two agents may not have the same id in a ThreadSpace
+    """
+    multiprocess_space.add(Agent, "Webster")
+    with pytest.raises(ValueError):
+        multiprocess_space.add(Agent, "Webster")
+
+
+def test_amqp_space_unique_ids():
+    """
+    Asserts that two agents may not have the same id in an AMQP space.
+    """
+    # For the amqp test, we create two AMQPSpace instances
+    amqp_space1 = AMQPSpace(exchange_name="agency-test")
+    amqp_space2 = AMQPSpace(exchange_name="agency-test")
+    try:
+        amqp_space1.add(Agent, "Webster")
+        with pytest.raises(ValueError):
+            amqp_space2.add(Agent, "Webster")
+    finally:
+        amqp_space1.remove_all()
+        amqp_space2.remove_all()
 
 
 def test_invalid_message(any_space):
