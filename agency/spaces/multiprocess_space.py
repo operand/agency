@@ -4,7 +4,7 @@ from multiprocessing import Event, Process, Queue
 from typing import Dict, Type
 
 from agency.agent import Agent, RouterProtocol
-from agency.schema import Message
+from agency.schema import Message, validate_message
 from agency.space import Space
 
 
@@ -74,6 +74,7 @@ class _MultiprocessRouter():
         self.__agent_queues: Dict[str, Queue] = agent_queues
 
     def route(self, message: Message):
+        message = validate_message(message)
         if message["to"] == "*":
             for agent_queue in self.__agent_queues.values():
                 agent_queue.put(message)

@@ -12,7 +12,7 @@ import amqp
 from kombu import Connection, Exchange, Queue
 
 from agency.agent import Agent, RouterProtocol
-from agency.schema import Message
+from agency.schema import Message, validate_message
 from agency.space import Space
 from agency.util import debug
 
@@ -176,6 +176,8 @@ class _AMQPRouter():
         self.__topic_exchange = topic_exchange
 
     def route(self, message: Message):
+        message = validate_message(message)
+
         if message['to'] == '*':
             # broadcast
             routing_key = self.BROADCAST_KEY

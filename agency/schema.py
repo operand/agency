@@ -45,3 +45,15 @@ class Message(BaseModel):
     )
 
     action: Action
+
+
+def validate_message(message: Message) -> None:
+    """
+    Validate and return a message
+
+    Raises a ValueError if the message is invalid
+    """
+    try:
+        return Message(**message).dict(by_alias=True, exclude_unset=True)
+    except TypeError as e:
+        raise ValueError(str(e))

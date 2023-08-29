@@ -4,7 +4,7 @@ import time
 from typing import Dict, Type
 
 from agency.agent import Agent, RouterProtocol
-from agency.schema import Message
+from agency.schema import Message, validate_message
 from agency.space import Space
 
 
@@ -21,7 +21,7 @@ class _AgentThread():
         self.__agent_kwargs: Dict = agent_kwargs
         self.__message_queue: queue.Queue = message_queue
         self.__router: RouterProtocol = router
-        self.agent: Agent = None # Set when the thread is started
+        self.agent: Agent = None  # Set when the thread is started
 
     def start(self):
         def _thread():
@@ -63,6 +63,7 @@ class _ThreadSpaceRouter():
         self.__agent_threads: Dict[str, _AgentThread] = agents
 
     def route(self, message: Message) -> None:
+        message = validate_message(message)
         if message["to"] == "*":
             for agent_thread in self.__agent_threads.values():
                 agent_thread.agent._receive(message)
