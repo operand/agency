@@ -19,20 +19,6 @@ from agency.util import debug
 multiprocessing.set_start_method('spawn', force=True)
 
 
-def _check_queue_exists(kombu_connection_options, exchange_name, queue_name):
-    with Connection(**kombu_connection_options) as connection:
-        try:
-            with connection.channel() as channel:
-                channel.queue_bind(
-                    queue=queue_name,
-                    exchange=exchange_name,
-                    routing_key=queue_name,
-                )
-            return True
-        except amqp.ChannelError:
-            return False
-
-
 class _AgentAMQPProcess():
     def __init__(
             self,
@@ -224,9 +210,6 @@ class AMQPSpace(Space):
         self.__agent_processes: Dict[str, _AgentAMQPProcess] = {}
 
     def add(self, agent_type: Type[Agent], agent_id: str, **agent_kwargs) -> Agent:
-        if _check_queue_exists(self.__kombu_connection_options, self.__exchange_name, agent_id):
-            raise ValueError(f"Agent id already exists: '{agent_id}'")
-
         try:
             self.__agent_processes[agent_id] = _AgentAMQPProcess(
                 agent_type=agent_type,
