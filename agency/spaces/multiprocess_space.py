@@ -112,7 +112,7 @@ class MultiprocessSpace(Space):
             )
             self.__agent_processes[agent_id].start()
 
-        finally:
+        except:
             # clean up if an error occurs
             self.remove(agent_id)
 

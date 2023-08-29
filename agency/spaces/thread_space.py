@@ -21,7 +21,7 @@ class _AgentThread():
         self.__agent_kwargs: Dict = agent_kwargs
         self.__message_queue: queue.Queue = message_queue
         self.__router: RouterProtocol = router
-        self.agent: Agent = None  # Set when the thread is started
+        self.agent: Agent = None  # set when the thread is started
 
     def start(self):
         def _thread():
@@ -93,7 +93,7 @@ class ThreadSpace(Space):
             )
             self.__agent_threads[agent_id].start()
 
-        finally:
+        except:
             # clean up if an error occurs
             self.remove(agent_id)
 
