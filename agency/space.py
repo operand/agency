@@ -20,27 +20,27 @@ class Space(ABC, metaclass=ABCMeta):
             agent_type: The type of agent to add
             agent_id: The id of the agent to add
 
-        Raises:
-            ValueError: If the agent ID is already in use
-
         Returns:
             Agent: The agent that was added
+
+        Raises:
+            ValueError: If the agent ID is already in use
         """
 
     @abstractmethod
-    def remove(self, agent: Agent):
+    def remove(self, agent_id: str):
         """
         Removes an agent from the space.
 
-        This method can only remove an agent instance added within the same
-        thread. In other words, a Space instance cannot remove an agent it did
-        not add.
+        This method can only remove an agent instance added from the same space
+        instance where it was added. In other words, a Space instance cannot
+        remove an agent that it did not add.
 
         Args:
-            agent: The agent instance to remove
+            agent_id: The id of the agent to remove
 
         Raises:
-            ValueError: If the agent is not in the space
+            ValueError: If the agent is not present in the space
         """
 
     @abstractmethod

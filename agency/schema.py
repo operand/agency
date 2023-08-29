@@ -3,9 +3,7 @@ from typing import Dict, Optional
 
 
 class Action(BaseModel):
-    """
-    Schema for an action
-    """
+    """Schema for an action"""
 
     name: str = Field(
         ...,
@@ -19,9 +17,7 @@ class Action(BaseModel):
 
 
 class Message(BaseModel):
-    """
-    Schema for a message
-    """
+    """Schema for a message"""
 
     id: Optional[str] = Field(
         None,
@@ -47,11 +43,18 @@ class Message(BaseModel):
     action: Action
 
 
-def validate_message(message: Message) -> None:
+def validate_message(message: Message) -> Message:
     """
     Validate and return a message
 
-    Raises a ValueError if the message is invalid
+    Args:
+        message: The message
+
+    Returns:
+        The validated message
+
+    Raises:
+        ValueError: If the message is invalid
     """
     try:
         return Message(**message).dict(by_alias=True, exclude_unset=True)
