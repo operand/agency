@@ -240,6 +240,7 @@ class AMQPSpace(Space):
         except:
             # clean up if an error occurs
             self.remove(agent_id)
+            raise
 
     def remove(self, agent_id: str):
         agent_process = self.__agent_processes[agent_id]

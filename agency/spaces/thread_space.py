@@ -96,6 +96,7 @@ class ThreadSpace(Space):
         except:
             # clean up if an error occurs
             self.remove(agent_id)
+            raise
 
     def remove(self, agent_id: str):
         agent_thread = self.__agent_threads[agent_id]
