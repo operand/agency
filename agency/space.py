@@ -6,6 +6,10 @@ from agency.agent import Agent
 class Space(ABC, metaclass=ABCMeta):
     """
     A Space is where Agents may meet and interact.
+
+    It is responsible for:
+        - Managing the lifecycle of agents
+        - Ensuring communication between agents
     """
 
     @abstractmethod
