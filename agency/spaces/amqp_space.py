@@ -16,6 +16,7 @@ from agency.schema import Message, validate_message
 from agency.space import Space
 from agency.util import debug
 
+debug("multiprocessing start method", multiprocessing.get_start_method())
 
 def _check_queue_exists(kombu_connection_options, exchange_name, queue_name):
     with Connection(**kombu_connection_options) as connection:
