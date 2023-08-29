@@ -1,14 +1,11 @@
 from abc import ABC, ABCMeta, abstractmethod
 from typing import Type
 from agency.agent import Agent
-from agency.schema import Message
 
 
 class Space(ABC, metaclass=ABCMeta):
     """
-    A Space is responsible for:
-    - managing the lifecycle of its agents as they are added/removed
-    - routing messages between agents
+    A Space is where Agents may meet and interact.
     """
 
     @abstractmethod
@@ -32,9 +29,9 @@ class Space(ABC, metaclass=ABCMeta):
         """
         Removes an agent from the space.
 
-        This method can only remove an agent instance added from the same space
-        instance where it was added. In other words, a Space instance cannot
-        remove an agent that it did not add.
+        This method cannot remove an agent instance added from a different space
+        instance. In other words, a space instance cannot remove an agent that
+        it did not add.
 
         Args:
             agent_id: The id of the agent to remove
