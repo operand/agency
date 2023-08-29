@@ -136,12 +136,6 @@ class _AgentAMQPProcess():
             # Start the consumer
             consumer.consume()
 
-            # Wait for queues to be ready
-            # while not _check_queue_exists(kombu_connection_options, exchange_name, f"{agent_id}-direct"):
-            #     time.sleep(0.5)
-            # while not _check_queue_exists(kombu_connection_options, exchange_name, f"{agent_id}-broadcast"):
-            #     time.sleep(0.5)
-
             # Create agent
             agent: Agent = agent_type(
                 agent_id,
@@ -151,7 +145,6 @@ class _AgentAMQPProcess():
 
             # Start event loop
             agent.after_add()
-            debug(f"Agent {agent_id} added")
             started.set()
             while not stopping.is_set():
                 time.sleep(0.001)
