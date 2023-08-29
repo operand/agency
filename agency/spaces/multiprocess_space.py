@@ -7,6 +7,7 @@ from typing import Dict, Type
 from agency.agent import Agent, RouterProtocol
 from agency.schema import Message, validate_message
 from agency.space import Space
+from agency.util import debug
 
 multiprocessing_context = multiprocessing.get_context('spawn')
 
@@ -100,6 +101,7 @@ class MultiprocessSpace(Space):
             raise ValueError(f"Agent id already exists: '{agent_id}'")
 
         try:
+            debug("multiprocessing start method (MultiprocessSpace.add)", multiprocessing.get_start_method())
             self.__agent_queues[agent_id] = multiprocessing_context.Queue()
             self.__agent_processes[agent_id] = _AgentProcess(
                 agent_type=agent_type,
