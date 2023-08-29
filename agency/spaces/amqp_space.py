@@ -218,10 +218,9 @@ class AMQPSpace(Space):
             )
             self.__agent_processes[agent_id].start()
 
-        except:
-            # clean up and raise if an error occurs
+        finally:
+            # clean up if an error occurs
             self.remove(agent_id)
-            raise
 
     def remove(self, agent_id: str):
         agent_process = self.__agent_processes[agent_id]

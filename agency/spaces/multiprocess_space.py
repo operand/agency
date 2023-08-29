@@ -56,13 +56,13 @@ class _AgentProcess():
             raise Exception("Process could not be stopped.")
 
     def _process(self, agent_type, agent_id, agent_kwargs, message_queue, router, started, stopping):
-        started.set()
         agent: Agent = agent_type(
             agent_id,
             router=router,
             **agent_kwargs,
         )
         agent.after_add()
+        started.set()
         while not stopping.is_set():
             time.sleep(0.001)
             try:
@@ -102,7 +102,6 @@ class MultiprocessSpace(Space):
             raise ValueError(f"Agent id already exists: '{agent_id}'")
 
         try:
-            debug("multiprocessing start method (MultiprocessSpace.add)", multiprocessing.get_start_method())
             self.__agent_queues[agent_id] = multiprocessing.Queue()
             self.__agent_processes[agent_id] = _AgentProcess(
                 agent_type=agent_type,
@@ -113,10 +112,9 @@ class MultiprocessSpace(Space):
             )
             self.__agent_processes[agent_id].start()
 
-        except:
-            # clean up and raise if an error occurs
+        finally:
+            # clean up if an error occurs
             self.remove(agent_id)
-            raise
 
     def remove(self, agent_id: str):
         agent_process = self.__agent_processes[agent_id]
