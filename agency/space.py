@@ -7,7 +7,7 @@ class Space(ABC, metaclass=ABCMeta):
     """
     A Space is where Agents may meet and interact.
 
-    It is responsible for:
+    Space implementations are responsible for:
         - Managing the lifecycle of agents
         - Ensuring communication between agents
     """
