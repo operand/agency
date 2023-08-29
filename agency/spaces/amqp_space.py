@@ -19,20 +19,6 @@ from agency.util import debug
 multiprocessing.set_start_method('spawn', force=True)
 
 
-def _check_queue_exists(kombu_connection_options, exchange_name, queue_name):
-    with Connection(**kombu_connection_options) as connection:
-        try:
-            with connection.channel() as channel:
-                channel.queue_bind(
-                    queue=queue_name,
-                    exchange=exchange_name,
-                    routing_key=queue_name,
-                )
-            return True
-        except amqp.ChannelError:
-            return False
-
-
 class _AgentAMQPProcess():
     def __init__(
             self,
@@ -53,17 +39,14 @@ class _AgentAMQPProcess():
         error_queue = multiprocessing.Queue()
         self.__process = Process(
             target=self._process,
-            args=(
-                self.__agent_type,
-                self.__agent_id,
-                self.__agent_kwargs,
-                self.__kombu_connection_options,
-                self.__exchange_name,
-                self.__started,
-                self.__stopping,
-                error_queue,
-            )
-        )
+            args=(self.__agent_type,
+                  self.__agent_id,
+                  self.__agent_kwargs,
+                  self.__kombu_connection_options,
+                  self.__exchange_name,
+                  self.__started,
+                  self.__stopping,
+                  error_queue))
         self.__process.start()
 
         if not self.__started.wait(timeout=10):
@@ -143,7 +126,7 @@ class _AgentAMQPProcess():
                 **agent_kwargs,
             )
 
-            # Start event loop
+            # Start loop
             agent.after_add()
             started.set()
             while not stopping.is_set():
@@ -184,8 +167,7 @@ class _AMQPRouter():
                 producer.publish(
                     json.dumps(message),
                     exchange=self.__topic_exchange,
-                    routing_key=routing_key,
-                )
+                    routing_key=routing_key)
 
 
 @dataclass
@@ -204,11 +186,13 @@ class AMQPOptions:
 
 class AMQPSpace(Space):
     """
-    A Space that uses AMQP for message delivery
+    A Space that uses AMQP for message delivery.
+
+    AMQPSpace uses multiprocessing for parallelism when multiple agents are
+    added to the same instance.
     """
 
     def __init__(self, amqp_options: AMQPOptions = None, exchange_name: str = "agency"):
-        super().__init__()
         if amqp_options is None:
             amqp_options = self.__default_amqp_options()
         self.__kombu_connection_options = {
@@ -224,12 +208,7 @@ class AMQPSpace(Space):
         self.__agent_processes: Dict[str, _AgentAMQPProcess] = {}
 
     def add(self, agent_type: Type[Agent], agent_id: str, **agent_kwargs) -> Agent:
-        if _check_queue_exists(self.__kombu_connection_options, self.__exchange_name, agent_id):
-            raise ValueError(f"Agent id already exists: '{agent_id}'")
-
         try:
-            debug("multiprocessing start method (AMQPSpace.add)",
-                  multiprocessing.get_start_method())
             self.__agent_processes[agent_id] = _AgentAMQPProcess(
                 agent_type=agent_type,
                 agent_id=agent_id,
@@ -246,7 +225,6 @@ class AMQPSpace(Space):
 
     def remove(self, agent_id: str):
         agent_process = self.__agent_processes[agent_id]
-        # agent_process.agent.before_remove()
         agent_process.stop()
         del self.__agent_processes[agent_id]
 
