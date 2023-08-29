@@ -11,12 +11,10 @@ from typing import Dict, Type
 import amqp
 from kombu import Connection, Exchange, Queue
 
-from agency.agent import Agent, RouterProtocol
+from agency.agent import Agent
 from agency.schema import Message, validate_message
 from agency.space import Space
-from agency.util import debug
 
-debug("multiprocessing start method", multiprocessing.get_start_method())
 
 def _check_queue_exists(kombu_connection_options, exchange_name, queue_name):
     with Connection(**kombu_connection_options) as connection:
@@ -155,7 +153,8 @@ class _AgentAMQPProcess():
             agent.before_remove()
 
         except amqp.exceptions.ResourceLocked:
-            error_queue.put(ValueError(f"Agent id already exists: '{agent_id}')"))
+            error_queue.put(ValueError(
+                f"Agent id already exists: '{agent_id}')"))
         finally:
             connection.release()
 

@@ -6,6 +6,7 @@ from typing import List
 from agency.agent import Agent, RouterProtocol
 from agency.schema import Message
 from agency.space import Space
+from agency.util import debug
 
 # The following class and helper methods can be used together to provide
 # observability across processes and threads for testing purposes.
@@ -41,6 +42,7 @@ def assert_message_log(actual: List[Message], expected: List[Message], max_secon
     """
     Asserts that a list of messages is as expected.
     """
+    debug("multiprocessing start method", multiprocessing.get_start_method())
     print(f"waiting {max_seconds} seconds for {len(expected)} messages...")
     start_time = time.time()
     while ((time.time() - start_time) < max_seconds):
