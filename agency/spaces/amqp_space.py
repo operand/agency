@@ -16,7 +16,7 @@ from agency.schema import Message, validate_message
 from agency.space import Space
 from agency.util import debug
 
-multiprocessing_context = multiprocessing.get_context('spawn')
+multiprocessing.set_start_method('spawn', force=True)
 
 
 def _check_queue_exists(kombu_connection_options, exchange_name, queue_name):
@@ -50,7 +50,7 @@ class _AgentAMQPProcess():
     def start(self):
         self.__started = Event()
         self.__stopping = Event()
-        error_queue = multiprocessing_context.Queue()
+        error_queue = multiprocessing.Queue()
         self.__process = Process(
             target=self._process,
             args=(
@@ -228,7 +228,8 @@ class AMQPSpace(Space):
             raise ValueError(f"Agent id already exists: '{agent_id}'")
 
         try:
-            debug("multiprocessing start method (AMQPSpace.add)", multiprocessing.get_start_method())
+            debug("multiprocessing start method (AMQPSpace.add)",
+                  multiprocessing.get_start_method())
             self.__agent_processes[agent_id] = _AgentAMQPProcess(
                 agent_type=agent_type,
                 agent_id=agent_id,

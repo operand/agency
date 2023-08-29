@@ -9,7 +9,8 @@ from agency.schema import Message, validate_message
 from agency.space import Space
 from agency.util import debug
 
-multiprocessing_context = multiprocessing.get_context('spawn')
+multiprocessing.set_start_method('spawn', force=True)
+
 
 class _AgentProcess():
     def __init__(
@@ -102,7 +103,7 @@ class MultiprocessSpace(Space):
 
         try:
             debug("multiprocessing start method (MultiprocessSpace.add)", multiprocessing.get_start_method())
-            self.__agent_queues[agent_id] = multiprocessing_context.Queue()
+            self.__agent_queues[agent_id] = multiprocessing.Queue()
             self.__agent_processes[agent_id] = _AgentProcess(
                 agent_type=agent_type,
                 agent_id=agent_id,
