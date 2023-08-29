@@ -14,6 +14,7 @@ from kombu import Connection, Exchange, Queue
 from agency.agent import Agent
 from agency.schema import Message, validate_message
 from agency.space import Space
+from agency.util import debug
 
 multiprocessing_context = multiprocessing.get_context('spawn')
 
@@ -227,6 +228,7 @@ class AMQPSpace(Space):
             raise ValueError(f"Agent id already exists: '{agent_id}'")
 
         try:
+            debug("multiprocessing start method (AMQPSpace.add)", multiprocessing.get_start_method())
             self.__agent_processes[agent_id] = _AgentAMQPProcess(
                 agent_type=agent_type,
                 agent_id=agent_id,
