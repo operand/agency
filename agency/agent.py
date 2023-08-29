@@ -6,7 +6,6 @@ from agency import util
 from agency.schema import Message
 from agency.util import debug, print_warning
 
-
 # access keys
 ACCESS_PERMITTED = "permitted"
 ACCESS_DENIED = "denied"
@@ -15,7 +14,7 @@ ACCESS_REQUESTED = "requested"
 
 def action(*args, **kwargs):
     """
-    Declares instance methods as actions making them accessible to other agents.
+    Declares instance methods as actions making them accessible to other agents
     """
     def decorator(method):
         method.action_properties = {
@@ -34,9 +33,7 @@ def action(*args, **kwargs):
 
 class RouterProtocol(Protocol):
     def route(self, message: Message):
-        """
-        Routes a message to the appropriate agent
-        """
+        """Routes a message to the appropriate agent"""
 
 
 class Agent():
@@ -62,7 +59,8 @@ class Agent():
         self.__id: str = id
         self._router = router
         self._receive_own_broadcasts = receive_own_broadcasts
-        self._message_log: List[Message] = []  # stores all messages
+        # stores all sent and received messages
+        self._message_log: List[Message] = []
 
     def id(self) -> str:
         """
@@ -109,11 +107,16 @@ class Agent():
 
     def __commit(self, message: dict):
         """
-        Invokes action if permitted otherwise raises PermissionError
+        Invokes the action if permitted
+
+        Args:
+            message: The message
+
+        Raises:
+            PermissionError: If the action is not permitted
         """
-        # Check if the action method exists
         try:
-            debug(f"{self.id()} committing:", message)
+            # Check if the action method exists
             action_method = self.__action_method(message["action"]["name"])
         except KeyError:
             # the action was not found
@@ -243,39 +246,50 @@ class Agent():
 
     def after_add(self):
         """
-        Called after the agent is added to a space and before it has processed
-        its first message. The agent may send initial messages during this
-        callback.
+        Called immediately after the agent is added to a space.
+
+        The agent may send initial messages during this callback, but will not
+        begin processing received messages until this callback returns.
         """
 
     def before_remove(self):
         """
-        Called before the agent is removed from a space and after it has
-        processed its last message. The agent may send final messages during
-        this callback but will not be able to receive any more.
+        Called before the agent is removed from a space.
+
+        The agent may send final messages during this callback, but will not
+        process any further received messages.
         """
 
     def before_action(self, message: dict):
         """
         Called before every action.
-        
-        Override this method for logging or other situations where you may want
-        to process all actions.
+
+        This method will only be called if the action exists and is permitted.
+
+        Args:
+            message: The received message that contains the action
         """
 
     def after_action(self, original_message: dict, return_value: str, error: str):
         """
-        Called after every action.
-        
-        Override this method for logging or other situations where you may want
-        to pass through all actions.
+        Called after every action, regardless of whether an error occurred.
+
+        Args:
+            original_message: The original message
+            return_value: The return value from the action
+            error: The error from the action if any
         """
 
     def request_permission(self, proposed_message: dict) -> bool:
         """
         Receives a proposed action message and presents it to the agent for
-        review. Return true or false to indicate whether access should be
-        permitted.
+        review.
+
+        Args:
+            proposed_message: The proposed action message
+
+        Returns:
+            True if access should be permitted
         """
         raise NotImplementedError(
             f"You must implement {self.__class__.__name__}.request_permission to use ACCESS_REQUESTED")
