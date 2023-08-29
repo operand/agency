@@ -88,7 +88,6 @@ class _AgentAMQPProcess():
                  started,
                  stopping,
                  error_queue):
-        debug(f"Starting AMQP agent {agent_id}")
 
         # Create exchange and router
         exchange = Exchange(exchange_name, type="topic", durable=False)
@@ -122,7 +121,6 @@ class _AgentAMQPProcess():
             # Define callback for incoming messages
             def _on_message(body, message):
                 message.ack()
-                debug(f"{agent.id()} Received amqp message:", body)
                 message_data = json.loads(body)
                 if message_data['to'] == '*' or message_data['to'] == agent.id():
                     agent._receive(message_data)

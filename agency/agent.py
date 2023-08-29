@@ -75,7 +75,6 @@ class Agent():
         Sends (out) a message from this agent.
         """
         message["from"] = self.id()
-        debug(f"{self.id()} sending message:", message)
         self._message_log.append(message)
         self._router.route(message)
 

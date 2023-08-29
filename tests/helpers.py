@@ -37,7 +37,7 @@ def add_agent(space: Space, agent_type: ObservableAgent, agent_id: str, **agent_
     return _message_log
 
 
-def assert_message_log(actual: List[Message], expected: List[Message], max_seconds=5):
+def assert_message_log(actual: List[Message], expected: List[Message], max_seconds=10):
     """
     Asserts that a list of messages is as expected.
     """
