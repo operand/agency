@@ -87,8 +87,6 @@ class Agent():
            and message['to'] == '*':
             return
 
-        debug(f"{self.id()} processing message:", message)
-
         try:
             # Record message and commit action
             self._message_log.append(message)
@@ -115,6 +113,7 @@ class Agent():
         """
         # Check if the action method exists
         try:
+            debug(f"{self.id()} committing:", message)
             action_method = self.__action_method(message["action"]["name"])
         except KeyError:
             # the action was not found
