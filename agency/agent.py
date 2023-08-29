@@ -32,6 +32,8 @@ def action(*args, **kwargs):
 
 
 class RouterProtocol(Protocol):
+    """A protocol for providing routing functionality to an Agent"""
+
     def route(self, message: Message):
         """Routes a message to the appropriate agent"""
 

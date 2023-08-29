@@ -19,11 +19,11 @@ x-demo-base:
 
 services:
 
-  # This container runs example agent classes in a single native space
-  native:
+  # This container runs the demo in a single ThreadSpace
+  threaded:
     <<: *demo-base
     profiles:
-      - native
+      - threaded
     ports:
       - '$WEB_APP_PORT:8080'
     # socat is used to redirect from the hardcoded ip:port in gradio's dev mode
@@ -32,13 +32,31 @@ services:
       bash -ce "
         socat TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:7860 &
         echo \"Launching gradio app at http://localhost:$WEB_APP_PORT\. Please wait...\"
-        poetry run gradio demo_native.py | grep -v \"Launching.*127.0.0.1:7860\"
+        poetry run gradio demo_threaded.py | grep -v \"Launching.*127.0.0.1:7860\"
       "
     tty: true
     stdin_open: true
 
-  # The following containers run agent classes across containers using an amqp
-  # space with rabbitmq
+  # This container runs the demo in a single MultiprocessSpace
+  multiprocess:
+    <<: *demo-base
+    profiles:
+      - multiprocess
+    ports:
+      - '$WEB_APP_PORT:8080'
+    # socat is used to redirect from the hardcoded ip:port in gradio's dev mode
+    # https://github.com/gradio-app/gradio/issues/3656
+    command: |
+      bash -ce "
+        socat TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:7860 &
+        echo \"Launching gradio app at http://localhost:$WEB_APP_PORT\. Please wait...\"
+        poetry run gradio demo_multiprocess.py | grep -v \"Launching.*127.0.0.1:7860\"
+      "
+    tty: true
+    stdin_open: true
+
+  # The following containers run agent classes across containers in an AMQPSpace
+  # using rabbitmq
   amqp:
     <<: *demo-base
     profiles:

@@ -1,17 +1,23 @@
 import json
 import re
+import threading
+
 import gradio as gr
+
 from agency.agent import Agent, action
 from agency.schema import Message
 
 
-class GradioUser(Agent):
+class GradioApp(Agent):
     """
-    Represents the Gradio user as an Agent and contains methods for integrating
-    with the Chatbot component
+    Represents the Gradio app and its user as an Agent
     """
+
     def __init__(self, id: str) -> None:
         super().__init__(id, receive_own_broadcasts=False)
+
+    def after_add(self):
+        self.__start_gradio_app_thread()
 
     @action
     def say(self, content):
@@ -93,7 +99,8 @@ class GradioUser(Agent):
         agent_id, action_name, args_str = match.groups()
 
         if agent_id is None:
-            raise ValueError("Agent ID must be provided. Example: '/MyAgent.say' or '/*.say'")
+            raise ValueError(
+                "Agent ID must be provided. Example: '/MyAgent.say' or '/*.say'")
 
         args_pattern = r'(\w+):"([^"]*)"'
         args = dict(re.findall(args_pattern, args_str))
@@ -106,61 +113,63 @@ class GradioUser(Agent):
             }
         }
 
+    def __launch_gradio_app(self):
+        # The following adapted from: https://www.gradio.app/docs/chatbot#demos
 
-gradio_user = GradioUser("User")
+        # Custom css to:
+        # - Expand text area to fill vertical space
+        # - Remove orange border from the chat area that appears because of polling
+        css = """
+        .gradio-container {
+            height: 100vh !important;
+        }
 
-# The following adapted from: https://www.gradio.app/docs/chatbot#demos
+        .gradio-container > .main,
+        .gradio-container > .main > .wrap,
+        .gradio-container > .main > .wrap > .contain,
+        .gradio-container > .main > .wrap > .contain > div {
+            height: 100% !important;
+        }
 
-# Custom css to:
-# - Expand text area to fill vertical space
-# - Remove orange border from the chat area that appears because of polling
-css = """
-.gradio-container {
-    height: 100vh !important;
-}
+        #chatbot {
+            height: auto !important;
+            flex-grow: 1 !important;
+        }
 
-.gradio-container > .main,
-.gradio-container > .main > .wrap,
-.gradio-container > .main > .wrap > .contain,
-.gradio-container > .main > .wrap > .contain > div {
-    height: 100% !important;
-}
+        #chatbot > div.wrap {
+            border: none !important;
+        }
+        """
 
-#chatbot {
-    height: auto !important;
-    flex-grow: 1 !important;
-}
+        with gr.Blocks(css=css, title="Agency Demo") as demo:
+            # Chatbot area
+            chatbot = gr.Chatbot(
+                self.get_chatbot_messages,
+                show_label=False,
+                elem_id="chatbot",
+            )
 
-#chatbot > div.wrap {
-    border: none !important;
-}
-"""
+            # Input area
+            with gr.Row():
+                txt = gr.Textbox(
+                    show_label=False,
+                    placeholder="Enter text and press enter",
+                    container=False,
+                )
+                btn = gr.Button("Send", scale=0)
 
-with gr.Blocks(css=css, title="Agency Demo") as demo:
-    # Chatbot area
-    chatbot = gr.Chatbot(
-        gradio_user.get_chatbot_messages,
-        show_label=False,
-        elem_id="chatbot",
-    )
+            # Callbacks
+            txt.submit(self.send_message, [txt], [txt, chatbot])
+            btn.click(self.send_message, [txt], [txt, chatbot])
 
-    # Input area
-    with gr.Row():
-        txt = gr.Textbox(
-            show_label=False,
-            placeholder="Enter text and press enter",
-            container=False,
-        )
-        btn = gr.Button("Send", scale=0)
+            # Continously updates the chatbot. Runs only while client is connected.
+            demo.load(
+                self.get_chatbot_messages, None, [chatbot], every=1
+            )
 
-    # Callbacks
-    txt.submit(gradio_user.send_message, [txt], [txt, chatbot])
-    btn.click(gradio_user.send_message, [txt], [txt, chatbot])
+        demo.queue()  # Queueing required for periodic events using `every`
+        demo.launch()
 
-    # Continously updates the chatbot. Runs only while client is connected.
-    demo.load(
-        gradio_user.get_chatbot_messages, None, [chatbot], every=1
-    )
-
-# Queueing necessary for periodic events using `every`
-demo.queue()
+    def __start_gradio_app_thread(self):
+        thread = threading.Thread(target=self.__launch_gradio_app)
+        thread.start()

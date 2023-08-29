@@ -1,13 +1,14 @@
 import logging
+
 import eventlet
 from eventlet import wsgi
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
+
 from agency.agent import Agent, action
 from agency.schema import Message
 from agency.space import Space
-
 
 # Usage:
 #
