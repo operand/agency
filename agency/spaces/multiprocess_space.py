@@ -21,39 +21,39 @@ class _AgentProcess():
             agent_kwargs: Dict,
             inbound_queue: QueueProtocol,
             outbound_queue: QueueProtocol):
-        self.__agent_type: Type[Agent] = agent_type
-        self.__agent_id: str = agent_id
-        self.__agent_kwargs: Dict = agent_kwargs
+        self.agent_type: Type[Agent] = agent_type
+        self.agent_id: str = agent_id
+        self.agent_kwargs: Dict = agent_kwargs
         self.inbound_queue: QueueProtocol = inbound_queue
         self.outbound_queue: QueueProtocol = outbound_queue
 
     def start(self):
-        self.__started = Event()
-        self.__stopping = Event()
-        self.__process = Process(
+        self.started = Event()
+        self.stopping = Event()
+        self.process = Process(
             target=self._process,
             args=(
-                self.__agent_type,
-                self.__agent_id,
-                self.__agent_kwargs,
+                self.agent_type,
+                self.agent_id,
+                self.agent_kwargs,
                 self.inbound_queue,
                 self.outbound_queue,
-                self.__started,
-                self.__stopping,
+                self.started,
+                self.stopping,
             )
         )
-        self.__process.start()
+        self.process.start()
 
-        if not self.__started.wait(timeout=10):
+        if not self.started.wait(timeout=10):
             # it couldn't start, force stop the process and raise an exception
             self.stop()
             raise Exception("Process could not be started.")
 
     def stop(self):
-        self.__stopping.set()
-        if self.__process.is_alive():
-            self.__process.join(timeout=10)
-        if self.__process.is_alive():
+        self.stopping.set()
+        if self.process.is_alive():
+            self.process.join(timeout=10)
+        if self.process.is_alive():
             raise Exception("Process could not be stopped.")
 
     def _process(self, agent_type, agent_id, agent_kwargs, inbound_queue, outbound_queue, started, stopping):
@@ -72,6 +72,7 @@ class _AgentProcess():
             except queue.Empty:
                 pass
         agent.before_remove()
+        debug(f"Agent {agent_id} stopped.")
 
 
 class MultiprocessSpace(Space):
@@ -102,13 +103,15 @@ class MultiprocessSpace(Space):
                     pass
 
     def _route(self, message: Message):
-        debug(f"Routing message:", message)
         message = validate_message(message)
-        if message["to"] == "*":
-            for agent_thread in self.__agent_processes.values():
-                agent_thread.inbound_queue.put(message)
-        else:
-            self.__agent_processes[message["to"]].inbound_queue.put(message)
+        recipient_processes = [
+            agent_process
+            for agent_process in list(self.__agent_processes.values())
+            if message["to"] == agent_process.agent_id or message["to"] == "*"
+        ]
+        for recipient_process in recipient_processes:
+            recipient_process.inbound_queue.put(message)
+            debug(f"Routing message to agent {recipient_process.agent_id}(queue:{id(recipient_process.inbound_queue)}, qsize:{recipient_process.inbound_queue.qsize()}):", message)
 
     def add(self, agent_type: Type[Agent], agent_id: str, **agent_kwargs) -> Agent:
         if agent_id in self.__agent_processes.keys():

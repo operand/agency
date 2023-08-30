@@ -94,7 +94,6 @@ class Agent():
         """
         message["from"] = self.id()
         self._message_log.append(message)
-        debug(f"{self.id()} sending message:", message)
         self._outqueue.put(message)
 
     def _receive(self, message: dict):
@@ -105,8 +104,6 @@ class Agent():
            and message['from'] == self.id() \
            and message['to'] == '*':
             return
-
-        debug(f"{self.id()} receiving message:", message)
 
         try:
             # Record message and commit action

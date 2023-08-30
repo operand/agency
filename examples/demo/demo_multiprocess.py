@@ -25,6 +25,7 @@ if __name__ == "__main__":
     # Add a Gradio app and its user to the space
     space.add(GradioApp, "User")
 
+
     # Other agents to try (see the ./agents directory)
 
     # Add an OpenAI agent based on the completion API

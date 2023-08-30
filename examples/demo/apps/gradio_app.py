@@ -123,8 +123,8 @@ class GradioApp(Agent):
         """
         Launches the Gradio app. This method is run within its own thread.
         """
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        # Required for the Gradio app to work within a thread
+        asyncio.set_event_loop(asyncio.new_event_loop())
 
         # Custom css to:
         # - Expand text area to fill vertical space

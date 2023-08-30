@@ -125,7 +125,6 @@ class _AgentAMQPProcess():
             consumer.consume()
 
             # Create agent
-            debug(f"Creating agent:{agent_type}:{agent_id}")
             agent: Agent = agent_type(
                 agent_id,
                 outbound_queue=outbound_queue,
@@ -145,8 +144,8 @@ class _AgentAMQPProcess():
             agent.before_remove()
 
         except amqp.exceptions.ResourceLocked:
-            error_queue.put(ValueError(
-                f"Agent id already exists: '{agent_id}')"))
+            error_queue.put(
+                ValueError(f"Agent id already exists: '{agent_id}'"))
         except Exception as e:
             error_queue.put(e)
         finally:
