@@ -15,29 +15,18 @@ class _Harford(ObservableAgent):
     def say(self, content: str):
         pass
 
-class _TestableAMQPSpaceWithShortHeartbeat(AMQPSpace):
-    def __init__(self):
-        super().__init__(
-            amqp_options=AMQPOptions(heartbeat=2),
-            exchange_name="agency-test",
-        )
-        self.__test_router: QueueProtocol = _AMQPRouter(
-            self._AMQPSpace__kombu_connection_options,
-            self._AMQPSpace__exchange_name)
-
-    def send_test_message(self, message: dict):
-        """Send a message into the space for testing purposes"""
-        self.__test_router.route(message)
 
 def test_amqp_heartbeat():
     """
     Tests the amqp heartbeat is sent by setting a short heartbeat interval and
     ensuring the connection remains open.
     """
-    amqp_space_with_short_heartbeat = _TestableAMQPSpaceWithShortHeartbeat()
+    amqp_space_with_short_heartbeat = AMQPSpace(
+        amqp_options=AMQPOptions(heartbeat=2), exchange_name="agency-test")
 
     try:
-        hartfords_message_log = add_agent(amqp_space_with_short_heartbeat, _Harford, "Hartford")
+        hartfords_message_log = add_agent(
+            amqp_space_with_short_heartbeat, _Harford, "Hartford")
 
         # wait enough time for connection to drop if no heartbeat is sent
         time.sleep(6)  # 3 x heartbeat
@@ -53,7 +42,7 @@ def test_amqp_heartbeat():
                 }
             },
         }
-        amqp_space_with_short_heartbeat.send_test_message(message)
+        amqp_space_with_short_heartbeat._route(message)
         assert_message_log(hartfords_message_log, [message])
 
     finally:
@@ -113,6 +102,7 @@ class _AfterAddAndBeforeRemoveAgent(ObservableAgent):
     """
     Writes to the _message_log after adding and before removing.
     """
+
     def __init__(self,
                  id: str,
                  router: QueueProtocol,
