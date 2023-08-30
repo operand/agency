@@ -1,13 +1,12 @@
 import time
 from typing import List
-from unittest.mock import MagicMock
 
 import pytest
 
 from agency.agent import Agent, QueueProtocol, action
 from agency.schema import Message
 from agency.space import Space
-from agency.spaces.amqp_space import _AMQPRouter, AMQPOptions, AMQPSpace
+from agency.spaces.amqp_space import AMQPOptions, AMQPSpace
 from tests.helpers import ObservableAgent, add_agent, assert_message_log
 
 

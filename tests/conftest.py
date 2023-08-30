@@ -1,15 +1,14 @@
 import subprocess
 import time
 import tracemalloc
-from agency.agent import QueueProtocol
 
 tracemalloc.start()
 
-from agency.spaces.amqp_space import _AMQPRouter, AMQPOptions, AMQPSpace
+import pytest
+
+from agency.spaces.amqp_space import AMQPSpace
 from agency.spaces.multiprocess_space import MultiprocessSpace
 from agency.spaces.thread_space import ThreadSpace
-
-import pytest
 
 RABBITMQ_OUT = subprocess.DEVNULL  # use subprocess.PIPE for output
 

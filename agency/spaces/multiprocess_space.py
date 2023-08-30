@@ -91,7 +91,7 @@ class MultiprocessSpace(Space):
         """
         while True:
             time.sleep(0.001)
-            for agent_process in self.__agent_processes.values():
+            for agent_process in list(self.__agent_processes.values()):
                 outbound_queue = agent_process.outbound_queue
                 try:
                     # process one message per agent per loop

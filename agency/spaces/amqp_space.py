@@ -3,18 +3,18 @@ import multiprocessing
 import os
 import queue
 import socket
+import threading
 import time
 from dataclasses import dataclass
 from multiprocessing import Event, Process
 from typing import Dict, Type
 
 import amqp
-from kombu import Connection, Exchange, Queue
+from kombu import Connection, Queue
 
 from agency.agent import Agent
 from agency.schema import Message, validate_message
 from agency.space import Space
-from agency.util import debug
 
 multiprocessing.set_start_method('spawn', force=True)
 
@@ -26,12 +26,15 @@ class _AgentAMQPProcess():
             agent_id: str,
             agent_kwargs: Dict,
             kombu_connection_options: Dict,
-            exchange_name: str):
+            exchange_name: str,
+            outbound_queue: multiprocessing.Queue,
+        ):
         self.__agent_type: Type[Agent] = agent_type
         self.__agent_id: str = agent_id
         self.__agent_kwargs: Dict = agent_kwargs
         self.__kombu_connection_options: Dict = kombu_connection_options
         self.__exchange_name: str = exchange_name
+        self.outbound_queue: multiprocessing.Queue = outbound_queue
 
     def start(self):
         self.__started = Event()
@@ -39,14 +42,18 @@ class _AgentAMQPProcess():
         error_queue = multiprocessing.Queue()
         self.__process = Process(
             target=self._process,
-            args=(self.__agent_type,
-                  self.__agent_id,
-                  self.__agent_kwargs,
-                  self.__kombu_connection_options,
-                  self.__exchange_name,
-                  self.__started,
-                  self.__stopping,
-                  error_queue))
+            args=(
+                self.__agent_type,
+                self.__agent_id,
+                self.__agent_kwargs,
+                self.__kombu_connection_options,
+                self.__exchange_name,
+                self.outbound_queue,
+                self.__started,
+                self.__stopping,
+                error_queue,
+            )
+        )
         self.__process.start()
 
         if not self.__started.wait(timeout=10):
@@ -70,17 +77,14 @@ class _AgentAMQPProcess():
                  agent_kwargs,
                  kombu_connection_options,
                  exchange_name,
+                 outbound_queue,
                  started,
                  stopping,
                  error_queue):
 
-        # Create exchange and router
-        exchange = Exchange(exchange_name, type="topic", durable=False)
-        router = _AMQPRouter(kombu_connection_options, exchange)
-
         try:
             # Create a connection
-            connection = Connection(**self.__kombu_connection_options)
+            connection = Connection(**kombu_connection_options)
             connection.connect()
             if not connection.connected:
                 raise ConnectionError("Unable to connect to AMQP server")
@@ -88,7 +92,7 @@ class _AgentAMQPProcess():
             # Create a queue for direct messages
             direct_queue = Queue(
                 f"{agent_id}-direct",
-                exchange=exchange,
+                exchange=exchange_name,
                 routing_key=agent_id,
                 exclusive=True,
             )
@@ -97,8 +101,8 @@ class _AgentAMQPProcess():
             # Create a separate broadcast queue
             broadcast_queue = Queue(
                 f"{agent_id}-broadcast",
-                exchange=exchange,
-                routing_key=_AMQPRouter.BROADCAST_KEY,
+                exchange=exchange_name,
+                routing_key=AMQPSpace.BROADCAST_KEY,
                 exclusive=True,
             )
             broadcast_queue(connection.channel()).declare()
@@ -122,7 +126,7 @@ class _AgentAMQPProcess():
             # Create agent
             agent: Agent = agent_type(
                 agent_id,
-                router=router,
+                outbound_queue=outbound_queue,
                 **agent_kwargs,
             )
 
@@ -147,31 +151,6 @@ class _AgentAMQPProcess():
             connection.release()
 
 
-class _AMQPRouter():
-    BROADCAST_KEY = "__broadcast__"
-
-    def __init__(self, kombu_connection_options: Dict, topic_exchange: Exchange):
-        self.__kombu_connection_options = kombu_connection_options
-        self.__topic_exchange = topic_exchange
-
-    def route(self, message: Message):
-        message = validate_message(message)
-
-        if message['to'] == '*':
-            # broadcast
-            routing_key = self.BROADCAST_KEY
-        else:
-            # point to point
-            routing_key = message['to']
-
-        with Connection(**self.__kombu_connection_options) as connection:
-            with connection.Producer(serializer="json") as producer:
-                producer.publish(
-                    json.dumps(message),
-                    exchange=self.__topic_exchange,
-                    routing_key=routing_key)
-
-
 @dataclass
 class AMQPOptions:
     """
@@ -194,6 +173,8 @@ class AMQPSpace(Space):
     added to the same instance.
     """
 
+    BROADCAST_KEY = "__broadcast__"
+
     def __init__(self, amqp_options: AMQPOptions = None, exchange_name: str = "agency"):
         if amqp_options is None:
             amqp_options = self.__default_amqp_options()
@@ -208,6 +189,42 @@ class AMQPSpace(Space):
         }
         self.__exchange_name: str = exchange_name
         self.__agent_processes: Dict[str, _AgentAMQPProcess] = {}
+        router_thread = threading.Thread(
+            target=self.__router_thread, daemon=True)
+        router_thread.start()
+
+    def __router_thread(self):
+        """
+        A thread that processes outbound messages for all agents, routing them
+        to other agents.
+        """
+        while True:
+            time.sleep(0.001)
+            for agent_process in list(self.__agent_processes.values()):
+                outbound_queue = agent_process.outbound_queue
+                try:
+                    # process one message per agent per loop
+                    message = outbound_queue.get(block=False)
+                    self._route(message)
+                except queue.Empty:
+                    pass
+
+    def _route(self, message: Message):
+        message = validate_message(message)
+
+        if message['to'] == '*':
+            # broadcast
+            routing_key = self.BROADCAST_KEY
+        else:
+            # point to point
+            routing_key = message['to']
+
+        with Connection(**self.__kombu_connection_options) as connection:
+            with connection.Producer(serializer="json") as producer:
+                producer.publish(
+                    json.dumps(message),
+                    exchange=self.__exchange_name,
+                    routing_key=routing_key)
 
     def add(self, agent_type: Type[Agent], agent_id: str, **agent_kwargs) -> Agent:
         try:
@@ -217,6 +234,7 @@ class AMQPSpace(Space):
                 agent_kwargs=agent_kwargs,
                 kombu_connection_options=self.__kombu_connection_options,
                 exchange_name=self.__exchange_name,
+                outbound_queue=multiprocessing.Queue(),
             )
             self.__agent_processes[agent_id].start()
 

@@ -75,7 +75,7 @@ class ThreadSpace(Space):
         """
         while True:
             time.sleep(0.001)
-            for agent_thread in self.__agent_threads.values():
+            for agent_thread in list(self.__agent_threads.values()):
                 outbound_queue = agent_thread.outbound_queue
                 try:
                     # process one message per agent per loop
