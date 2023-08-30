@@ -14,8 +14,8 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
     An agent which uses OpenAI's function calling API
     """
 
-    def __init__(self, id, router, model, openai_api_key, user_id):
-        super().__init__(id, router, receive_own_broadcasts=False)
+    def __init__(self, id, outbound_queue, model, openai_api_key, user_id):
+        super().__init__(id, outbound_queue, receive_own_broadcasts=False)
         self.__model = model
         self.__user_id = user_id
         openai.api_key = openai_api_key

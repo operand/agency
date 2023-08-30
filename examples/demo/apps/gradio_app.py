@@ -14,8 +14,8 @@ class GradioApp(Agent):
     Represents the Gradio app and its user as an Agent
     """
 
-    def __init__(self, id: str, router: QueueProtocol):
-        super().__init__(id, router, receive_own_broadcasts=False)
+    def __init__(self, id: str, outbound_queue: QueueProtocol):
+        super().__init__(id, outbound_queue, receive_own_broadcasts=False)
 
     def after_add(self):
         # Launch the Gradio app in a thread upon being added
