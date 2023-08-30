@@ -1,9 +1,11 @@
 import queue
 import threading
 import time
-from typing import Dict, Type
+from typing import Dict, Tuple, Type
 
-from agency.agent import Agent, RouterProtocol
+from numpy import block
+
+from agency.agent import Agent, QueueProtocol
 from agency.schema import Message, validate_message
 from agency.space import Space
 
@@ -14,20 +16,19 @@ class _AgentThread():
             agent_type: Type[Agent],
             agent_id: str,
             agent_kwargs: Dict,
-            message_queue: queue.Queue,
-            router: RouterProtocol):
+            inbound_queue: QueueProtocol,
+            outbound_queue: QueueProtocol):
         self.__agent_type: Type[Agent] = agent_type
         self.__agent_id: str = agent_id
         self.__agent_kwargs: Dict = agent_kwargs
-        self.__message_queue: queue.Queue = message_queue
-        self.__router: RouterProtocol = router
-        self.agent: Agent = None  # set when the thread is started
+        self.inbound_queue: QueueProtocol = inbound_queue
+        self.outbound_queue: QueueProtocol = outbound_queue
 
     def start(self):
         def _thread():
             self.agent = self.__agent_type(
                 self.__agent_id,
-                router=self.__router,
+                outbound_queue=self.outbound_queue,
                 **self.__agent_kwargs,
             )
             self.agent.after_add()
@@ -35,7 +36,7 @@ class _AgentThread():
             while not self.__stopping.is_set():
                 time.sleep(0.001)
                 try:
-                    message = self.__message_queue.get(block=False)
+                    message = self.inbound_queue.get(block=False)
                     self.agent._receive(message)
                 except queue.Empty:
                     pass
@@ -58,38 +59,51 @@ class _AgentThread():
             raise Exception("Thread could not be stopped.")
 
 
-class _ThreadSpaceRouter():
-    def __init__(self, agents: Dict[str, _AgentThread]):
-        self.__agent_threads: Dict[str, _AgentThread] = agents
-
-    def route(self, message: Message) -> None:
-        message = validate_message(message)
-        if message["to"] == "*":
-            for agent_thread in self.__agent_threads.values():
-                agent_thread.agent._receive(message)
-        else:
-            self.__agent_threads[message["to"]].agent._receive(message)
-
-
 class ThreadSpace(Space):
     """A Space implementation that uses the threading module."""
 
     def __init__(self):
         self.__agent_threads: Dict[str, _AgentThread] = {}
-        self.__router: RouterProtocol = _ThreadSpaceRouter(
-            self.__agent_threads)
+        router_thread = threading.Thread(target=self.__router_thread, daemon=True)
+        router_thread.start()
+
+    def __router_thread(self):
+        """
+        A thread that processes outbound messages, routing them to other agents
+        """
+        while True:
+            time.sleep(0.001)
+            for agent_thread in self.__agent_threads.values():
+                outbound_queue = agent_thread.outbound_queue
+                # drain queue
+                while True:
+                    try:
+                        message = outbound_queue.get(block=False)
+                        message = validate_message(message)
+                        if message["to"] == "*":
+                            for agent_thread in self.__agent_threads.values():
+                                agent_thread.inbound_queue.put(message)
+                        else:
+                            self.__agent_threads[message["to"]].inbound_queue.put(message)
+                    except queue.Empty:
+                        break
+
+
+
+
 
     def add(self, agent_type: Type[Agent], agent_id: str, **agent_kwargs):
         if agent_id in self.__agent_threads.keys():
             raise ValueError(f"Agent id already exists: '{agent_id}'")
 
         try:
+
             self.__agent_threads[agent_id] = _AgentThread(
                 agent_type=agent_type,
                 agent_id=agent_id,
                 agent_kwargs=agent_kwargs,
-                message_queue=queue.Queue(),
-                router=self.__router,
+                inbound_queue=queue.Queue(),
+                outbound_queue=self.__outbound_queue,
             )
             self.__agent_threads[agent_id].start()
 

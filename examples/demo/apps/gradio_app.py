@@ -5,7 +5,7 @@ import threading
 
 import gradio as gr
 
-from agency.agent import Agent, RouterProtocol, action
+from agency.agent import Agent, QueueProtocol, action
 from agency.schema import Message
 
 
@@ -14,7 +14,7 @@ class GradioApp(Agent):
     Represents the Gradio app and its user as an Agent
     """
 
-    def __init__(self, id: str, router: RouterProtocol):
+    def __init__(self, id: str, router: QueueProtocol):
         super().__init__(id, router, receive_own_broadcasts=False)
 
     def after_add(self):

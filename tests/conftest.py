@@ -1,7 +1,7 @@
 import subprocess
 import time
 import tracemalloc
-from agency.agent import RouterProtocol
+from agency.agent import QueueProtocol
 
 tracemalloc.start()
 
@@ -96,7 +96,7 @@ def amqp_space():
     class TestableAMQPSpace(AMQPSpace):
         def __init__(self, amqp_options: AMQPOptions = None, exchange_name: str = "agency"):
             super().__init__(amqp_options, exchange_name)
-            self.__test_router: RouterProtocol = _AMQPRouter(
+            self.__test_router: QueueProtocol = _AMQPRouter(
                 self._AMQPSpace__kombu_connection_options, exchange_name)
 
         def send_test_message(self, message: dict):

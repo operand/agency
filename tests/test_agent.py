@@ -42,23 +42,23 @@ def test_id_validation():
     """
     # Test valid id
     valid_id = "valid_agent_id"
-    agent = Agent(valid_id, router=MagicMock())
+    agent = Agent(valid_id, outbound_queue=MagicMock())
     assert agent.id() == valid_id
 
     # Test id length
     too_short_id = ""
     too_long_id = "a" * 256
     with pytest.raises(ValueError):
-        Agent(too_short_id, router=MagicMock())
+        Agent(too_short_id, outbound_queue=MagicMock())
     with pytest.raises(ValueError):
-        Agent(too_short_id, router=MagicMock())
+        Agent(too_short_id, outbound_queue=MagicMock())
 
     # Test reserved sequence
     reserved_id = "amq.reserved"
     with pytest.raises(ValueError):
-        Agent(too_short_id, router=MagicMock())
+        Agent(too_short_id, outbound_queue=MagicMock())
 
     # Test reserved broadcast id
     reserved_broadcast_id = "*"
     with pytest.raises(ValueError):
-        Agent(reserved_broadcast_id, router=MagicMock())
+        Agent(reserved_broadcast_id, outbound_queue=MagicMock())

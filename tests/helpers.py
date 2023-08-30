@@ -3,7 +3,7 @@ import multiprocessing
 import time
 from typing import List
 
-from agency.agent import Agent, RouterProtocol
+from agency.agent import Agent, QueueProtocol
 from agency.schema import Message
 from agency.space import Space
 from agency.util import debug
@@ -24,7 +24,7 @@ class ObservableAgent(Agent):
 
     def __init__(self,
                  id: str,
-                 router: RouterProtocol,
+                 router: QueueProtocol,
                  receive_own_broadcasts: bool = False,
                  _message_log: List[Message] = []):
         super().__init__(id, router, receive_own_broadcasts)

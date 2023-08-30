@@ -6,7 +6,7 @@ import subprocess
 from agents.mixins.help_methods import HelpMethods
 from colorama import Fore, Style
 
-from agency.agent import ACCESS_REQUESTED, Agent, RouterProtocol, action
+from agency.agent import ACCESS_REQUESTED, Agent, QueueProtocol, action
 
 
 class Host(HelpMethods, Agent):
@@ -14,7 +14,7 @@ class Host(HelpMethods, Agent):
     Represents the host system of the running application
     """
 
-    def __init__(self, id: str, router: RouterProtocol) -> None:
+    def __init__(self, id: str, router: QueueProtocol) -> None:
         super().__init__(id, router, receive_own_broadcasts=False)
 
     @action(access_policy=ACCESS_REQUESTED)

@@ -4,7 +4,7 @@ import multiprocessing
 from multiprocessing import Event, Manager, Process
 from typing import Dict, Type
 
-from agency.agent import Agent, RouterProtocol
+from agency.agent import Agent, QueueProtocol
 from agency.schema import Message, validate_message
 from agency.space import Space
 from agency.util import debug
@@ -19,12 +19,12 @@ class _AgentProcess():
             agent_id: str,
             agent_kwargs: Dict,
             message_queue: multiprocessing.Queue,
-            router: RouterProtocol):
+            router: QueueProtocol):
         self.__agent_type: Type[Agent] = agent_type
         self.__agent_id: str = agent_id
         self.__agent_kwargs: Dict = agent_kwargs
         self.__message_queue: multiprocessing.Queue = message_queue
-        self.__router: RouterProtocol = router
+        self.__router: QueueProtocol = router
 
     def start(self):
         self.__started = Event()

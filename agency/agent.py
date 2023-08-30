@@ -31,11 +31,24 @@ def action(*args, **kwargs):
         return decorator  # The decorator was used with parentheses
 
 
-class RouterProtocol(Protocol):
-    """A protocol for providing routing functionality to an Agent"""
+class QueueProtocol(Protocol):
+    """A protocol for providing an outgoing queue for an Agent"""
 
-    def route(self, message: Message):
-        """Routes a message to the appropriate agent"""
+    def put(self, message: Message):
+        """
+        Put a message into the queue
+        """
+
+    def get(self) -> Message:
+        """
+        Get the next message from the queue
+
+        Returns:
+            The next message
+
+        Raises:
+            queue.Empty: If there are no messages
+        """
 
 
 class Agent():
@@ -43,13 +56,13 @@ class Agent():
     An Actor that may represent an AI agent, computing system, or human user
     """
 
-    def __init__(self, id: str, router: RouterProtocol, receive_own_broadcasts: bool = True) -> None:
+    def __init__(self, id: str, outbound_queue: QueueProtocol, receive_own_broadcasts: bool = True) -> None:
         """
         Initializes an Agent.
 
         Args:
             id: The id of the agent
-            router: The router object used to send messages
+            outqueue: The outgoing queue for sending messages
             receive_own_broadcasts: Whether the agent will receive its own broadcasts
         """
         if len(id) < 1 or len(id) > 255:
@@ -59,7 +72,7 @@ class Agent():
         if id == "*":
             raise ValueError("id cannot be \"*\"")
         self.__id: str = id
-        self._router = router
+        self._outqueue = outbound_queue
         self._receive_own_broadcasts = receive_own_broadcasts
         # stores all sent and received messages
         self._message_log: List[Message] = []
@@ -77,7 +90,7 @@ class Agent():
         message["from"] = self.id()
         debug(f"{self.id()} sending:", message)
         self._message_log.append(message)
-        self._router.route(message)
+        self._outqueue.put(message)
 
     def _receive(self, message: dict):
         """

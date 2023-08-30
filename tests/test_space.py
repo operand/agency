@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from agency.agent import Agent, RouterProtocol, action
+from agency.agent import Agent, QueueProtocol, action
 from agency.schema import Message
 from agency.space import Space
 from agency.spaces.amqp_space import _AMQPRouter, AMQPOptions, AMQPSpace
@@ -22,7 +22,7 @@ class _TestableAMQPSpaceWithShortHeartbeat(AMQPSpace):
             amqp_options=AMQPOptions(heartbeat=2),
             exchange_name="agency-test",
         )
-        self.__test_router: RouterProtocol = _AMQPRouter(
+        self.__test_router: QueueProtocol = _AMQPRouter(
             self._AMQPSpace__kombu_connection_options,
             self._AMQPSpace__exchange_name)
 
@@ -116,7 +116,7 @@ class _AfterAddAndBeforeRemoveAgent(ObservableAgent):
     """
     def __init__(self,
                  id: str,
-                 router: RouterProtocol,
+                 router: QueueProtocol,
                  receive_own_broadcasts: bool = False,
                  _message_log: List[Message] = None):
         super().__init__(id,
