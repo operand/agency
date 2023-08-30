@@ -77,13 +77,12 @@ class ThreadSpace(Space):
             time.sleep(0.001)
             for agent_thread in self.__agent_threads.values():
                 outbound_queue = agent_thread.outbound_queue
-                # drain queue
-                while True:
-                    try:
-                        message = outbound_queue.get(block=False)
-                        self._route(message)
-                    except queue.Empty:
-                        break
+                try:
+                    # process one message per agent per loop
+                    message = outbound_queue.get(block=False)
+                    self._route(message)
+                except queue.Empty:
+                    pass
 
     def _route(self, message: Message):
         message = validate_message(message)

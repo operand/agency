@@ -1,14 +1,13 @@
+import multiprocessing
 import queue
 import threading
 import time
-import multiprocessing
-from multiprocessing import Event, Manager, Process
+from multiprocessing import Event, Process
 from typing import Dict, Type
 
 from agency.agent import Agent, QueueProtocol
 from agency.schema import Message, validate_message
 from agency.space import Space
-from agency.util import debug
 
 multiprocessing.set_start_method('spawn', force=True)
 
@@ -74,35 +73,6 @@ class _AgentProcess():
         agent.before_remove()
 
 
-class _MultiprocessRouter():
-    def __init__(self):
-        self.manager = Manager()
-        self.__agent_queues = self.manager.list()  # Manager list for queues
-        self.__agent_mapping = self.manager.dict()  # Manager dict for agent_id to index mapping
-
-    def route(self, message: Message):
-        message = validate_message(message)
-        if message["to"] == "*":
-            for agent_queue in self.__agent_queues.values():
-                agent_queue.put(message)
-        else:
-            self.__agent_queues[message["to"]].put(message)
-
-    def add_queue(self, agent_id: str):
-        new_queue = multiprocessing.Queue()
-        self.__agent_queues.append(new_queue)
-        self.__agent_mapping[agent_id] = len(self.__agent_queues) - 1
-
-    def remove_queue(self, agent_id: str):
-        index = self.__agent_mapping[agent_id]
-        self.__agent_queues[index] = None
-        del self.__agent_mapping[agent_id]
-
-    def get_queue(self, agent_id: str):
-        index = self.__agent_mapping[agent_id]
-        return self.__agent_queues[index]
-
-
 class MultiprocessSpace(Space):
     """
     A Space implementation that uses the multiprocessing module.
@@ -121,16 +91,14 @@ class MultiprocessSpace(Space):
         """
         while True:
             time.sleep(0.001)
-            agent_processes = list(self.__agent_processes.values())
-            for agent_process in agent_processes:
+            for agent_process in self.__agent_processes.values():
                 outbound_queue = agent_process.outbound_queue
-                # drain queue
-                while True:
-                    try:
-                        message = outbound_queue.get(block=False)
-                        self._route(message)
-                    except queue.Empty:
-                        break
+                try:
+                    # process one message per agent per loop
+                    message = outbound_queue.get(block=False)
+                    self._route(message)
+                except queue.Empty:
+                    pass
 
     def _route(self, message: Message):
         message = validate_message(message)
