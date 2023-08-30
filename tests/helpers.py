@@ -33,7 +33,7 @@ class ObservableAgent(Agent):
 
 def add_agent(space: Space, agent_type: ObservableAgent, agent_id: str, **agent_kwargs) -> List[Message]:
     """
-    Adds an agent to a space and return a reference to its _message_log for
+    Adds an agent to a space and returns a reference to its _message_log for
     testing.
     """
     _message_log = multiprocessing.Manager().list()  # thread and process safe

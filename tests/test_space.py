@@ -92,10 +92,10 @@ def test_invalid_message(any_space):
     space but it's okay for now.
     """
     with pytest.raises(ValueError):
-        any_space.send_test_message("blah")
+        any_space._route("blah")
 
     with pytest.raises(ValueError):
-        any_space.send_test_message({})
+        any_space._route({})
 
 
 class _AfterAddAndBeforeRemoveAgent(ObservableAgent):
@@ -105,13 +105,13 @@ class _AfterAddAndBeforeRemoveAgent(ObservableAgent):
 
     def __init__(self,
                  id: str,
-                 router: QueueProtocol,
+                 outbound_queue: QueueProtocol,
                  receive_own_broadcasts: bool = False,
                  _message_log: List[Message] = None):
         super().__init__(id,
-                         router,
-                         receive_own_broadcasts,
-                         _message_log)
+                         outbound_queue=outbound_queue,
+                         receive_own_broadcasts=receive_own_broadcasts,
+                         _message_log=_message_log)
 
     def after_add(self):
         self._message_log.append("added")

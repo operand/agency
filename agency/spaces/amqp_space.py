@@ -15,6 +15,7 @@ from kombu import Connection, Queue
 from agency.agent import Agent
 from agency.schema import Message, validate_message
 from agency.space import Space
+from agency.util import debug
 
 multiprocessing.set_start_method('spawn', force=True)
 
@@ -124,6 +125,7 @@ class _AgentAMQPProcess():
             consumer.consume()
 
             # Create agent
+            debug(f"Creating agent:{agent_type}:{agent_id}")
             agent: Agent = agent_type(
                 agent_id,
                 outbound_queue=outbound_queue,
