@@ -2,7 +2,6 @@ import os
 
 from agents.host import Host
 from agents.openai_function_agent import OpenAIFunctionAgent
-from apps.gradio_app import demo
 
 from agency.spaces.thread_space import ThreadSpace
 from examples.demo.apps.gradio_app import GradioApp

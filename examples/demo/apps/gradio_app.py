@@ -1,10 +1,11 @@
+import asyncio
 import json
 import re
 import threading
 
 import gradio as gr
 
-from agency.agent import Agent, action
+from agency.agent import Agent, RouterProtocol, action
 from agency.schema import Message
 
 
@@ -13,8 +14,8 @@ class GradioApp(Agent):
     Represents the Gradio app and its user as an Agent
     """
 
-    def __init__(self, id: str) -> None:
-        super().__init__(id, receive_own_broadcasts=False)
+    def __init__(self, id: str, router: RouterProtocol):
+        super().__init__(id, router, receive_own_broadcasts=False)
 
     def after_add(self):
         self.__start_gradio_app_thread()
@@ -114,6 +115,12 @@ class GradioApp(Agent):
         }
 
     def __launch_gradio_app(self):
+        """
+        Launches the Gradio app. This method is run within its own thread
+        """
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
         # The following adapted from: https://www.gradio.app/docs/chatbot#demos
 
         # Custom css to:
