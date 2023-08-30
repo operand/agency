@@ -54,7 +54,7 @@ DEBUG_KEYS = {
 
 
 def debug(name, object=None):
-    """pretty prints an object to the terminal for inspection"""
+    """Pretty prints an object to the terminal for inspection"""
     if (
         name
         and (

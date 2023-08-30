@@ -22,8 +22,7 @@ services:
   # This container runs the demo in a single ThreadSpace
   threaded:
     <<: *demo-base
-    profiles:
-      - threaded
+    profiles: [threaded]
     ports:
       - '$WEB_APP_PORT:8080'
     # socat is used to redirect from the hardcoded ip:port in gradio's dev mode
@@ -40,8 +39,7 @@ services:
   # This container runs the demo in a single MultiprocessSpace
   multiprocess:
     <<: *demo-base
-    profiles:
-      - multiprocess
+    profiles: [multiprocess]
     ports:
       - '$WEB_APP_PORT:8080'
     # socat is used to redirect from the hardcoded ip:port in gradio's dev mode
@@ -59,8 +57,7 @@ services:
   # using rabbitmq
   amqp:
     <<: *demo-base
-    profiles:
-      - amqp
+    profiles: [amqp]
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -79,16 +76,14 @@ services:
 
   amqp_2:
     <<: *demo-base
-    profiles:
-      - amqp
+    profiles: [amqp]
     depends_on:
       rabbitmq:
         condition: service_healthy
     command: poetry run python demo_amqp_2.py
 
   rabbitmq:
-    profiles:
-      - amqp
+    profiles: [amqp]
     image: rabbitmq:3-management-alpine
     ports:
       - 5672:5672 # broker

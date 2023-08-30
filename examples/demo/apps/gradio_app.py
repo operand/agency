@@ -18,7 +18,9 @@ class GradioApp(Agent):
         super().__init__(id, router, receive_own_broadcasts=False)
 
     def after_add(self):
-        self.__start_gradio_app_thread()
+        # Launch the Gradio app in a thread upon being added
+        thread = threading.Thread(target=self.__launch_gradio_app)
+        thread.start()
 
     @action
     def say(self, content):
@@ -73,6 +75,9 @@ class GradioApp(Agent):
         quotes if they contain spaces. For example:
 
             /"agent with a space in the id".say content:"Hello, agent!"
+
+        Args:
+            text: The input text to parse
 
         Returns:
             Message: The parsed message for sending
@@ -176,7 +181,3 @@ class GradioApp(Agent):
 
         demo.queue()  # Queueing required for periodic events using `every`
         demo.launch()
-
-    def __start_gradio_app_thread(self):
-        thread = threading.Thread(target=self.__launch_gradio_app)
-        thread.start()
