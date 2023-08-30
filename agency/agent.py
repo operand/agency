@@ -32,11 +32,14 @@ def action(*args, **kwargs):
 
 
 class QueueProtocol(Protocol):
-    """A protocol for providing an outgoing queue for an Agent"""
+    """A protocol for providing an outbound queue for an Agent"""
 
     def put(self, message: Message):
         """
-        Put a message into the queue
+        Put a message onto the queue for sending
+
+        Args:
+            message: The message
         """
 
     def get(self) -> Message:
@@ -90,8 +93,8 @@ class Agent():
         Sends (out) a message from this agent.
         """
         message["from"] = self.id()
-        debug(f"{self.id()} sending:", message)
         self._message_log.append(message)
+        debug(f"{self.id()} sending message:", message)
         self._outqueue.put(message)
 
     def _receive(self, message: dict):
@@ -102,6 +105,8 @@ class Agent():
            and message['from'] == self.id() \
            and message['to'] == '*':
             return
+
+        debug(f"{self.id()} receiving message:", message)
 
         try:
             # Record message and commit action

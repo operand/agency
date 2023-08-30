@@ -121,12 +121,10 @@ class GradioApp(Agent):
 
     def __launch_gradio_app(self):
         """
-        Launches the Gradio app. This method is run within its own thread
+        Launches the Gradio app. This method is run within its own thread.
         """
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-
-        # The following adapted from: https://www.gradio.app/docs/chatbot#demos
 
         # Custom css to:
         # - Expand text area to fill vertical space
@@ -153,6 +151,7 @@ class GradioApp(Agent):
         }
         """
 
+        # Adapted from: https://www.gradio.app/docs/chatbot#demos
         with gr.Blocks(css=css, title="Agency Demo") as demo:
             # Chatbot area
             chatbot = gr.Chatbot(

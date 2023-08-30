@@ -8,6 +8,7 @@ from typing import Dict, Type
 from agency.agent import Agent, QueueProtocol
 from agency.schema import Message, validate_message
 from agency.space import Space
+from agency.util import debug
 
 multiprocessing.set_start_method('spawn', force=True)
 
@@ -101,6 +102,7 @@ class MultiprocessSpace(Space):
                     pass
 
     def _route(self, message: Message):
+        debug(f"Routing message:", message)
         message = validate_message(message)
         if message["to"] == "*":
             for agent_thread in self.__agent_processes.values():
