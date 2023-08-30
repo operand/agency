@@ -45,7 +45,6 @@ def assert_message_log(actual: List[Message], expected: List[Message], max_secon
     """
     Asserts that a list of messages is as expected.
     """
-    debug("multiprocessing start method", multiprocessing.get_start_method())
     print(f"waiting {max_seconds} seconds for {len(expected)} messages...")
     start_time = time.time()
     while ((time.time() - start_time) < max_seconds):

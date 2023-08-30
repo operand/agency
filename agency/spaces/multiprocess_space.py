@@ -121,7 +121,7 @@ class MultiprocessSpace(Space):
         """
         while True:
             time.sleep(0.001)
-            agent_processes = self.__agent_processes.values()
+            agent_processes = list(self.__agent_processes.values())
             for agent_process in agent_processes:
                 outbound_queue = agent_process.outbound_queue
                 # drain queue
