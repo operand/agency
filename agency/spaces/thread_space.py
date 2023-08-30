@@ -26,21 +26,21 @@ class _AgentThread():
 
     def start(self):
         def _thread():
-            self.agent = self.__agent_type(
+            agent = self.__agent_type(
                 self.__agent_id,
                 outbound_queue=self.outbound_queue,
                 **self.__agent_kwargs,
             )
-            self.agent.after_add()
+            agent.after_add()
             self.__started.set()
             while not self.__stopping.is_set():
                 time.sleep(0.001)
                 try:
                     message = self.inbound_queue.get(block=False)
-                    self.agent._receive(message)
+                    agent._receive(message)
                 except queue.Empty:
                     pass
-            self.agent.before_remove()
+            agent.before_remove()
 
         self.__started = threading.Event()
         self.__stopping = threading.Event()
@@ -64,12 +64,14 @@ class ThreadSpace(Space):
 
     def __init__(self):
         self.__agent_threads: Dict[str, _AgentThread] = {}
-        router_thread = threading.Thread(target=self.__router_thread, daemon=True)
+        router_thread = threading.Thread(
+            target=self.__router_thread, daemon=True)
         router_thread.start()
 
     def __router_thread(self):
         """
-        A thread that processes outbound messages, routing them to other agents
+        A thread that processes outbound messages for all agents, routing them
+        to other agents.
         """
         while True:
             time.sleep(0.001)
@@ -79,31 +81,29 @@ class ThreadSpace(Space):
                 while True:
                     try:
                         message = outbound_queue.get(block=False)
-                        message = validate_message(message)
-                        if message["to"] == "*":
-                            for agent_thread in self.__agent_threads.values():
-                                agent_thread.inbound_queue.put(message)
-                        else:
-                            self.__agent_threads[message["to"]].inbound_queue.put(message)
+                        self._route(message)
                     except queue.Empty:
                         break
 
-
-
-
+    def _route(self, message: Message):
+        message = validate_message(message)
+        if message["to"] == "*":
+            for agent_thread in self.__agent_threads.values():
+                agent_thread.inbound_queue.put(message)
+        else:
+            self.__agent_threads[message["to"]].inbound_queue.put(message)
 
     def add(self, agent_type: Type[Agent], agent_id: str, **agent_kwargs):
         if agent_id in self.__agent_threads.keys():
             raise ValueError(f"Agent id already exists: '{agent_id}'")
 
         try:
-
             self.__agent_threads[agent_id] = _AgentThread(
                 agent_type=agent_type,
                 agent_id=agent_id,
                 agent_kwargs=agent_kwargs,
                 inbound_queue=queue.Queue(),
-                outbound_queue=self.__outbound_queue,
+                outbound_queue=queue.Queue(),
             )
             self.__agent_threads[agent_id].start()
 

@@ -16,7 +16,7 @@ def test_before_and_after_action():
     """
     Tests the before and after action callbacks
     """
-    agent = BeforeAndAfterActionAgent("Webster", router=MagicMock())
+    agent = BeforeAndAfterActionAgent("Webster", outbound_queue=MagicMock())
     agent.before_action = MagicMock()
     agent.after_action = MagicMock()
     agent._receive({

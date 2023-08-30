@@ -85,7 +85,7 @@ def test_help_action(any_space):
             'args': {}
         }
     }
-    any_space.send_test_message(first_message)
+    any_space._route(first_message)
     assert_message_log(websters_log, [chattys_expected_response])
     assert_message_log(chattys_log, [first_message, chattys_expected_response])
 

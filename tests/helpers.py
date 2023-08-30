@@ -24,10 +24,10 @@ class ObservableAgent(Agent):
 
     def __init__(self,
                  id: str,
-                 router: QueueProtocol,
+                 outbound_queue: QueueProtocol,
                  receive_own_broadcasts: bool = False,
                  _message_log: List[Message] = []):
-        super().__init__(id, router, receive_own_broadcasts)
+        super().__init__(id, outbound_queue, receive_own_broadcasts)
         self._message_log = _message_log
 
 

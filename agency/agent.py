@@ -56,14 +56,14 @@ class Agent():
     An Actor that may represent an AI agent, computing system, or human user
     """
 
-    def __init__(self, id: str, outbound_queue: QueueProtocol, receive_own_broadcasts: bool = True) -> None:
+    def __init__(self, id: str, outbound_queue: QueueProtocol = None, receive_own_broadcasts: bool = True) -> None:
         """
         Initializes an Agent.
 
         Args:
             id: The id of the agent
             outqueue: The outgoing queue for sending messages
-            receive_own_broadcasts: Whether the agent will receive its own broadcasts
+            receive_own_broadcasts: Whether the agent will receive its own broadcasts. Defaults to True
         """
         if len(id) < 1 or len(id) > 255:
             raise ValueError("id must be between 1 and 255 characters")
@@ -71,6 +71,8 @@ class Agent():
             raise ValueError("id cannot start with \"amq.\"")
         if id == "*":
             raise ValueError("id cannot be \"*\"")
+        if outbound_queue is None:
+            raise ValueError("outqueue must be provided")
         self.__id: str = id
         self._outqueue = outbound_queue
         self._receive_own_broadcasts = receive_own_broadcasts

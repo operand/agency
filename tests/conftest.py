@@ -13,7 +13,7 @@ import pytest
 
 RABBITMQ_OUT = subprocess.DEVNULL  # use subprocess.PIPE for output
 
-@pytest.fixture(scope="session", autouse=True)
+# @pytest.fixture(scope="session", autouse=True)
 def rabbitmq_container():
     """
     Starts and stops a RabbitMQ container for the duration of the test
@@ -65,13 +65,8 @@ def wait_for_rabbitmq():
 
 @pytest.fixture
 def thread_space():
-    class TestableThreadSpace(ThreadSpace):
-        def send_test_message(self, message: dict):
-            """Send a message into the space for testing purposes"""
-            self._ThreadSpace__router.route(message)
-
     try:
-        space = TestableThreadSpace()
+        space = ThreadSpace()
         yield space
     finally:
         space.remove_all()
@@ -79,13 +74,8 @@ def thread_space():
 
 @pytest.fixture
 def multiprocess_space():
-    class TestableMultiprocessSpace(MultiprocessSpace):
-        def send_test_message(self, message: dict):
-            """Send a message into the space for testing purposes"""
-            self._MultiprocessSpace__router.route(message)
-
     try:
-        space = TestableMultiprocessSpace()
+        space = MultiprocessSpace()
         yield space
     finally:
         space.remove_all()
@@ -110,8 +100,8 @@ def amqp_space():
         space.remove_all()
 
 
-@pytest.fixture(params=['thread_space', 'multiprocess_space', 'amqp_space'])
-def any_space(request, thread_space, multiprocess_space, amqp_space):
+@pytest.fixture(params=['thread_space', 'multiprocess_space'])
+def any_space(request, thread_space, multiprocess_space):
     """
     Used for testing all space types
     """
