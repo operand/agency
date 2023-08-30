@@ -1,4 +1,5 @@
 import queue
+import threading
 import time
 import multiprocessing
 from multiprocessing import Event, Manager, Process
@@ -18,13 +19,13 @@ class _AgentProcess():
             agent_type: Type[Agent],
             agent_id: str,
             agent_kwargs: Dict,
-            message_queue: multiprocessing.Queue,
-            router: QueueProtocol):
+            inbound_queue: QueueProtocol,
+            outbound_queue: QueueProtocol):
         self.__agent_type: Type[Agent] = agent_type
         self.__agent_id: str = agent_id
         self.__agent_kwargs: Dict = agent_kwargs
-        self.__message_queue: multiprocessing.Queue = message_queue
-        self.__router: QueueProtocol = router
+        self.inbound_queue: QueueProtocol = inbound_queue
+        self.outbound_queue: QueueProtocol = outbound_queue
 
     def start(self):
         self.__started = Event()
@@ -35,8 +36,8 @@ class _AgentProcess():
                 self.__agent_type,
                 self.__agent_id,
                 self.__agent_kwargs,
-                self.__message_queue,
-                self.__router,
+                self.inbound_queue,
+                self.outbound_queue,
                 self.__started,
                 self.__stopping,
             )
@@ -55,10 +56,10 @@ class _AgentProcess():
         if self.__process.is_alive():
             raise Exception("Process could not be stopped.")
 
-    def _process(self, agent_type, agent_id, agent_kwargs, message_queue, router, started, stopping):
+    def _process(self, agent_type, agent_id, agent_kwargs, inbound_queue, outbound_queue, started, stopping):
         agent: Agent = agent_type(
             agent_id,
-            router=router,
+            outbound_queue=outbound_queue,
             **agent_kwargs,
         )
         agent.after_add()
@@ -66,7 +67,7 @@ class _AgentProcess():
         while not stopping.is_set():
             time.sleep(0.001)
             try:
-                message = message_queue.get(block=False)
+                message = inbound_queue.get(block=False)
                 agent._receive(message)
             except queue.Empty:
                 pass
@@ -109,20 +110,47 @@ class MultiprocessSpace(Space):
 
     def __init__(self):
         self.__agent_processes: Dict[str, _AgentProcess] = {}
-        self.__router = _MultiprocessRouter()
+        router_thread = threading.Thread(
+            target=self.__router_thread, daemon=True)
+        router_thread.start()
+
+    def __router_thread(self):
+        """
+        A thread that processes outbound messages for all agents, routing them
+        to other agents.
+        """
+        while True:
+            time.sleep(0.001)
+            agent_processes = self.__agent_processes.values()
+            for agent_process in agent_processes:
+                outbound_queue = agent_process.outbound_queue
+                # drain queue
+                while True:
+                    try:
+                        message = outbound_queue.get(block=False)
+                        self._route(message)
+                    except queue.Empty:
+                        break
+
+    def _route(self, message: Message):
+        message = validate_message(message)
+        if message["to"] == "*":
+            for agent_thread in self.__agent_processes.values():
+                agent_thread.inbound_queue.put(message)
+        else:
+            self.__agent_processes[message["to"]].inbound_queue.put(message)
 
     def add(self, agent_type: Type[Agent], agent_id: str, **agent_kwargs) -> Agent:
         if agent_id in self.__agent_processes.keys():
             raise ValueError(f"Agent id already exists: '{agent_id}'")
 
         try:
-            self.__router.add_queue(agent_id)
             self.__agent_processes[agent_id] = _AgentProcess(
                 agent_type=agent_type,
                 agent_id=agent_id,
                 agent_kwargs=agent_kwargs,
-                message_queue=self.__router.get_queue(agent_id),
-                router=self.__router,
+                inbound_queue=multiprocessing.Queue(),
+                outbound_queue=multiprocessing.Queue(),
             )
             self.__agent_processes[agent_id].start()
 

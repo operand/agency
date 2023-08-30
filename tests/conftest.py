@@ -83,18 +83,8 @@ def multiprocess_space():
 
 @pytest.fixture
 def amqp_space():
-    class TestableAMQPSpace(AMQPSpace):
-        def __init__(self, amqp_options: AMQPOptions = None, exchange_name: str = "agency"):
-            super().__init__(amqp_options, exchange_name)
-            self.__test_router: QueueProtocol = _AMQPRouter(
-                self._AMQPSpace__kombu_connection_options, exchange_name)
-
-        def send_test_message(self, message: dict):
-            """Send a message into the space for testing purposes"""
-            self.__test_router.route(message)
-
     try:
-        space = TestableAMQPSpace(exchange_name="agency-test")
+        space = AMQPSpace(exchange_name="agency-test")
         yield space
     finally:
         space.remove_all()

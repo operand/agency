@@ -117,7 +117,7 @@ def test_help_specific_action(any_space):
             }
         }
     }
-    any_space.send_test_message(first_message)
+    any_space._route(first_message)
     assert_message_log(websters_log, [
         {
             "to": "Webster",
@@ -151,7 +151,7 @@ def test_responses_have_original_message_id(any_space):
         any_space, _ResponsesHaveOriginalMessageIdAgent, "Chatty")
 
     # this message will result in a response with data
-    any_space.send_test_message({
+    any_space._route({
         'id': '123 whatever i feel like here',
         'to': 'Chatty',
         'from': 'Webster',
@@ -183,7 +183,7 @@ def test_errors_have_original_message_id(any_space):
     chattys_log = add_agent(any_space, ObservableAgent, "Chatty")
 
     # this message will result in an error
-    any_space.send_test_message({
+    any_space._route({
         'id': '456 whatever i feel like here',
         'to': 'Chatty',
         'from': 'Webster',
@@ -228,7 +228,7 @@ def test_self_received_broadcast(any_space):
             },
         },
     }
-    any_space.send_test_message(first_message)
+    any_space._route(first_message)
     assert_message_log(websters_log, [first_message])
     assert_message_log(chattys_log, [first_message])
 
@@ -255,7 +255,7 @@ def test_non_self_received_broadcast(any_space):
             },
         },
     }
-    any_space.send_test_message(first_message)
+    any_space._route(first_message)
     assert_message_log(websters_log, [])
     assert_message_log(chattys_log, [first_message])
 
@@ -296,7 +296,7 @@ def test_send_and_receive(any_space):
             }
         }
     }
-    any_space.send_test_message(first_message)
+    any_space._route(first_message)
     assert_message_log(websters_log, [
         {
             "from": "Chatty",
@@ -340,7 +340,7 @@ def test_meta(any_space):
             }
         },
     }
-    any_space.send_test_message(first_message)
+    any_space._route(first_message)
     assert_message_log(chattys_log, [first_message])
 
 
@@ -363,7 +363,7 @@ def test_send_undefined_action(any_space):
             }
         }
     }
-    any_space.send_test_message(first_message)
+    any_space._route(first_message)
     assert_message_log(websters_log, [
         {
             "from": "Chatty",
@@ -401,7 +401,7 @@ def test_send_unpermitted_action(any_space):
             }
         }
     }
-    any_space.send_test_message(first_message)
+    any_space._route(first_message)
     assert_message_log(websters_log, [
         {
             "from": "Chatty",
@@ -442,7 +442,7 @@ def test_send_request_permitted_action(any_space):
             }
         }
     }
-    any_space.send_test_message(first_message)
+    any_space._route(first_message)
     assert_message_log(websters_log, [
         {
             "from": "Chatty",
@@ -483,7 +483,7 @@ def test_send_request_rejected_action(any_space):
             }
         }
     }
-    any_space.send_test_message(first_message)
+    any_space._route(first_message)
     assert_message_log(websters_log, [
         {
             "from": "Chatty",
