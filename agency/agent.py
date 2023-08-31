@@ -1,5 +1,6 @@
 import inspect
 import re
+import threading
 from typing import List, Protocol
 
 from agency import util
@@ -100,12 +101,19 @@ class Agent():
         """
         Processes an incoming message.
         """
-        # debug(f"{self.id()}({id(self)}) received message", message)
+        # Ignore own broadcasts if _receive_own_broadcasts is false
         if not self._receive_own_broadcasts \
            and message['from'] == self.id() \
            and message['to'] == '*':
             return
 
+        # Spawn a thread to process the message. This means that messages are
+        # processed in parallel, but may be processed out of order.
+        thread = threading.Thread(target=self.__process, args=(message,), daemon=True)
+        thread.start()
+
+
+    def __process(self, message: dict):
         try:
             # Record message and commit action
             self._message_log.append(message)
