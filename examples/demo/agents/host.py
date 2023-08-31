@@ -1,12 +1,15 @@
 import json
+import multiprocessing
 import os
 import re
 import subprocess
+import threading
 
 from agents.mixins.help_methods import HelpMethods
 from colorama import Fore, Style
 
 from agency.agent import ACCESS_REQUESTED, Agent, QueueProtocol, action
+from agency.util import debug
 
 
 class Host(HelpMethods, Agent):
@@ -14,8 +17,13 @@ class Host(HelpMethods, Agent):
     Represents the host system of the running application
     """
 
-    def __init__(self, id: str, outbound_queue: QueueProtocol) -> None:
+    def __init__(self, id: str,
+                 outbound_queue: QueueProtocol = None,
+                 receive_own_broadcasts: bool = True,
+                 admin_id: str = None):
         super().__init__(id, outbound_queue, receive_own_broadcasts=False)
+        self.admin_id = admin_id # the id of the admin to ask for permission
+        
 
     @action(access_policy=ACCESS_REQUESTED)
     def shell_command(self, command: str) -> str:
@@ -60,11 +68,30 @@ class Host(HelpMethods, Agent):
 
     def request_permission(self, proposed_message: dict) -> bool:
         """Asks for permission on the command line"""
-        text = \
-            f"{Fore.RED}***** Permission requested to execute: *****{Style.RESET_ALL}\n" + \
-            json.dumps(proposed_message, indent=2) + \
-            f"\n{Fore.RED}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{Style.RESET_ALL}\n" + \
-            "Allow? (y/n) "
-        print(text, flush=True)
-        permission_response = input()
-        return re.search(r"^y(es)?$", permission_response)
+
+        if proposed_message["from"] == self.admin_id:
+            return True
+
+        else:
+            # send a message to the admin for permission
+            text = \
+                f"{Fore.RED}***** Permission requested to execute: *****{Style.RESET_ALL}\n" + \
+                json.dumps(proposed_message, indent=2) + \
+                f"\n{Fore.RED}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{Style.RESET_ALL}\n" + \
+                "Allow? (y/n) "
+
+            self.send({
+                "to": self.admin_id,
+                "action": {
+                    "name": "say",
+                    "content": text,
+                }
+            })
+
+            # sleep until the admin responds
+
+            return re.search(r"^y(es)?$", response)
+
+    def response(self, data, original_message_id: str):
+        if original_message_id == "request_permission":
+            # handle a permission response and execute the command

@@ -59,13 +59,13 @@ class Agent():
     An Actor that may represent an AI agent, computing system, or human user
     """
 
-    def __init__(self, id: str, outbound_queue: QueueProtocol = None, receive_own_broadcasts: bool = True) -> None:
+    def __init__(self, id: str, outbound_queue: QueueProtocol = None, receive_own_broadcasts: bool = True):
         """
         Initializes an Agent.
 
         Args:
             id: The id of the agent
-            outqueue: The outgoing queue for sending messages
+            outbound_queue: The outgoing queue for sending messages
             receive_own_broadcasts: Whether the agent will receive its own broadcasts. Defaults to True
         """
         if len(id) < 1 or len(id) > 255:
@@ -75,9 +75,9 @@ class Agent():
         if id == "*":
             raise ValueError("id cannot be \"*\"")
         if outbound_queue is None:
-            raise ValueError("outqueue must be provided")
+            raise ValueError("outbound_queue must be provided")
         self.__id: str = id
-        self._outqueue = outbound_queue
+        self._outbound_queue = outbound_queue
         self._receive_own_broadcasts = receive_own_broadcasts
         # stores all sent and received messages
         self._message_log: List[Message] = []
@@ -94,7 +94,7 @@ class Agent():
         """
         message["from"] = self.id()
         self._message_log.append(message)
-        self._outqueue.put(message)
+        self._outbound_queue.put(message)
 
     def _receive(self, message: dict):
         """

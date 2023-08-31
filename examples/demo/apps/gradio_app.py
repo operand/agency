@@ -1,15 +1,12 @@
-import asyncio
 import json
 import multiprocessing
 import re
-import threading
 from typing import List
 
 import gradio as gr
 
 from agency.agent import Agent, QueueProtocol, action
 from agency.schema import Message
-from agency.util import debug
 
 
 class GradioUser(Agent):
@@ -20,7 +17,6 @@ class GradioUser(Agent):
     def __init__(self,
                  id: str,
                  outbound_queue: QueueProtocol,
-                 receive_own_broadcasts: bool = True,
                  _message_log: List[Message] = None,
                  ):
         super().__init__(id,
@@ -39,11 +35,12 @@ class GradioApp():
 
     def __init__(self, space):
         self.space = space
-
-        # Add the agent to the space
+        # Add the agent to the space. We pass a custom message log to the user
+        # agent so that we can access it for rendering in the app
         self._agent_id = "User"
         self._message_log = multiprocessing.Manager().list()
-        self.space.add(GradioUser, self._agent_id, _message_log=self._message_log)
+        self.space.add(GradioUser, self._agent_id,
+                       _message_log=self._message_log)
 
     def send_message(self, text):
         """
@@ -52,8 +49,10 @@ class GradioApp():
         message = self.__parse_input_message(text)
 
         # The gradio app sends a message directly into the space as though it
-        # were coming from the user. Because of this we also append the message
-        # to the _message_log, since we are bypassing that logic.
+        # were coming from the user. Because of this we also append to the
+        # agent's _message_log, since we are bypassing that logic. This isn't
+        # the greatest implementation but is a compromise since running gradio
+        # in a subprocess is problematic.
         self._message_log.append(message)
         self.space._route(message)
 
