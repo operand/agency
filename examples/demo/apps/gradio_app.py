@@ -1,39 +1,62 @@
 import asyncio
 import json
+import multiprocessing
 import re
 import threading
+from typing import List
 
 import gradio as gr
 
 from agency.agent import Agent, QueueProtocol, action
 from agency.schema import Message
+from agency.util import debug
 
 
-class GradioApp(Agent):
+class GradioUser(Agent):
     """
     Represents the Gradio app and its user as an Agent
     """
 
-    def __init__(self, id: str, outbound_queue: QueueProtocol):
-        super().__init__(id, outbound_queue, receive_own_broadcasts=False)
-
-    def after_add(self):
-        # Launch the Gradio app in a thread upon being added
-        thread = threading.Thread(target=self.__launch_gradio_app)
-        thread.start()
+    def __init__(self,
+                 id: str,
+                 outbound_queue: QueueProtocol,
+                 receive_own_broadcasts: bool = True,
+                 _message_log: List[Message] = None,
+                 ):
+        super().__init__(id,
+                         outbound_queue,
+                         receive_own_broadcasts=False)
+        self._message_log = _message_log
 
     @action
     def say(self, content):
-        # We don't do anything to render an incoming message here because the
-        # get_chatbot_messages method will render the full message history
+        # We don't do anything to render here because the get_chatbot_messages
+        # method will render the full message history based on the _message_log
         pass
+
+
+class GradioApp():
+
+    def __init__(self, space):
+        self.space = space
+
+        # Add the agent to the space
+        self._agent_id = "User"
+        self._message_log = multiprocessing.Manager().list()
+        self.space.add(GradioUser, self._agent_id, _message_log=self._message_log)
 
     def send_message(self, text):
         """
         Sends a message as this user
         """
         message = self.__parse_input_message(text)
-        self.send(message)
+
+        # The gradio app sends a message directly into the space as though it
+        # were coming from the user. Because of this we also append the message
+        # to the _message_log, since we are bypassing that logic.
+        self._message_log.append(message)
+        self.space._route(message)
+
         return "", self.get_chatbot_messages()
 
     def get_chatbot_messages(self):
@@ -55,7 +78,7 @@ class GradioApp(Agent):
         else:
             text += f"\n```javascript\n{json.dumps(message, indent=2)}\n```"
 
-        if message['from'] == self.id():
+        if message['from'] == self._agent_id:
             return text, None
         else:
             return None, text
@@ -87,6 +110,7 @@ class GradioApp(Agent):
         if not text.startswith("/"):
             # assume it's a broadcasted "say"
             return {
+                "from": self._agent_id,
                 "to": "*",
                 "action": {
                     "name": "say",
@@ -102,9 +126,9 @@ class GradioApp(Agent):
         if not match:
             raise ValueError("Invalid input format")
 
-        agent_id, action_name, args_str = match.groups()
+        to_agent_id, action_name, args_str = match.groups()
 
-        if agent_id is None:
+        if to_agent_id is None:
             raise ValueError(
                 "Agent ID must be provided. Example: '/MyAgent.say' or '/*.say'")
 
@@ -112,19 +136,18 @@ class GradioApp(Agent):
         args = dict(re.findall(args_pattern, args_str))
 
         return {
-            "to": agent_id.strip('"'),
+            "from": self._agent_id,
+            "to": to_agent_id.strip('"'),
             "action": {
                 "name": action_name,
                 "args": args
             }
         }
 
-    def __launch_gradio_app(self):
+    def demo(self):
         """
-        Launches the Gradio app. This method is run within its own thread.
+        Returns the Gradio app.
         """
-        # Required for the Gradio app to work within a thread
-        asyncio.set_event_loop(asyncio.new_event_loop())
 
         # Custom css to:
         # - Expand text area to fill vertical space
@@ -179,4 +202,5 @@ class GradioApp(Agent):
             )
 
         demo.queue()  # Queueing required for periodic events using `every`
-        demo.launch()
+
+        return demo

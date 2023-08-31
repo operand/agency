@@ -100,6 +100,7 @@ class Agent():
         """
         Processes an incoming message.
         """
+        # debug(f"{self.id()}({id(self)}) received message", message)
         if not self._receive_own_broadcasts \
            and message['from'] == self.id() \
            and message['to'] == '*':

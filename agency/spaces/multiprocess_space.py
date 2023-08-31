@@ -72,7 +72,6 @@ class _AgentProcess():
             except queue.Empty:
                 pass
         agent.before_remove()
-        debug(f"Agent {agent_id} stopped.")
 
 
 class MultiprocessSpace(Space):
@@ -104,6 +103,7 @@ class MultiprocessSpace(Space):
 
     def _route(self, message: Message):
         message = validate_message(message)
+        debug(f"routing message", message)
         recipient_processes = [
             agent_process
             for agent_process in list(self.__agent_processes.values())
@@ -111,7 +111,6 @@ class MultiprocessSpace(Space):
         ]
         for recipient_process in recipient_processes:
             recipient_process.inbound_queue.put(message)
-            debug(f"Routing message to agent {recipient_process.agent_id}(queue:{id(recipient_process.inbound_queue)}, qsize:{recipient_process.inbound_queue.qsize()}):", message)
 
     def add(self, agent_type: Type[Agent], agent_id: str, **agent_kwargs) -> Agent:
         if agent_id in self.__agent_processes.keys():

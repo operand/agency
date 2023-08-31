@@ -10,17 +10,6 @@ from agency.agent import Agent, action
 from agency.schema import Message
 from agency.space import Space
 
-# Usage:
-#
-#   space = NativeSpace()
-#   react_app = ReactApp(space,
-#                        port=os.getenv("WEB_APP_PORT"),
-#                        # NOTE We're hardcoding a single demo user for simplicity
-#                        demo_username="User")
-#   react_app.start()
-#
-# The app will add/remove a single user to the space as they connect
-
 
 class ReactApp():
     """
