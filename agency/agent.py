@@ -2,8 +2,8 @@ import inspect
 import re
 import threading
 import time
-from typing import Dict, List, Protocol
 import uuid
+from typing import Dict, List, Protocol
 
 from agency import util
 from agency.schema import Message
@@ -24,8 +24,7 @@ def action(*args, **kwargs):
             "name": method.__name__,
             "help": util.generate_help(method),
             "access_policy": ACCESS_PERMITTED,
-            **kwargs,
-        }
+            **kwargs}
         return method
 
     if len(args) == 1 and callable(args[0]) and not kwargs:
@@ -57,20 +56,32 @@ class QueueProtocol(Protocol):
         """
 
 
+class ActionError(Exception):
+    pass
+
+
 class Agent():
     """
     An Actor that may represent an AI agent, computing system, or human user
     """
 
-    def __init__(self, id: str, outbound_queue: QueueProtocol = None, receive_own_broadcasts: bool = True):
-        """
-        Initializes an Agent.
+    def __init__(self,
+                 id: str,
+                 outbound_queue: QueueProtocol = None,
+                 receive_own_broadcasts: bool = True):
+        """Initializes an Agent.
+
+        This constructor is not meant to be called directly. It is invoked by
+        the Space instance when adding an agent.
 
         Args:
             id: The id of the agent
             outbound_queue: The outgoing queue for sending messages
-            receive_own_broadcasts: Whether the agent will receive its own broadcasts. Defaults to True
+            receive_own_broadcasts:
+                Whether the agent will receive its own broadcasts. Defaults to
+                True
         """
+        # Validate params
         if len(id) < 1 or len(id) > 255:
             raise ValueError("id must be between 1 and 255 characters")
         if re.match(r"^amq\.", id):
@@ -79,19 +90,15 @@ class Agent():
             raise ValueError("id cannot be \"*\"")
         if outbound_queue is None:
             raise ValueError("outbound_queue must be provided")
-        self.__id: str = id
-        self._outbound_queue = outbound_queue
-        self._receive_own_broadcasts = receive_own_broadcasts
-        # stores all sent and received messages
+        self.id: str = id
+        self._outbound_queue: QueueProtocol = outbound_queue
+        self._receive_own_broadcasts: bool = receive_own_broadcasts
+        # Stores all sent and received messages in chronological order
+        # TODO: place a lock around access
         self._message_log: List[Message] = []
-        # stores outgoing messages which are awaiting a reply
-        self._pending_replies: Dict[str, Message] = []
-        # stores incoming responses
-        self._incoming_responses: Dict[str, Message] = {}
-
-    def id(self) -> str:
-        """The id of this agent."""
-        return self.__id
+        # Stores pending responses
+        # TODO: place a lock around access
+        self._pending_responses: Dict[str, Message] = {}
 
     def send(self, message: dict):
         """Sends (out) a message from this agent.
@@ -99,60 +106,84 @@ class Agent():
         Args:
             message: The message
         """
-        message["from"] = self.id()
+        message["from"] = self.id
         self._message_log.append(message)
         self._outbound_queue.put(message)
 
-    def request(self, message: dict, timeout: float = 3) -> Message:
+    def request(self, message: dict, timeout: float = 3) -> object:
         """
-        Sends a message, waits for and returns the response message.
-
-        This method should only be used with actions that return a response
-        message using the respond() method.
+        Synchronously sends a message from this agent, then waits for and
+        returns the return value of the action.
 
         Args:
             message: The message to send
-            timeout: The timeout in seconds to wait for a reply. Defaults to 3
+            timeout:
+                The timeout in seconds to wait for the returned value. Defaults
+                to 3 seconds.
 
         Returns:
-            Message: The reply message. Note that this may be a `response`
-            message containing a return value, an `error` message containing
-            error information, or any other custom message. To reply with a
-            custom message, the receiving action must provide the original
-            message id when replying.
+            object: The return value of the action.
 
         Raises:
             TimeoutError: If the timeout is reached
+            ActionError: If the action raised an exception
         """
-        # place a uuid in the meta field
-        message["meta"] = {
-            **message["meta"],
-            "request_id": str(uuid.uuid4())
-        }
-        self.send(message)
+        # Add a request id to the meta field
+        request_id = str(uuid.uuid4())
+        self.send({
+            **message,
+            "meta": {
+                **message.get("meta", {}),
+                "request_id": request_id
+            }
+        })
 
-        # wait for the reply
-        self._pending_replies[message["id"]] = None
+        # Record the message as pending
+        self._pending_responses[request_id] = None
+
+        # Wait for response
+        # TODO: use events instead of busy waiting
         start_time = time.time()
-        while time.time() - start_time < timeout:
-            ...
+        while self._pending_responses[request_id] is None:
+            time.sleep(0.001)
+            if time.time() - start_time > timeout:
+                raise TimeoutError
+        response_message = self._pending_responses.pop(request_id)
 
-    def respond(self, message: dict):
-        ...
+        return response_message
 
     def _receive(self, message: dict):
-        """Processes an incoming message."""
+        """
+        Receives an incoming message and handles it appropriately.
+
+        Args:
+            message: The message
+        """
         # Ignore own broadcasts if _receive_own_broadcasts is false
         if not self._receive_own_broadcasts \
            and message['from'] == self.id() \
            and message['to'] == '*':
             return
 
-        # Spawn a thread to process the message. This means that messages are
-        # processed in parallel, but may be processed out of order.
-        thread = threading.Thread(
-            target=self.__process, args=(message,), daemon=True)
-        thread.start()
+        # Handle incoming responses
+        if message["action"]["name"] == "response":
+            response_id = message["meta"]["response_id"]
+            if response_id in self._pending_responses.keys():
+                self._pending_responses[response_id] = message
+                # From here the original action will pick up the response
+            else:
+                print_warning(f"Discarding response for unknown request: {response_id}. Response message: {message}.")
+
+        # Handle incoming errors
+        elif message["action"]["name"] == "error":
+            raise ActionError(message["action"]["args"]["error"])
+
+        # Handle all other messages
+        else:
+            # Spawn a thread to process the message. This means that messages
+            # are processed concurrently, but may be processed out of order.
+            threading.Thread(
+                target=self.__process, args=(message,), daemon=True).start()
 
     def __process(self, message: dict):
         try:
@@ -176,8 +207,7 @@ class Agent():
             })
 
     def __commit(self, message: dict):
-        """
-        Invokes the action if permitted
+        """Invokes the action if permitted
 
         Args:
             message: The message
@@ -289,30 +319,6 @@ class Agent():
             or method.action_properties["name"] == action_name
         }
         return help_list
-
-    @action
-    def return_value(self, value, original_message_id: str = None):
-        """
-        Receives a return value from a prior action.
-
-        Args:
-            data: The returned value from the action.
-            original_message_id: The id field of the original message.
-        """
-        print_warning(
-            f"Data was returned from an action. Implement a `response` action to handle it.")
-
-    @action
-    def error(self, error: str, original_message_id: str = None):
-        """
-        Receives errors from a prior action.
-
-        Args:
-            error: The error message.
-            original_message_id: The id field of the original message.
-        """
-        print_warning(
-            f"An error occurred in an action. Implement an `error` action to handle it.")
 
     def after_add(self):
         """
