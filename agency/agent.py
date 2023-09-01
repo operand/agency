@@ -101,7 +101,8 @@ class Agent():
         self._pending_responses: Dict[str, Message] = {}
 
     def send(self, message: dict):
-        """Sends (out) a message from this agent.
+        """
+        Sends (out) a message from this agent.
 
         Args:
             message: The message
@@ -112,8 +113,18 @@ class Agent():
 
     def request(self, message: dict, timeout: float = 3) -> object:
         """
-        Synchronously sends a message from this agent, then waits for and
-        returns the return value of the action.
+        Synchronously sends a message then waits for and returns the return
+        value of the invoked action.
+
+        This is a convenience method that allows you to call an action
+        synchronously like a function and receive its return value in python.
+
+        Note that requests and their responses are NOT recorded to an agent's
+        message log.
+
+        This method should normally not be used with an LLM's output directly,
+        since you would want the response to be handled as a new incoming
+        message and not as a return value in python.
 
         Args:
             message: The message to send
@@ -128,33 +139,35 @@ class Agent():
             TimeoutError: If the timeout is reached
             ActionError: If the action raised an exception
         """
-        # Add a request id to the meta field
+        # Add request_id to the meta field
         request_id = str(uuid.uuid4())
-        self.send({
-            **message,
-            "meta": {
-                **message.get("meta", {}),
-                "request_id": request_id
-            }
-        })
+        message["meta"] = {
+            **message.get("meta"),
+            "request_id": request_id,
+        }
 
-        # Record the message as pending
-        self._pending_responses[request_id] = None
+        # Send without recording to the message log
+        self.send(message, record=False)
+
+        # Mark the request as pending
+        # TODO: add a lock
+        pending_flag = "__pending__" + request_id
+        self._pending_responses[request_id] = pending_flag
 
         # Wait for response
         # TODO: use events instead of busy waiting
         start_time = time.time()
-        while self._pending_responses[request_id] is None:
+        while self._pending_responses[request_id] == pending_flag:
             time.sleep(0.001)
             if time.time() - start_time > timeout:
                 raise TimeoutError
-        response_message = self._pending_responses.pop(request_id)
 
-        return response_message
+        return_value = self._pending_responses.pop(request_id)
+        return return_value
 
     def _receive(self, message: dict):
         """
-        Receives an incoming message and handles it appropriately.
+        Receives and handles an incoming message.
 
         Args:
             message: The message
@@ -172,11 +185,12 @@ class Agent():
                 self._pending_responses[response_id] = message
                 # From here the original action will pick up the response
             else:
-                print_warning(f"Discarding response for unknown request: {response_id}. Response message: {message}.")
+                print_warning(
+                    f"Discarding response for unknown request: {response_id}. Response message: {message}.")
 
         # Handle incoming errors
         elif message["action"]["name"] == "error":
-            raise ActionError(message["action"]["args"]["error"])
+            print_warning(f"Error received: {message}")
 
         # Handle all other messages
         else:
@@ -196,7 +210,7 @@ class Agent():
             # error back to the sender.
             self.send({
                 "to": message['from'],
-                "from": self.id(),
+                "from": self.id,
                 "action": {
                     "name": "error",
                     "args": {
@@ -207,7 +221,8 @@ class Agent():
             })
 
     def __commit(self, message: dict):
-        """Invokes the action if permitted
+        """
+        Invokes the action if permitted
 
         Args:
             message: The message
@@ -220,13 +235,11 @@ class Agent():
             action_method = self.__action_method(message["action"]["name"])
         except KeyError:
             # the action was not found
-            if message['to'] == self.id():
-                # if it was point to point, raise an error
-                raise AttributeError(
-                    f"\"{message['action']['name']}\" not found on \"{self.id()}\"")
+            if message['to'] == '*':
+                return  # broadcasts will not raise an error in this situation
             else:
-                # broadcasts will not raise an error
-                return
+                raise AttributeError(
+                    f"\"{message['action']['name']}\" not found on \"{self.id}\"")
 
         self.before_action(message)
 
@@ -238,23 +251,28 @@ class Agent():
 
                 # Invoke the action method
                 # (set _current_message so that it can be used by the action)
+                # TODO: Make _current_message threadsafe
                 self._current_message = message
                 return_value = action_method(**message['action']['args'])
                 self._current_message = None
 
-                # The return value if any, from an action method is sent back to
-                # the sender as a "response" action.
-                if return_value is not None:
+                # If the message was a request, respond with the return value
+                if message.get('meta', {}).get('request_id'):
                     self.send({
+                        "meta": {"response_id": message['meta']['request_id']},
                         "to": message['from'],
                         "action": {
-                            "name": "return_value",
+                            "name": "response",
                             "args": {
                                 "value": return_value,
-                                "original_message_id": message.get('id'),
                             },
                         }
                     })
+                elif return_value is not None:
+                    print_warning(re.sub(r"\n$", "", """A value was returned
+                    from an action that was not called via a request. If you
+                    want to receive the value from this action, use the
+                    `request()` method rather than `send()`."""))
             else:
                 raise PermissionError(
                   f"\"{self.id()}.{message['action']['name']}\" not permitted")
