@@ -13,16 +13,15 @@ class Space(ABC, metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def add(self, agent_type: Type[Agent], agent_id: str, **kwargs) -> Agent:
+    def add(self, agent_type: Type[Agent], agent_id: str, **kwargs):
         """
         Adds an agent to the space allowing it to communicate.
+
+        Keyword arguments are passed to the agent's constructor.
 
         Args:
             agent_type: The type of agent to add
             agent_id: The id of the agent to add
-
-        Returns:
-            Agent: The agent that was added
 
         Raises:
             ValueError: If the agent ID is already in use
@@ -31,7 +30,7 @@ class Space(ABC, metaclass=ABCMeta):
     @abstractmethod
     def remove(self, agent_id: str):
         """
-        Removes an agent from the space.
+        Removes an agent from the space by id.
 
         This method cannot remove an agent instance added from a different space
         instance. In other words, a space instance cannot remove an agent that

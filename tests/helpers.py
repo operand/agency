@@ -17,7 +17,7 @@ multiprocessing.set_start_method('spawn', force=True)
 
 class ObservableAgent(Agent):
     """
-    Agent class that receives a custom _message_log for inspecting in tests.
+    Agent class that receives a custom _message_log for inspection in tests.
 
     This class also ignores its own broadcasts by default for convenience.
     """

@@ -9,10 +9,9 @@ from agency import util
 from agency.schema import Message
 from agency.util import debug, print_warning
 
-# access keys
-ACCESS_PERMITTED = "permitted"
-ACCESS_DENIED = "denied"
-ACCESS_REQUESTED = "requested"
+ACCESS_PERMITTED = "ACCESS_PERMITTED"
+ACCESS_DENIED = "ACCESS_DENIED"
+ACCESS_REQUESTED = "ACCESS_REQUESTED"
 
 
 def action(*args, **kwargs):
@@ -77,7 +76,7 @@ class Agent():
         """Initializes an Agent.
 
         This constructor is not meant to be called directly. It is invoked by
-        the Space instance when adding an agent.
+        the space when adding an agent.
 
         Args:
             id: The id of the agent
@@ -123,7 +122,7 @@ class Agent():
 
         This method allows you to call an action synchronously like a function
         and receive its return value in python. If the action raises an
-        exception then ActionError will be raised containing the error message.
+        exception an ActionError will be raised containing the error message.
 
         Args:
             message: The message to send
@@ -176,7 +175,7 @@ class Agent():
             return
 
         # Handle incoming responses
-        if message["action"]["name"] == "response":
+        if message["action"]["name"] == "response": # special action name
             response_id = message["meta"]["response_id"]
             if response_id in self._pending_responses.keys():
                 self._pending_responses[response_id] = message
@@ -197,14 +196,17 @@ class Agent():
                 target=self.__process, args=(message,), daemon=True).start()
 
     def __process(self, message: dict):
+        """
+        Top level method within the action processing thread.
+        """
         try:
             # Record message and commit action
             self._message_log.append(message)
             self.__commit(message)
         except Exception as e:
-            # Here we handle exceptions that occur while committing an action,
-            # including PermissionError's from access denial, by reporting the
-            # error back to the sender.
+            # Handle exceptions that occur while committing an action, including
+            # PermissionError's from access denial, by reporting the error back
+            # to the sender.
             self.send({
                 "to": message['from'],
                 "from": self.id,
@@ -253,23 +255,26 @@ class Agent():
                 return_value = action_method(**message['action']['args'])
                 self._current_message = None
 
-                # If the message was a request, respond with the return value
-                if message.get('meta', {}).get('request_id'):
-                    self.send({
-                        "meta": {"response_id": message['meta']['request_id']},
+                # If the action returned a value, or this was a request (which
+                # expects a value), send the value back
+                request_id = message.get("meta", {}).get("request_id")
+                if return_value is not None or request_id:
+                    response_message = {
                         "to": message['from'],
                         "action": {
-                            "name": "response",
+                            "name": "return_value",
                             "args": {
                                 "value": return_value,
                             }
                         }
-                    })
-                elif return_value is not None:
-                    print_warning(re.sub(r"\n$", "", """A value was returned
-                    from an action that was not called via a request. If you
-                    want to receive the value from this action, use the
-                    `request()` method rather than `send()`."""))
+                    }
+                    if request_id:
+                        # provide the request_id as response_id
+                        response_message["meta"] = {
+                            **response_message.get("meta"),
+                            "response_id": request_id
+                        },
+                    self.send(response_message)
             else:
                 raise PermissionError(
                   f"\"{self.id()}.{message['action']['name']}\" not permitted")
