@@ -6,7 +6,7 @@ below for how to update the site.
 ## Updating Articles
 
 Articles are located at [`_articles/`](./_articles/). Feel free to update or add
-new articles as needed. Articles should be written using Markdown.
+new articles as needed. Articles are written using Markdown.
 
 ## Updating API Documentation
 

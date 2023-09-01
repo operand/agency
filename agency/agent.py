@@ -76,7 +76,7 @@ class Agent():
         """Initializes an Agent.
 
         This constructor is not meant to be called directly. It is invoked by
-        the space when adding an agent.
+        the Space class when adding an agent.
 
         Args:
             id: The id of the agent
@@ -103,6 +103,7 @@ class Agent():
         # Stores pending responses
         # TODO: place a lock around access
         self._pending_responses: Dict[str, Message] = {}
+        self._thread_local_current_message = threading.local()
 
     def send(self, message: dict):
         """
@@ -175,18 +176,23 @@ class Agent():
             return
 
         # Handle incoming responses
-        if message["action"]["name"] == "response": # special action name
+        if message["action"]["name"] == "response":
             response_id = message["meta"]["response_id"]
-            if response_id in self._pending_responses.keys():
-                self._pending_responses[response_id] = message
-                # From here the original action will pick up the response
+            if response_id:
+                # This was a response to a request()
+                if response_id in self._pending_responses.keys():
+                    self._pending_responses[response_id] = message
+                    # From here the request() method will pick up the response
+                else:
+                    print_warning(
+                        f"Discarding response for unknown request: {response_id}. Response: {message}.")
             else:
-                print_warning(
-                    f"Discarding response for unknown request: {response_id}. Response message: {message}.")
-
-        # Handle incoming errors
-        elif message["action"]["name"] == "error":
-            print_warning(f"Error received: {message}")
+                # This was from a send()
+                if "value" in message["action"]["args"]:
+                    self.handle_return(message["action"]["args"]["value"])
+                # Handle incoming errors
+                elif message["action"]["name"] == "error":
+                    print_warning(f"Error received: {message}")
 
         # Handle all other messages
         else:
@@ -194,6 +200,20 @@ class Agent():
             # are processed concurrently, but may be processed out of order.
             threading.Thread(
                 target=self.__process, args=(message,), daemon=True).start()
+
+    def _current_message(self) -> Message:
+        """
+        Returns the full message which invoked the current action.
+
+        This method may be called within an action to retrieve the current
+        message, for example to determine the sender or inspect other details.
+
+        Outside of an action this method will return None.
+
+        Returns:
+            The current message or None if called outside of an action
+        """
+        return self._thread_local_current_message.value
 
     def __process(self, message: dict):
         """
@@ -211,10 +231,10 @@ class Agent():
                 "to": message['from'],
                 "from": self.id,
                 "action": {
-                    "name": "error",
+                    "name": "response",
                     "args": {
                         "error": f"{e}",
-                        "original_message_id": message.get('id'),
+                        "original_message": message,
                     }
                 }
             })
@@ -249,11 +269,9 @@ class Agent():
             if self.__permitted(message):
 
                 # Invoke the action method
-                # (set _current_message so that it can be used by the action)
-                # TODO: Make _current_message threadsafe
-                self._current_message = message
+                # (set _thread_local_current_message so that it can be used by the action)
+                self._thread_local_current_message.value = message
                 return_value = action_method(**message['action']['args'])
-                self._current_message = None
 
                 # If the action returned a value, or this was a request (which
                 # expects a value), send the value back
@@ -262,9 +280,10 @@ class Agent():
                     response_message = {
                         "to": message['from'],
                         "action": {
-                            "name": "return_value",
+                            "name": "response",
                             "args": {
                                 "value": return_value,
+                                "original_message": message,
                             }
                         }
                     }
@@ -390,28 +409,28 @@ class Agent():
         raise NotImplementedError(
             f"You must implement {self.__class__.__name__}.request_permission to use ACCESS_REQUESTED")
 
-    def handle_return_value(self, return_value, original_message: dict):
+    def handle_return(self, value, original_message: dict):
         """
         Receives a return value from a prior action.
 
-        This method is invoked for values returned from an action. It is not
-        invoked when using the request() method, which will instead return the
-        value.
+        This method receives values returned from actions invoked by the send()
+        method. It is not called when using the request() method, which will
+        return the value directly.
 
         Args:
             return_value: The return value from the action
             original_message: The original message
         """
         print_warning(
-            f"A value was returned from an action. Implement {self.__class__.__name__}.handle_return_value to handle it.")
+            f"A value was returned from an action. Implement {self.__class__.__name__}.handle_return to handle it.")
 
-    def handle_error(self, error_message: dict, original_message: dict):
+    def handle_error(self, error: str, original_message: dict):
         """
         Receives an error message from a prior action.
 
-        This method is invoked for errors resulting from messages sent by the
-        send() method. It is not invoked when using the request() method, which
-        will instead raise the error as an exception.
+        This method receives errors resulting from actions invoked by the send()
+        method. It is not called when using the request() method, which will
+        instead raise the error as an exception.
 
         Args:
             error_message: The error message
