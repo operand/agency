@@ -19,11 +19,6 @@ class Action(BaseModel):
 class Message(BaseModel):
     """Schema for a message"""
 
-    id: Optional[str] = Field(
-        None,
-        description="An optional id referenced as `original_message_id` in `response` or `error` messages."
-    )
-
     meta: Optional[Dict] = Field(
         None,
         description="An optional dictionary field for storing metadata about the message."

@@ -1,7 +1,9 @@
 import inspect
 import re
 import threading
-from typing import List, Protocol
+import time
+from typing import Dict, List, Protocol
+import uuid
 
 from agency import util
 from agency.schema import Message
@@ -82,25 +84,64 @@ class Agent():
         self._receive_own_broadcasts = receive_own_broadcasts
         # stores all sent and received messages
         self._message_log: List[Message] = []
+        # stores outgoing messages which are awaiting a reply
+        self._pending_replies: Dict[str, Message] = []
+        # stores incoming responses
+        self._incoming_responses: Dict[str, Message] = {}
 
     def id(self) -> str:
-        """
-        The id of this agent.
-        """
+        """The id of this agent."""
         return self.__id
 
     def send(self, message: dict):
-        """
-        Sends (out) a message from this agent.
+        """Sends (out) a message from this agent.
+
+        Args:
+            message: The message
         """
         message["from"] = self.id()
         self._message_log.append(message)
         self._outbound_queue.put(message)
 
+    def request(self, message: dict, timeout: float = 3) -> Message:
+        """
+        Sends a message, waits for and returns the response message.
+
+        This method should only be used with actions that return a response
+        message using the respond() method.
+
+        Args:
+            message: The message to send
+            timeout: The timeout in seconds to wait for a reply. Defaults to 3
+
+        Returns:
+            Message: The reply message. Note that this may be a `response`
+            message containing a return value, an `error` message containing
+            error information, or any other custom message. To reply with a
+            custom message, the receiving action must provide the original
+            message id when replying.
+
+        Raises:
+            TimeoutError: If the timeout is reached
+        """
+        # place a uuid in the meta field
+        message["meta"] = {
+            **message["meta"],
+            "request_id": str(uuid.uuid4())
+        }
+        self.send(message)
+
+        # wait for the reply
+        self._pending_replies[message["id"]] = None
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            ...
+
+    def respond(self, message: dict):
+        ...
+
     def _receive(self, message: dict):
-        """
-        Processes an incoming message.
-        """
+        """Processes an incoming message."""
         # Ignore own broadcasts if _receive_own_broadcasts is false
         if not self._receive_own_broadcasts \
            and message['from'] == self.id() \
@@ -109,9 +150,9 @@ class Agent():
 
         # Spawn a thread to process the message. This means that messages are
         # processed in parallel, but may be processed out of order.
-        thread = threading.Thread(target=self.__process, args=(message,), daemon=True)
+        thread = threading.Thread(
+            target=self.__process, args=(message,), daemon=True)
         thread.start()
-
 
     def __process(self, message: dict):
         try:
@@ -177,9 +218,9 @@ class Agent():
                     self.send({
                         "to": message['from'],
                         "action": {
-                            "name": "response",
+                            "name": "return_value",
                             "args": {
-                                "data": return_value,
+                                "value": return_value,
                                 "original_message_id": message.get('id'),
                             },
                         }
@@ -250,13 +291,13 @@ class Agent():
         return help_list
 
     @action
-    def response(self, data, original_message_id: str = None):
+    def return_value(self, value, original_message_id: str = None):
         """
         Receives a return value from a prior action.
 
         Args:
             data: The returned value from the action.
-            original_message_id: The id field of the original message
+            original_message_id: The id field of the original message.
         """
         print_warning(
             f"Data was returned from an action. Implement a `response` action to handle it.")
@@ -267,8 +308,8 @@ class Agent():
         Receives errors from a prior action.
 
         Args:
-            error: The error message
-            original_message_id: The id field of the original message
+            error: The error message.
+            original_message_id: The id field of the original message.
         """
         print_warning(
             f"An error occurred in an action. Implement an `error` action to handle it.")

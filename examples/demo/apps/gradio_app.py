@@ -172,34 +172,30 @@ class GradioApp():
             border: none !important;
         }
         """
-
         # Adapted from: https://www.gradio.app/docs/chatbot#demos
         with gr.Blocks(css=css, title="Agency Demo") as demo:
             # Chatbot area
             chatbot = gr.Chatbot(
                 self.get_chatbot_messages,
                 show_label=False,
-                elem_id="chatbot",
-            )
+                elem_id="chatbot")
 
             # Input area
             with gr.Row():
                 txt = gr.Textbox(
                     show_label=False,
                     placeholder="Enter text and press enter",
-                    container=False,
-                )
+                    container=False)
                 btn = gr.Button("Send", scale=0)
 
             # Callbacks
             txt.submit(self.send_message, [txt], [txt, chatbot])
             btn.click(self.send_message, [txt], [txt, chatbot])
 
-            # Continously updates the chatbot. Runs only while client is connected.
-            demo.load(
-                self.get_chatbot_messages, None, [chatbot], every=1
-            )
+            # Continously updates the chatbot. Runs while client is connected.
+            demo.load(self.get_chatbot_messages, None, [chatbot], every=1)
 
-        demo.queue()  # Queueing required for periodic events using `every`
+        # Queueing required for periodic events using `every`
+        demo.queue()
 
         return demo

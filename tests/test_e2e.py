@@ -1,3 +1,4 @@
+import pytest
 from agency.agent import (ACCESS_DENIED, ACCESS_REQUESTED, action)
 from tests.helpers import ObservableAgent, add_agent, assert_message_log
 

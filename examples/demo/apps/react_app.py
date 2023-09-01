@@ -116,7 +116,7 @@ class ReactAppUser(Agent):
             'message', self._current_message, room=self.sid)
 
     @action
-    def response(self, data, original_message_id: str):
+    def return_value(self, data, original_message_id: str):
         self.app.socketio.server.emit(
             'message', self._current_message, room=self.sid)
 

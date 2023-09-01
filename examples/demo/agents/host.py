@@ -1,15 +1,15 @@
 import json
-import multiprocessing
 import os
-import re
 import subprocess
-import threading
+import time
+from typing import Dict
+import uuid
+from agency import util
 
 from agents.mixins.help_methods import HelpMethods
 from colorama import Fore, Style
 
 from agency.agent import ACCESS_REQUESTED, Agent, QueueProtocol, action
-from agency.util import debug
 
 
 class Host(HelpMethods, Agent):
@@ -22,7 +22,10 @@ class Host(HelpMethods, Agent):
                  receive_own_broadcasts: bool = True,
                  admin_id: str = None):
         super().__init__(id, outbound_queue, receive_own_broadcasts=False)
-        self.admin_id = admin_id # the id of the admin to ask for permission
+        # the id of the admin to ask for permission
+        self.admin_id = admin_id
+        # used by the request_permission method to asynchronously ask for permission
+        self.pending_permissions: Dict[str, bool] = {}
         
 
     @action(access_policy=ACCESS_REQUESTED)
@@ -80,7 +83,8 @@ class Host(HelpMethods, Agent):
                 f"\n{Fore.RED}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{Style.RESET_ALL}\n" + \
                 "Allow? (y/n) "
 
-            self.send({
+            response = self.send_and_await_reply({
+                "id": f"request_permission-{uuid.uuid4()}",
                 "to": self.admin_id,
                 "action": {
                     "name": "say",
@@ -88,10 +92,9 @@ class Host(HelpMethods, Agent):
                 }
             })
 
-            # sleep until the admin responds
+            # return re.search(r"^y(es)?$", response)
 
-            return re.search(r"^y(es)?$", response)
-
-    def response(self, data, original_message_id: str):
+    def return_value(self, data, original_message_id: str):
         if original_message_id == "request_permission":
             # handle a permission response and execute the command
+            pass
