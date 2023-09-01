@@ -116,15 +116,9 @@ class Agent():
         Synchronously sends a message then waits for and returns the return
         value of the invoked action.
 
-        This is a convenience method that allows you to call an action
-        synchronously like a function and receive its return value in python.
-
-        Note that requests and their responses are NOT recorded to an agent's
-        message log.
-
-        This method should normally not be used with an LLM's output directly,
-        since you would want the response to be handled as a new incoming
-        message and not as a return value in python.
+        This method allows you to call an action synchronously like a function
+        and receive its return value in python. If the action raises an
+        exception then the exception will be raised.
 
         Args:
             message: The message to send
@@ -387,3 +381,18 @@ class Agent():
         """
         raise NotImplementedError(
             f"You must implement {self.__class__.__name__}.request_permission to use ACCESS_REQUESTED")
+
+    def handle_error(self, error_message: dict, original_message: dict):
+        """
+        Receives an error message from a prior action.
+
+        This method is invoked for errors resulting from messages sent by the
+        send() method. It is not invoked when using the request() method, which
+        will instead raise the error as an exception.
+
+        Args:
+            error_message: The error message
+            original_message: The original message that caused the error
+        """
+        print_warning(
+            f"An error occurred in an action. Implement `handle_error` to handle it.")
