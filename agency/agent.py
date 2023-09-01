@@ -17,7 +17,12 @@ ACCESS_REQUESTED = "requested"
 
 def action(*args, **kwargs):
     """
-    Declares instance methods as actions making them accessible to other agents
+    Declares instance methods as actions making them accessible to other agents.
+
+    Keyword arguments:
+        name: The name of the action. Defaults to the name of the method.
+        help: The help object. Defaults to a generated object.
+        access_policy: The access policy. Defaults to ACCESS_PERMITTED.
     """
     def decorator(method):
         method.action_properties = {
@@ -118,7 +123,7 @@ class Agent():
 
         This method allows you to call an action synchronously like a function
         and receive its return value in python. If the action raises an
-        exception then the exception will be raised.
+        exception then ActionError will be raised containing the error message.
 
         Args:
             message: The message to send
@@ -140,10 +145,8 @@ class Agent():
             "request_id": request_id,
         }
 
-        # Send without recording to the message log
-        self.send(message, record=False)
-
-        # Mark the request as pending
+        # Send and mark the request as pending
+        self.send(message)
         # TODO: add a lock
         pending_flag = "__pending__" + request_id
         self._pending_responses[request_id] = pending_flag
@@ -259,7 +262,7 @@ class Agent():
                             "name": "response",
                             "args": {
                                 "value": return_value,
-                            },
+                            }
                         }
                     })
                 elif return_value is not None:
@@ -320,9 +323,9 @@ class Agent():
             action_name: (Optional) The name of an action to request help for
 
         Returns:
-            A list of actions
+            A dictionary of actions
         """
-        special_actions = ["help", "response", "error"]
+        special_actions = ["help"]
         help_list = {
             method.action_properties["name"]: method.action_properties["help"]
             for method in self.__action_methods().values()
@@ -382,6 +385,21 @@ class Agent():
         raise NotImplementedError(
             f"You must implement {self.__class__.__name__}.request_permission to use ACCESS_REQUESTED")
 
+    def handle_return_value(self, return_value, original_message: dict):
+        """
+        Receives a return value from a prior action.
+
+        This method is invoked for values returned from an action. It is not
+        invoked when using the request() method, which will instead return the
+        value.
+
+        Args:
+            return_value: The return value from the action
+            original_message: The original message
+        """
+        print_warning(
+            f"A value was returned from an action. Implement {self.__class__.__name__}.handle_return_value to handle it.")
+
     def handle_error(self, error_message: dict, original_message: dict):
         """
         Receives an error message from a prior action.
@@ -395,4 +413,4 @@ class Agent():
             original_message: The original message that caused the error
         """
         print_warning(
-            f"An error occurred in an action. Implement `handle_error` to handle it.")
+            f"An error occurred in an action. Implement {self.__class__.__name__}.handle_error to handle it.")
