@@ -2,18 +2,6 @@ from agency.agent import (ACCESS_DENIED, ACCESS_REQUESTED, action)
 from tests.helpers import ObservableAgent, add_agent, assert_message_log
 
 
-# NOTE: Tests below define one or two agent classes before each test function
-
-"""
-send/response
-send/error
-
-request/response
-request/error
-"""
-
-
-
 class _HelpActionAgent(ObservableAgent):
     @action
     def action_with_docstring(self, content: str, number, thing: dict, foo: bool) -> dict:

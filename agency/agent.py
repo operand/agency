@@ -94,7 +94,7 @@ class Agent():
             raise ValueError("id cannot be \"*\"")
         if outbound_queue is None:
             raise ValueError("outbound_queue must be provided")
-        self.id: str = id
+        self._id: str = id
         self._outbound_queue: QueueProtocol = outbound_queue
         self._receive_own_broadcasts: bool = receive_own_broadcasts
         # Stores all sent and received messages in chronological order
@@ -105,6 +105,9 @@ class Agent():
         self._pending_responses: Dict[str, Message] = {}
         self._thread_local_current_message = threading.local()
 
+    def id(self) -> str:
+        return self._id
+
     def send(self, message: dict):
         """
         Sends (out) a message from this agent.
@@ -112,7 +115,7 @@ class Agent():
         Args:
             message: The message
         """
-        message["from"] = self.id
+        message["from"] = self.id()
         self._message_log.append(message)
         self._outbound_queue.put(message)
 
@@ -159,8 +162,8 @@ class Agent():
             if time.time() - start_time > timeout:
                 raise TimeoutError
 
-        return_value = self._pending_responses.pop(request_id)
-        return return_value
+        response_message = self._pending_responses.pop(request_id)
+        return response_message
 
     def _receive(self, message: dict):
         """
@@ -229,7 +232,7 @@ class Agent():
             # to the sender.
             self.send({
                 "to": message['from'],
-                "from": self.id,
+                "from": self.id(),
                 "action": {
                     "name": "response",
                     "args": {
@@ -258,7 +261,7 @@ class Agent():
                 return  # broadcasts will not raise an error in this situation
             else:
                 raise AttributeError(
-                    f"\"{message['action']['name']}\" not found on \"{self.id}\"")
+                    f"\"{message['action']['name']}\" not found on \"{self.id()}\"")
 
         self.before_action(message)
 
