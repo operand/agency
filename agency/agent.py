@@ -73,7 +73,8 @@ class Agent():
                  id: str,
                  outbound_queue: QueueProtocol = None,
                  receive_own_broadcasts: bool = True):
-        """Initializes an Agent.
+        """
+        Initializes an Agent.
 
         This constructor is not meant to be called directly. It is invoked by
         the Space class when adding an agent.
@@ -85,7 +86,6 @@ class Agent():
                 Whether the agent will receive its own broadcasts. Defaults to
                 True
         """
-        # Validate params
         if len(id) < 1 or len(id) > 255:
             raise ValueError("id must be between 1 and 255 characters")
         if re.match(r"^amq\.", id):
@@ -162,8 +162,11 @@ class Agent():
             if time.time() - start_time > timeout:
                 raise TimeoutError
 
+        # Raise error or return value from response
         response_message = self._pending_responses.pop(request_id)
-        return response_message
+        if "error" in response_message["action"]["args"]:
+            raise ActionError(response_message["action"]["args"]["error"])
+        return response_message["action"]["args"]["value"]
 
     def _receive(self, message: dict):
         """
@@ -180,7 +183,7 @@ class Agent():
 
         # Handle incoming responses
         if message["action"]["name"] == "response":
-            response_id = message["meta"]["response_id"]
+            response_id = message.get("meta", {}).get("response_id")
             if response_id:
                 # This was a response to a request()
                 if response_id in self._pending_responses.keys():
@@ -188,11 +191,15 @@ class Agent():
                     # From here the request() method will pick up the response
                 else:
                     print_warning(
-                        f"Discarding response for unknown request: {response_id}. Response: {message}.")
+                        f"Discarding response for unknown request: {message}.")
             else:
-                # This was from a send()
+                # This was a response to a send()
                 if "value" in message["action"]["args"]:
-                    self.handle_return(message["action"]["args"]["value"])
+                    debug(f"handling return", message)
+                    self.handle_return(
+                        message["action"]["args"]["value"],
+                        message["action"]["args"]["original_message"],
+                    )
                 # Handle incoming errors
                 elif message["action"]["name"] == "error":
                     print_warning(f"Error received: {message}")

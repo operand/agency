@@ -36,6 +36,15 @@ class _HelpActionAgent(ObservableAgent):
 def test_help_action(any_space):
     """Tests defining help info, requesting it, receiving the response"""
 
+    first_message = {
+        'to': '*',  # broadcast
+        'from': 'Webster',
+        'action': {
+            'name': 'help',
+            'args': {}
+        }
+    }
+
     chattys_expected_response = {
         "to": "Webster",
         "from": "Chatty",
@@ -61,7 +70,7 @@ def test_help_action(any_space):
                         "stuff": ["a", "b", "c"]
                     }
                 },
-                "original_message_id": None,
+                "original_message": first_message,
             }
         }
     }
@@ -70,14 +79,6 @@ def test_help_action(any_space):
     chattys_log = add_agent(any_space, _HelpActionAgent, "Chatty")
 
     # Send the first message and wait for a response
-    first_message = {
-        'to': '*',  # broadcast
-        'from': 'Webster',
-        'action': {
-            'name': 'help',
-            'args': {}
-        }
-    }
     any_space._route(first_message)
     assert_message_log(websters_log, [chattys_expected_response])
     assert_message_log(chattys_log, [first_message, chattys_expected_response])
