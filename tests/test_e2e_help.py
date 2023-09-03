@@ -70,7 +70,6 @@ def test_help_action(any_space):
                         "stuff": ["a", "b", "c"]
                     }
                 },
-                "original_message_id": None,
             }
         }
     }

@@ -146,16 +146,14 @@ class Agent():
             TimeoutError: If the timeout is reached
             ActionError: If the action raised an exception
         """
-        # Add request_id to the meta field. This identifies it as a request
+        # Add id to the meta field. This identifies it as a request
         request_id = str(uuid.uuid4())
-        message["meta"] = {
-            **message.get("meta"),
-            "request_id": request_id,
-        }
+        message["meta"] = message.get("meta", {})
+        message["meta"]["id"] = request_id
 
         # Send and mark the request as pending
         self.send(message)
-        pending_flag = "__pending__" + request_id
+        pending_flag = "pending--" + request_id
         # TODO: add a lock here
         self._pending_responses[request_id] = pending_flag
 
