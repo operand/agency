@@ -125,7 +125,36 @@ def test_send_and_error(any_space):
 
 @pytest.mark.skip
 def test_request_and_return(any_space):
-    raise NotImplementedError
+    websters_log = add_agent(any_space, ObservableAgent, "Webster")
+    chattys_log = add_agent(any_space, _MessagingTestAgent, "Chatty")
+
+    first_message = {
+        'meta': {
+            "id": "123 whatever i feel like here"
+        },
+        'to': 'Chatty',
+        'from': 'Webster',
+        'action': {
+            'name': 'say_with_return',
+            'args': {
+                'content': 'Hi Chatty!'
+            }
+        }
+    }
+    any_space._route(first_message)
+    assert_message_log(websters_log, [{
+        "meta": {
+            "response_id": "123 whatever i feel like here",
+        },
+        "to": "Webster",
+        "from": "Chatty",
+        "action": {
+            "name": "response",
+            "args": {
+                "value": ["Hello!"],
+            }
+        }
+    }])
 
 
 @pytest.mark.skip
@@ -133,16 +162,10 @@ def test_request_and_error(any_space):
     raise NotImplementedError
 
 
-class _SelfReceivedBroadcastAgent(ObservableAgent):
-    @action
-    def say(self, content: str):
-        pass
-
-
 def test_self_received_broadcast(any_space):
     websters_log = add_agent(any_space, ObservableAgent,
                              "Webster", receive_own_broadcasts=True)
-    chattys_log = add_agent(any_space, _SelfReceivedBroadcastAgent, "Chatty")
+    chattys_log = add_agent(any_space, ObservableAgent, "Chatty")
     first_message = {
         "from": "Webster",
         "to": "*",  # makes it a broadcast
@@ -158,17 +181,11 @@ def test_self_received_broadcast(any_space):
     assert_message_log(chattys_log, [first_message])
 
 
-class _NonSelfReceivedBroadcastAgent(ObservableAgent):
-    @action
-    def say(self, content: str):
-        pass
-
-
 def test_non_self_received_broadcast(any_space):
     websters_log = add_agent(any_space, ObservableAgent, "Webster",
                              receive_own_broadcasts=False)
     chattys_log = add_agent(
-        any_space, _NonSelfReceivedBroadcastAgent, "Chatty")
+        any_space, ObservableAgent, "Chatty")
 
     first_message = {
         "from": "Webster",
