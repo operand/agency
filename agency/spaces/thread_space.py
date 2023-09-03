@@ -1,6 +1,7 @@
 import queue
 import threading
 import time
+import traceback
 from typing import Dict, Tuple, Type
 
 from numpy import block
@@ -8,6 +9,7 @@ from numpy import block
 from agency.agent import Agent, QueueProtocol
 from agency.schema import Message, validate_message
 from agency.space import Space
+from agency.util import print_warning
 
 
 class _AgentThread():
@@ -27,7 +29,7 @@ class _AgentThread():
         self.__stopping = threading.Event()
 
     def start(self):
-        def _thread(thread_info):
+        def _thread():
             try:
                 agent = self.agent_type(
                     self.agent_id,
@@ -45,20 +47,15 @@ class _AgentThread():
                         pass
                 agent.before_remove()
             except Exception as e:
-                thread_info["exception"] = e
-                raise
+                print_warning(f"Error starting agent {self.agent_id}: {e}\n" + traceback.format_exc())
 
-        thread_info = {"exception": None}
-        self.__thread = threading.Thread(target=_thread, args=(thread_info,))
+        self.__thread = threading.Thread(target=_thread)
         self.__thread.start()
 
         if not self.__started.wait(timeout=10):
             # it couldn't start clean up and raise an exception
             self.stop()
-            if thread_info["exception"] is not None:
-                raise thread_info["exception"]
-            else:
-                raise Exception("Thread could not be started.")
+            raise Exception("Thread could not be started.")
 
     def stop(self):
         self.__stopping.set()

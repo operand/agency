@@ -3,12 +3,13 @@ import queue
 import threading
 import time
 from multiprocessing import Event, Process
+import traceback
 from typing import Dict, Type
 
 from agency.agent import Agent, QueueProtocol
 from agency.schema import Message, validate_message
 from agency.space import Space
-from agency.util import debug
+from agency.util import debug, print_warning
 
 multiprocessing.set_start_method('spawn', force=True)
 
@@ -56,22 +57,32 @@ class _AgentProcess():
         if self.process.is_alive():
             raise Exception("Process could not be stopped.")
 
-    def _process(self, agent_type, agent_id, agent_kwargs, inbound_queue, outbound_queue, started, stopping):
-        agent: Agent = agent_type(
-            agent_id,
-            outbound_queue=outbound_queue,
-            **agent_kwargs,
-        )
-        agent.after_add()
-        started.set()
-        while not stopping.is_set():
-            time.sleep(0.001)
-            try:
-                message = inbound_queue.get(block=False)
-                agent._receive(message)
-            except queue.Empty:
-                pass
-        agent.before_remove()
+    def _process(self,
+                 agent_type,
+                 agent_id,
+                 agent_kwargs,
+                 inbound_queue,
+                 outbound_queue,
+                 started,
+                 stopping):
+        try:
+            agent: Agent = agent_type(
+                agent_id,
+                outbound_queue=outbound_queue,
+                **agent_kwargs,
+            )
+            agent.after_add()
+            started.set()
+            while not stopping.is_set():
+                time.sleep(0.001)
+                try:
+                    message = inbound_queue.get(block=False)
+                    agent._receive(message)
+                except queue.Empty:
+                    pass
+            agent.before_remove()
+        except Exception as e:
+            print_warning(f"Error starting agent {agent_id}: {e}\n" + traceback.format_exc())
 
 
 class MultiprocessSpace(Space):
