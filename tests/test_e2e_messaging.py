@@ -2,9 +2,13 @@ from agency.agent import action
 from tests.helpers import ObservableAgent, add_agent, assert_message_log
 
 
-class _SendAndReceiveAgentTwo(ObservableAgent):
+class _MessagingTestAgent(ObservableAgent):
     @action
     def say(self, content: str):
+        """This implementation does nothing"""
+
+    @action
+    def say_with_say(self, content: str):
         self.send({
             "to": "Webster",
             "action": {
@@ -15,18 +19,22 @@ class _SendAndReceiveAgentTwo(ObservableAgent):
             }
         })
 
+    @action
+    def say_with_return(self, content: str):
+        return ["Hello!"]
 
-def test_send_and_receive(any_space):
+
+def test_send_and_receive_say(any_space):
     """Tests sending a basic "say" message and receiving one back"""
-    websters_log = add_agent(any_space, _SendAndReceiveAgentOne, "Webster")
-    chattys_log = add_agent(any_space, _SendAndReceiveAgentTwo, "Chatty")
+    websters_log = add_agent(any_space, _MessagingTestAgent, "Webster")
+    chattys_log = add_agent(any_space, _MessagingTestAgent, "Chatty")
 
     # Send the first message and wait for a response
     first_message = {
         'from': 'Webster',
         'to': 'Chatty',
         'action': {
-            'name': 'say',
+            'name': 'say_with_say',
             'args': {
                 'content': 'Hello, Chatty!'
             }
@@ -47,18 +55,10 @@ def test_send_and_receive(any_space):
     ])
 
 
-class _ResponsesHaveOriginalMessageIdAgent(ObservableAgent):
-    @action
-    def say(self, content: str):
-        return ["Hello!"]
-
-
 def test_send_and_return(any_space):
     websters_log = add_agent(any_space, ObservableAgent, "Webster")
-    chattys_log = add_agent(
-        any_space, _ResponsesHaveOriginalMessageIdAgent, "Chatty")
+    chattys_log = add_agent(any_space, _MessagingTestAgent, "Chatty")
 
-    # this message will result in a response with data
     first_message = {
         'meta': {
             "id": "123 whatever i feel like here"
@@ -66,7 +66,7 @@ def test_send_and_return(any_space):
         'to': 'Chatty',
         'from': 'Webster',
         'action': {
-            'name': 'say',
+            'name': 'say_with_return',
             'args': {
                 'content': 'Hi Chatty!'
             }
@@ -180,18 +180,6 @@ def test_non_self_received_broadcast(any_space):
     any_space._route(first_message)
     assert_message_log(websters_log, [])
     assert_message_log(chattys_log, [first_message])
-
-
-class _SendAndReceiveAgentOne(ObservableAgent):
-    @action
-    def say(self, content: str):
-        pass
-
-
-class _MetaAgent(ObservableAgent):
-    @action
-    def say(self, content: str):
-        pass
 
 
 def test_meta(any_space):
