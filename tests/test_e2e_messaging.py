@@ -1,12 +1,50 @@
 from agency.agent import action
 from tests.helpers import ObservableAgent, add_agent, assert_message_log
 
-"""
-send/response
-send/error
-request/response
-request/error
-"""
+
+class _SendAndReceiveAgentTwo(ObservableAgent):
+    @action
+    def say(self, content: str):
+        self.send({
+            "to": "Webster",
+            "action": {
+                "name": "say",
+                "args": {
+                    "content": f"Hello, {self._current_message()['from']}!",
+                }
+            }
+        })
+
+
+def test_send_and_receive(any_space):
+    """Tests sending a basic "say" message and receiving one back"""
+    websters_log = add_agent(any_space, _SendAndReceiveAgentOne, "Webster")
+    chattys_log = add_agent(any_space, _SendAndReceiveAgentTwo, "Chatty")
+
+    # Send the first message and wait for a response
+    first_message = {
+        'from': 'Webster',
+        'to': 'Chatty',
+        'action': {
+            'name': 'say',
+            'args': {
+                'content': 'Hello, Chatty!'
+            }
+        }
+    }
+    any_space._route(first_message)
+    assert_message_log(websters_log, [
+        {
+            "from": "Chatty",
+            "to": "Webster",
+            "action": {
+                "name": "say",
+                "args": {
+                    "content": "Hello, Webster!"
+                }
+            },
+        },
+    ])
 
 
 class _ResponsesHaveOriginalMessageIdAgent(ObservableAgent):
@@ -15,14 +53,16 @@ class _ResponsesHaveOriginalMessageIdAgent(ObservableAgent):
         return ["Hello!"]
 
 
-def test_send_and_response(any_space):
+def test_send_and_return(any_space):
     websters_log = add_agent(any_space, ObservableAgent, "Webster")
     chattys_log = add_agent(
         any_space, _ResponsesHaveOriginalMessageIdAgent, "Chatty")
 
     # this message will result in a response with data
     first_message = {
-        'asldfasdfasdf': '123 whatever i feel like here',
+        'meta': {
+            "id": "123 whatever i feel like here"
+        },
         'to': 'Chatty',
         'from': 'Webster',
         'action': {
@@ -35,7 +75,7 @@ def test_send_and_response(any_space):
     any_space._route(first_message)
     assert_message_log(websters_log, [{
         "meta": {
-            "original_message_id": first_message
+            "response_id": "123 whatever i feel like here",
         },
         "to": "Webster",
         "from": "Chatty",
@@ -76,6 +116,14 @@ def test_send_and_error(any_space):
             }
         }
     }])
+
+
+def test_request_and_return(any_space):
+    raise NotImplementedError
+
+
+def test_request_and_error(any_space):
+    raise NotImplementedError
 
 
 class _SelfReceivedBroadcastAgent(ObservableAgent):
@@ -134,51 +182,6 @@ class _SendAndReceiveAgentOne(ObservableAgent):
     @action
     def say(self, content: str):
         pass
-
-
-class _SendAndReceiveAgentTwo(ObservableAgent):
-    @action
-    def say(self, content: str):
-        self.send({
-            "to": "Webster",
-            "action": {
-                "name": "say",
-                "args": {
-                    "content": f"Hello, {self._current_message['from']}!",
-                }
-            }
-        })
-
-
-def test_send_and_receive(any_space):
-    """Tests sending a basic "say" message and receiving one back"""
-    websters_log = add_agent(any_space, _SendAndReceiveAgentOne, "Webster")
-    chattys_log = add_agent(any_space, _SendAndReceiveAgentTwo, "Chatty")
-
-    # Send the first message and wait for a response
-    first_message = {
-        'from': 'Webster',
-        'to': 'Chatty',
-        'action': {
-            'name': 'say',
-            'args': {
-                'content': 'Hello, Chatty!'
-            }
-        }
-    }
-    any_space._route(first_message)
-    assert_message_log(websters_log, [
-        {
-            "from": "Chatty",
-            "to": "Webster",
-            "action": {
-                "name": "say",
-                "args": {
-                    "content": "Hello, Webster!"
-                }
-            },
-        },
-    ])
 
 
 class _MetaAgent(ObservableAgent):

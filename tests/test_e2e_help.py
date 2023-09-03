@@ -41,7 +41,7 @@ def test_help_action(any_space):
         'from': 'Webster',
         'action': {
             'name': 'help',
-            'args': {}
+            'args': {},
         }
     }
 

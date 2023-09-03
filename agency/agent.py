@@ -2,6 +2,7 @@ import inspect
 import re
 import threading
 import time
+import traceback
 import uuid
 from typing import Dict, List, Protocol
 
@@ -158,7 +159,6 @@ class Agent():
         self._pending_responses[request_id] = pending_flag
 
         # Wait for response
-        # TODO: use events instead of busy waiting
         start_time = time.time()
         while self._pending_responses[request_id] == pending_flag:
             time.sleep(0.001)
@@ -233,6 +233,7 @@ class Agent():
         try:
             self.__commit(message)
         except Exception as e:
+            debug(f"error processing message: {e}", traceback.format_exc())
             # Handle exceptions that occur while committing an action, including
             # PermissionError's from access denial, by reporting the error back
             # to the sender.
