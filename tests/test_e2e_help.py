@@ -123,7 +123,6 @@ def test_help_specific_action(any_space):
                             "args": {},
                         },
                     },
-                    "original_message_id": None,
                 }
             }
         }

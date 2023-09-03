@@ -22,7 +22,7 @@ def test_send_and_response(any_space):
 
     # this message will result in a response with data
     first_message = {
-        'id': '123 whatever i feel like here',
+        'asldfasdfasdf': '123 whatever i feel like here',
         'to': 'Chatty',
         'from': 'Webster',
         'action': {
@@ -34,13 +34,15 @@ def test_send_and_response(any_space):
     }
     any_space._route(first_message)
     assert_message_log(websters_log, [{
+        "meta": {
+            "original_message_id": first_message
+        },
         "to": "Webster",
         "from": "Chatty",
         "action": {
             "name": "response",
             "args": {
-                "data": ["Hello!"],
-                "original_message_id": first_message,
+                "value": ["Hello!"],
             }
         }
     }])

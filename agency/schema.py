@@ -5,6 +5,10 @@ from typing import Dict, Optional
 class Action(BaseModel):
     """Schema for an action"""
 
+    class Config:
+        extra = "forbid"
+        validate_assignment = True
+
     name: str = Field(
         ...,
         description="The name of the action."
@@ -18,6 +22,10 @@ class Action(BaseModel):
 
 class Message(BaseModel):
     """Schema for a message"""
+
+    class Config:
+        extra = "forbid"
+        validate_assignment = True
 
     meta: Optional[Dict] = Field(
         None,

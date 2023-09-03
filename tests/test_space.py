@@ -84,6 +84,7 @@ def test_amqp_space_unique_ids():
         amqp_space2.remove_all()
 
 
+@pytest.mark.focus
 def test_invalid_message(any_space):
     """
     Asserts that an invalid message raises a ValueError
@@ -96,6 +97,19 @@ def test_invalid_message(any_space):
 
     with pytest.raises(ValueError):
         any_space._route({})
+
+    with pytest.raises(ValueError):
+        any_space._route({
+            'asldfasdfasdf': '123 whatever i feel like here',
+            'to': 'Chatty',
+            'from': 'Webster',
+            'action': {
+                'name': 'say',
+                'args': {
+                    'content': 'Hi Chatty!'
+                }
+            }
+        })
 
 
 class _AfterAddAndBeforeRemoveAgent(ObservableAgent):
