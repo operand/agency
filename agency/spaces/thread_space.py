@@ -18,39 +18,47 @@ class _AgentThread():
             agent_kwargs: Dict,
             inbound_queue: QueueProtocol,
             outbound_queue: QueueProtocol):
-        self.__agent_type: Type[Agent] = agent_type
-        self.__agent_id: str = agent_id
-        self.__agent_kwargs: Dict = agent_kwargs
+        self.agent_type: Type[Agent] = agent_type
+        self.agent_id: str = agent_id
+        self.agent_kwargs: Dict = agent_kwargs
         self.inbound_queue: QueueProtocol = inbound_queue
         self.outbound_queue: QueueProtocol = outbound_queue
-
-    def start(self):
-        def _thread():
-            agent = self.__agent_type(
-                self.__agent_id,
-                outbound_queue=self.outbound_queue,
-                **self.__agent_kwargs,
-            )
-            agent.after_add()
-            self.__started.set()
-            while not self.__stopping.is_set():
-                time.sleep(0.001)
-                try:
-                    message = self.inbound_queue.get(block=False)
-                    agent._receive(message)
-                except queue.Empty:
-                    pass
-            agent.before_remove()
-
         self.__started = threading.Event()
         self.__stopping = threading.Event()
-        self.__thread = threading.Thread(target=_thread)
+
+    def start(self):
+        def _thread(thread_info):
+            try:
+                agent = self.agent_type(
+                    self.agent_id,
+                    outbound_queue=self.outbound_queue,
+                    **self.agent_kwargs,
+                )
+                agent.after_add()
+                self.__started.set()
+                while not self.__stopping.is_set():
+                    time.sleep(0.001)
+                    try:
+                        message = self.inbound_queue.get(block=False)
+                        agent._receive(message)
+                    except queue.Empty:
+                        pass
+                agent.before_remove()
+            except Exception as e:
+                thread_info["exception"] = e
+                raise
+
+        thread_info = {"exception": None}
+        self.__thread = threading.Thread(target=_thread, args=(thread_info,))
         self.__thread.start()
 
         if not self.__started.wait(timeout=10):
-            # it couldn't start, force stop the thread and raise an exception
+            # it couldn't start clean up and raise an exception
             self.stop()
-            raise Exception("Thread could not be started.")
+            if thread_info["exception"] is not None:
+                raise thread_info["exception"]
+            else:
+                raise Exception("Thread could not be started.")
 
     def stop(self):
         self.__stopping.set()

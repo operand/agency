@@ -103,10 +103,8 @@ class Agent():
         self._id: str = id
         self._outbound_queue: QueueProtocol = outbound_queue
         self._receive_own_broadcasts: bool = receive_own_broadcasts
-        # Stores all sent and received messages in chronological order
         # TODO: place a lock around access
         self._message_log: List[Message] = []
-        # Stores pending responses
         # TODO: place a lock around access
         self._pending_responses: Dict[str, Message] = {}
         self._thread_local_current_message = threading.local()
@@ -147,8 +145,8 @@ class Agent():
             TimeoutError: If the timeout is reached
             ActionError: If the action raised an exception
         """
-        # Add id to the meta field. This identifies it as a request
-        request_id = str("request--" + uuid.uuid4())
+        # Add id to the meta field. This prefix identifies it as a request
+        request_id = "request--" + str(uuid.uuid4())
         message["meta"] = message.get("meta", {})
         message["meta"]["id"] = request_id
 
@@ -288,8 +286,6 @@ class Agent():
                 # If the action returned a value, or this was a request (which
                 # expects a value), send the value back
                 message_id = message.get("meta", {}).get("id")
-                # This is a small hack to determine if it was a request by
-                # inspecting the id string format
                 is_request = message_id and re.match(r"^request--", message_id)
                 if is_request or return_value is not None:
                     response = {

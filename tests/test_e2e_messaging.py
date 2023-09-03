@@ -124,12 +124,25 @@ def test_send_and_error(any_space):
 
 
 class _SendingAgent(ObservableAgent):
-    def after_add()
+    def after_add(self):
+        return_value = self.request({
+            'to': 'Receiver',
+            'action': {
+                'name': 'say_with_return',
+                'args': {
+                    'content': 'Hi Receiver!'
+                }
+            }
+        })
+        # we place the return value on the message log so we can inspect it in
+        # the test
+        self._message_log.append(return_value)
 
-@pytest.mark.skip
+
+@pytest.mark.focus
 def test_request_and_return(any_space):
     receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
-    senders_log = add_agent(any_space, ObservableAgent, "Sender")
+    senders_log = add_agent(any_space, _SendingAgent, "Sender")
 
     first_message = {
         'meta': {
@@ -145,19 +158,22 @@ def test_request_and_return(any_space):
         }
     }
     any_space._route(first_message)
-    assert_message_log(senders_log, [{
-        "meta": {
-            "response_id": "123 whatever i feel like here",
-        },
-        "to": "Sender",
-        "from": "Receiver",
-        "action": {
-            "name": "response",
-            "args": {
-                "value": ["Hello!"],
+    assert_message_log(senders_log, [
+        {
+            "meta": {
+                "response_id": "123 whatever i feel like here",
+            },
+            "to": "Sender",
+            "from": "Receiver",
+            "action": {
+                "name": "response",
+                "args": {
+                    "value": ["Hello!"],
+                }
             }
-        }
-    }])
+        },
+        ["Hello!"],
+    ])
 
 
 @pytest.mark.skip
