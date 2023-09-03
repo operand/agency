@@ -16,16 +16,16 @@ def test_before_and_after_action():
     """
     Tests the before and after action callbacks
     """
-    agent = BeforeAndAfterActionAgent("Webster", outbound_queue=MagicMock())
+    agent = BeforeAndAfterActionAgent("Agent", outbound_queue=MagicMock())
     agent.before_action = MagicMock()
     agent.after_action = MagicMock()
     agent._receive({
-        "from": "Chatty",
-        "to": "Webster",
+        "from": "Agent",
+        "to": "Agent",
         "action": {
             "name": "say",
             "args": {
-                "content": "Hello, Webster!",
+                "content": "Hello, Agent!",
             },
         }
     })

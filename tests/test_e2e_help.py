@@ -38,17 +38,17 @@ def test_help_action(any_space):
 
     first_message = {
         'to': '*',  # broadcast
-        'from': 'Webster',
+        'from': 'Sender',
         'action': {
             'name': 'help',
             'args': {},
         }
     }
 
-    chattys_expected_response = {
+    receivers_expected_response = {
         "meta": { "response_id": None },
-        "to": "Webster",
-        "from": "Chatty",
+        "to": "Sender",
+        "from": "Receiver",
         "action": {
             "name": "response",
             "args": {
@@ -75,13 +75,13 @@ def test_help_action(any_space):
         }
     }
 
-    websters_log = add_agent(any_space, ObservableAgent, "Webster")
-    chattys_log = add_agent(any_space, _HelpActionAgent, "Chatty")
+    senders_log = add_agent(any_space, ObservableAgent, "Sender")
+    receivers_log = add_agent(any_space, _HelpActionAgent, "Receiver")
 
     # Send the first message and wait for a response
     any_space._route(first_message)
-    assert_message_log(websters_log, [chattys_expected_response])
-    assert_message_log(chattys_log, [first_message, chattys_expected_response])
+    assert_message_log(senders_log, [receivers_expected_response])
+    assert_message_log(receivers_log, [first_message, receivers_expected_response])
 
 
 class _HelpSpecificActionAgent(ObservableAgent):
@@ -97,13 +97,13 @@ class _HelpSpecificActionAgent(ObservableAgent):
 def test_help_specific_action(any_space):
     """Tests requesting help for a specific action"""
 
-    websters_log = add_agent(any_space, ObservableAgent, "Webster")
-    chattys_log = add_agent(any_space, _HelpSpecificActionAgent, "Chatty")
+    senders_log = add_agent(any_space, ObservableAgent, "Sender")
+    receivers_log = add_agent(any_space, _HelpSpecificActionAgent, "Receiver")
 
     # Send the first message and wait for a response
     first_message = {
         'to': '*',  # broadcast
-        'from': 'Webster',
+        'from': 'Sender',
         'action': {
             'name': 'help',
             'args': {
@@ -112,11 +112,11 @@ def test_help_specific_action(any_space):
         }
     }
     any_space._route(first_message)
-    assert_message_log(websters_log, [
+    assert_message_log(senders_log, [
         {
             "meta": { "response_id": None },
-            "to": "Webster",
-            "from": "Chatty",
+            "to": "Sender",
+            "from": "Receiver",
             "action": {
                 "name": "response",
                 "args": {

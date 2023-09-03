@@ -11,31 +11,31 @@ class _SendUnpermittedActionAgent(ObservableAgent):
 def test_send_unpermitted_action(any_space):
     """Tests sending an unpermitted action and receiving an error response"""
 
-    websters_log = add_agent(any_space, ObservableAgent, "Webster")
-    chattys_log = add_agent(any_space, _SendUnpermittedActionAgent, "Chatty")
+    senders_log = add_agent(any_space, ObservableAgent, "Sender")
+    receivers_log = add_agent(any_space, _SendUnpermittedActionAgent, "Receiver")
 
     first_message = {
-        'from': 'Webster',
-        'to': 'Chatty',
+        'from': 'Sender',
+        'to': 'Receiver',
         'action': {
             'name': 'say',
             'args': {
-                'content': 'Hello, Chatty!'
+                'content': 'Hello, Receiver!'
             }
         }
     }
     any_space._route(first_message)
-    assert_message_log(websters_log, [
+    assert_message_log(senders_log, [
         {
             "meta": {
                 "response_id": None,
             },
-            "from": "Chatty",
-            "to": "Webster",
+            "from": "Receiver",
+            "to": "Sender",
             "action": {
                 "name": "response",
                 "args": {
-                    "error": "\"Chatty.say\" not permitted",
+                    "error": "\"Receiver.say\" not permitted",
                 }
             }
         },
@@ -53,28 +53,28 @@ class _SendRequestPermittedActionAgent(ObservableAgent):
 
 def test_send_request_permitted_action(any_space):
     """Tests sending an action, granting permission, and returning response"""
-    websters_log = add_agent(any_space, ObservableAgent, "Webster")
-    chattys_log = add_agent(
-        any_space, _SendRequestPermittedActionAgent, "Chatty")
+    senders_log = add_agent(any_space, ObservableAgent, "Sender")
+    receivers_log = add_agent(
+        any_space, _SendRequestPermittedActionAgent, "Receiver")
 
     first_message = {
-        'from': 'Webster',
-        'to': 'Chatty',
+        'from': 'Sender',
+        'to': 'Receiver',
         'action': {
             'name': 'say',
             'args': {
-                'content': 'Chatty, what is the answer to life, the universe, and everything?'
+                'content': 'Receiver, what is the answer to life, the universe, and everything?'
             }
         }
     }
     any_space._route(first_message)
-    assert_message_log(websters_log, [
+    assert_message_log(senders_log, [
         {
             "meta": {
                 "response_id": None,
             },
-            "from": "Chatty",
-            "to": "Webster",
+            "from": "Receiver",
+            "to": "Sender",
             "action": {
                 "name": "response",
                 "args": {
@@ -97,29 +97,29 @@ class _SendRequestReceivedActionAgent(ObservableAgent):
 def test_send_request_rejected_action(any_space):
     """Tests sending an action, rejecting permission, and returning error"""
 
-    websters_log = add_agent(any_space, ObservableAgent, "Webster")
-    chattys_log = add_agent(any_space, _SendRequestReceivedActionAgent, "Chatty")
+    senders_log = add_agent(any_space, ObservableAgent, "Sender")
+    receivers_log = add_agent(any_space, _SendRequestReceivedActionAgent, "Receiver")
 
     first_message = {
-        'from': 'Webster',
-        'to': 'Chatty',
+        'from': 'Sender',
+        'to': 'Receiver',
         'action': {
             'name': 'say',
             'args': {
-                'content': 'Chatty, what is the answer to life, the universe, and everything?'
+                'content': 'Receiver, what is the answer to life, the universe, and everything?'
             }
         }
     }
     any_space._route(first_message)
-    assert_message_log(websters_log, [
+    assert_message_log(senders_log, [
         {
             "meta": { "response_id": None },
-            "from": "Chatty",
-            "to": "Webster",
+            "from": "Receiver",
+            "to": "Sender",
             "action": {
                 "name": "response",
                 "args": {
-                    "error": "\"Chatty.say\" not permitted",
+                    "error": "\"Receiver.say\" not permitted",
                 }
             },
         },

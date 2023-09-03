@@ -11,7 +11,7 @@ class _MessagingTestAgent(ObservableAgent):
     @action
     def say_with_say(self, content: str):
         self.send({
-            "to": "Webster",
+            "to": "Sender",
             "action": {
                 "name": "say",
                 "args": {
@@ -27,29 +27,29 @@ class _MessagingTestAgent(ObservableAgent):
 
 def test_send_and_receive_say(any_space):
     """Tests sending a basic "say" message and receiving one back"""
-    websters_log = add_agent(any_space, _MessagingTestAgent, "Webster")
-    chattys_log = add_agent(any_space, _MessagingTestAgent, "Chatty")
+    senders_log = add_agent(any_space, _MessagingTestAgent, "Sender")
+    receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
     # Send the first message and wait for a response
     first_message = {
-        'from': 'Webster',
-        'to': 'Chatty',
+        'from': 'Sender',
+        'to': 'Receiver',
         'action': {
             'name': 'say_with_say',
             'args': {
-                'content': 'Hello, Chatty!'
+                'content': 'Hello, Receiver!'
             }
         }
     }
     any_space._route(first_message)
-    assert_message_log(websters_log, [
+    assert_message_log(senders_log, [
         {
-            "from": "Chatty",
-            "to": "Webster",
+            "from": "Receiver",
+            "to": "Sender",
             "action": {
                 "name": "say",
                 "args": {
-                    "content": "Hello, Webster!"
+                    "content": "Hello, Sender!"
                 }
             },
         },
@@ -57,29 +57,29 @@ def test_send_and_receive_say(any_space):
 
 
 def test_send_and_return(any_space):
-    websters_log = add_agent(any_space, ObservableAgent, "Webster")
-    chattys_log = add_agent(any_space, _MessagingTestAgent, "Chatty")
+    senders_log = add_agent(any_space, ObservableAgent, "Sender")
+    receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
     first_message = {
         'meta': {
             "id": "123 whatever i feel like here"
         },
-        'to': 'Chatty',
-        'from': 'Webster',
+        'to': 'Receiver',
+        'from': 'Sender',
         'action': {
             'name': 'say_with_return',
             'args': {
-                'content': 'Hi Chatty!'
+                'content': 'Hi Receiver!'
             }
         }
     }
     any_space._route(first_message)
-    assert_message_log(websters_log, [{
+    assert_message_log(senders_log, [{
         "meta": {
             "response_id": "123 whatever i feel like here",
         },
-        "to": "Webster",
-        "from": "Chatty",
+        "to": "Sender",
+        "from": "Receiver",
         "action": {
             "name": "response",
             "args": {
@@ -90,64 +90,67 @@ def test_send_and_return(any_space):
 
 
 def test_send_and_error(any_space):
-    websters_log = add_agent(any_space, ObservableAgent, "Webster")
-    chattys_log = add_agent(any_space, ObservableAgent, "Chatty")
+    senders_log = add_agent(any_space, ObservableAgent, "Sender")
+    receivers_log = add_agent(any_space, ObservableAgent, "Receiver")
 
     # this message will result in an error
     any_space._route({
         'meta': {
             'id': '456 whatever i feel like here',
         },
-        'to': 'Chatty',
-        'from': 'Webster',
+        'to': 'Receiver',
+        'from': 'Sender',
         'action': {
             'name': 'some non existent action',
             'args': {
-                'content': 'Hi Chatty!'
+                'content': 'Hi Receiver!'
             }
         }
     })
 
-    assert_message_log(websters_log, [{
+    assert_message_log(senders_log, [{
         "meta": {
             "response_id": "456 whatever i feel like here",
         },
-        "to": "Webster",
-        "from": "Chatty",
+        "to": "Sender",
+        "from": "Receiver",
         "action": {
             "name": "response",
             "args": {
-                "error": "\"some non existent action\" not found on \"Chatty\"",
+                "error": "\"some non existent action\" not found on \"Receiver\"",
             }
         }
     }])
 
 
+class _SendingAgent(ObservableAgent):
+    def after_add()
+
 @pytest.mark.skip
 def test_request_and_return(any_space):
-    websters_log = add_agent(any_space, ObservableAgent, "Webster")
-    chattys_log = add_agent(any_space, _MessagingTestAgent, "Chatty")
+    receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
+    senders_log = add_agent(any_space, ObservableAgent, "Sender")
 
     first_message = {
         'meta': {
             "id": "123 whatever i feel like here"
         },
-        'to': 'Chatty',
-        'from': 'Webster',
+        'to': 'Receiver',
+        'from': 'Sender',
         'action': {
             'name': 'say_with_return',
             'args': {
-                'content': 'Hi Chatty!'
+                'content': 'Hi Receiver!'
             }
         }
     }
     any_space._route(first_message)
-    assert_message_log(websters_log, [{
+    assert_message_log(senders_log, [{
         "meta": {
             "response_id": "123 whatever i feel like here",
         },
-        "to": "Webster",
-        "from": "Chatty",
+        "to": "Sender",
+        "from": "Receiver",
         "action": {
             "name": "response",
             "args": {
@@ -163,11 +166,11 @@ def test_request_and_error(any_space):
 
 
 def test_self_received_broadcast(any_space):
-    websters_log = add_agent(any_space, ObservableAgent,
-                             "Webster", receive_own_broadcasts=True)
-    chattys_log = add_agent(any_space, ObservableAgent, "Chatty")
+    senders_log = add_agent(any_space, ObservableAgent,
+                             "Sender", receive_own_broadcasts=True)
+    receivers_log = add_agent(any_space, ObservableAgent, "Receiver")
     first_message = {
-        "from": "Webster",
+        "from": "Sender",
         "to": "*",  # makes it a broadcast
         "action": {
             "name": "say",
@@ -177,18 +180,18 @@ def test_self_received_broadcast(any_space):
         },
     }
     any_space._route(first_message)
-    assert_message_log(websters_log, [first_message])
-    assert_message_log(chattys_log, [first_message])
+    assert_message_log(senders_log, [first_message])
+    assert_message_log(receivers_log, [first_message])
 
 
 def test_non_self_received_broadcast(any_space):
-    websters_log = add_agent(any_space, ObservableAgent, "Webster",
+    senders_log = add_agent(any_space, ObservableAgent, "Sender",
                              receive_own_broadcasts=False)
-    chattys_log = add_agent(
-        any_space, ObservableAgent, "Chatty")
+    receivers_log = add_agent(
+        any_space, ObservableAgent, "Receiver")
 
     first_message = {
-        "from": "Webster",
+        "from": "Sender",
         "to": "*",  # makes it a broadcast
         "action": {
             "name": "say",
@@ -198,8 +201,8 @@ def test_non_self_received_broadcast(any_space):
         },
     }
     any_space._route(first_message)
-    assert_message_log(websters_log, [])
-    assert_message_log(chattys_log, [first_message])
+    assert_message_log(senders_log, [])
+    assert_message_log(receivers_log, [first_message])
 
 
 def test_meta(any_space):
@@ -207,8 +210,8 @@ def test_meta(any_space):
     Tests that the meta field is transmitted
     """
 
-    websters_log = add_agent(any_space, ObservableAgent, "Webster")
-    chattys_log = add_agent(any_space, _MessagingTestAgent, "Chatty")
+    senders_log = add_agent(any_space, ObservableAgent, "Sender")
+    receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
     first_message = {
         "meta": {
@@ -216,50 +219,50 @@ def test_meta(any_space):
             "foo": 0,
             "bar": ["baz"]
         },
-        "from": "Webster",
-        "to": "Chatty",
+        "from": "Sender",
+        "to": "Receiver",
         "action": {
             "name": "say",
             "args": {
-                "content": "Hello, Chatty!"
+                "content": "Hello, Receiver!"
             }
         },
     }
     any_space._route(first_message)
-    assert_message_log(chattys_log, [first_message])
+    assert_message_log(receivers_log, [first_message])
 
 
 def test_send_undefined_action(any_space):
     """Tests sending an undefined action and receiving an error response"""
 
-    # In this test we skip defining a say action on chatty in order to test the
+    # In this test we skip defining a say action on receiver in order to test the
     # error response
 
-    websters_log = add_agent(any_space, ObservableAgent, "Webster")
-    chattys_log = add_agent(any_space, ObservableAgent, "Chatty")
+    senders_log = add_agent(any_space, ObservableAgent, "Sender")
+    receivers_log = add_agent(any_space, ObservableAgent, "Receiver")
 
     first_message = {
-        'from': 'Webster',
-        'to': 'Chatty',
+        'from': 'Sender',
+        'to': 'Receiver',
         'action': {
             'name': 'say',
             'args': {
-                'content': 'Hello, Chatty!'
+                'content': 'Hello, Receiver!'
             }
         }
     }
     any_space._route(first_message)
-    assert_message_log(websters_log, [
+    assert_message_log(senders_log, [
         {
             "meta": {
                 "response_id": None,
             },
-            "from": "Chatty",
-            "to": "Webster",
+            "from": "Receiver",
+            "to": "Sender",
             "action": {
                 "name": "response",
                 "args": {
-                    "error": "\"say\" not found on \"Chatty\"",
+                    "error": "\"say\" not found on \"Receiver\"",
                 },
             }
         },

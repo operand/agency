@@ -55,18 +55,18 @@ def test_thread_space_unique_ids(thread_space):
     """
     Asserts that two agents may not have the same id in a ThreadSpace
     """
-    thread_space.add(Agent, "Webster")
+    thread_space.add(Agent, "Sender")
     with pytest.raises(ValueError):
-        thread_space.add(Agent, "Webster")
+        thread_space.add(Agent, "Sender")
 
 
 def test_multiprocess_space_unique_ids(multiprocess_space):
     """
     Asserts that two agents may not have the same id in a ThreadSpace
     """
-    multiprocess_space.add(Agent, "Webster")
+    multiprocess_space.add(Agent, "Sender")
     with pytest.raises(ValueError):
-        multiprocess_space.add(Agent, "Webster")
+        multiprocess_space.add(Agent, "Sender")
 
 
 @pytest.mark.skip
@@ -78,9 +78,9 @@ def test_amqp_space_unique_ids():
     amqp_space1 = AMQPSpace(exchange_name="agency-test")
     amqp_space2 = AMQPSpace(exchange_name="agency-test")
     try:
-        amqp_space1.add(Agent, "Webster")
+        amqp_space1.add(Agent, "Sender")
         with pytest.raises(ValueError):
-            amqp_space2.add(Agent, "Webster")
+            amqp_space2.add(Agent, "Sender")
     finally:
         amqp_space1.remove_all()
         amqp_space2.remove_all()
@@ -102,12 +102,12 @@ def test_invalid_message(any_space):
     with pytest.raises(ValueError):
         any_space._route({
             'asldfasdfasdf': '123 whatever i feel like here',
-            'to': 'Chatty',
-            'from': 'Webster',
+            'to': 'Receiver',
+            'from': 'Sender',
             'action': {
                 'name': 'say',
                 'args': {
-                    'content': 'Hi Chatty!'
+                    'content': 'Hi Receiver!'
                 }
             }
         })
@@ -140,7 +140,7 @@ def test_after_add_and_before_remove(any_space: Space):
     Tests that the after_add and before_remove methods are called.
     """
     # This first line calls space.add itself and returns the message log
-    log = add_agent(any_space, _AfterAddAndBeforeRemoveAgent, "Webster")
-    any_space.remove("Webster")
+    log = add_agent(any_space, _AfterAddAndBeforeRemoveAgent, "Sender")
+    any_space.remove("Sender")
 
     assert list(log) == ["added", "removed"]
