@@ -15,6 +15,7 @@ ACCESS_REQUESTED = "ACCESS_REQUESTED"
 
 RESERVED_ACTION_NAMES = ["response"]
 
+
 def action(*args, **kwargs):
     """
     Declares instance methods as actions making them accessible to other agents.
@@ -145,7 +146,7 @@ class Agent():
             TimeoutError: If the timeout is reached
             ActionError: If the action raised an exception
         """
-        # Add request_id to the meta field
+        # Add request_id to the meta field. This identifies it as a request
         request_id = str(uuid.uuid4())
         message["meta"] = {
             **message.get("meta"),
@@ -154,8 +155,8 @@ class Agent():
 
         # Send and mark the request as pending
         self.send(message)
-        # TODO: add a lock
         pending_flag = "__pending__" + request_id
+        # TODO: add a lock here
         self._pending_responses[request_id] = pending_flag
 
         # Wait for response
@@ -189,27 +190,22 @@ class Agent():
         self._message_log.append(message)
 
         # Handle incoming responses
-        if message["action"]["name"] == "response": # TODO: prevent defining 'response' action
+        if message["action"]["name"] == "response":
             response_id = message.get("meta", {}).get("response_id")
-            if response_id:
+            if response_id in self._pending_responses.keys():
                 # This was a response to a request()
-                if response_id in self._pending_responses.keys():
-                    self._pending_responses[response_id] = message
-                    # From here the request() method will pick up the response
-                else:
-                    print_warning(
-                        f"Discarding response for unknown request: {message}.")
+                self._pending_responses[response_id] = message
+                # From here the request() method will pick up the response
             else:
                 # This was a response to a send()
                 if "value" in message["action"]["args"]:
-                    debug(f"handling return from send()", message)
+                    debug(f"handling return value from send()", message)
                     self.handle_return(
-                        message["action"]["args"]["value"],
-                        message["action"]["args"]["original_message"],
-                    )
+                        message["action"]["args"]["value"], response_id)
                 # Handle incoming errors
                 elif message["action"]["name"] == "error":
-                    print_warning(f"Error received: {message}")
+                    self.handle_error(
+                        message["action"]["args"]["error"], response_id)
 
         # Handle all other messages
         else:
@@ -249,7 +245,7 @@ class Agent():
                     "name": "response",
                     "args": {
                         "error": f"{e}",
-                        "original_message": message,
+                        "original_message_id": message.get("meta", {}).get("id")
                     }
                 }
             })
@@ -298,7 +294,6 @@ class Agent():
                             "name": "response",
                             "args": {
                                 "value": return_value,
-                                "original_message": message,
                             }
                         }
                     }
@@ -424,22 +419,25 @@ class Agent():
         raise NotImplementedError(
             f"You must implement {self.__class__.__name__}.request_permission to use ACCESS_REQUESTED")
 
-    def handle_return(self, value, original_message: dict):
+    def handle_return(self, value, original_message_id: str):
         """
-        Receives a return value from a prior action.
+        Receives a return value for a prior action.
 
         This method receives values returned from actions invoked by the send()
         method. It is not called when using the request() method, which will
         return the value directly.
 
+        If the original message defined the meta.id field, it will be provided as the
+        original_message_id argument.
+
         Args:
             return_value: The return value from the action
-            original_message: The original message
+            original_message_id: The original message id
         """
         print_warning(
             f"A value was returned from an action. Implement {self.__class__.__name__}.handle_return to handle it.")
 
-    def handle_error(self, error: str, original_message: dict):
+    def handle_error(self, error: str, original_message_id: str):
         """
         Receives an error message from a prior action.
 
@@ -447,9 +445,12 @@ class Agent():
         method. It is not called when using the request() method, which will
         instead raise the error as an exception.
 
+        If the original message defined the meta.id field, it will be provided as the
+        original_message_id argument.
+
         Args:
             error_message: The error message
-            original_message: The original message that caused the error
+            original_message_id: The original message id
         """
         print_warning(
             f"An error occurred in an action. Implement {self.__class__.__name__}.handle_error to handle it.")

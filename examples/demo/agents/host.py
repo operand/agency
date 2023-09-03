@@ -4,7 +4,9 @@ import subprocess
 import time
 from typing import Dict
 import uuid
+
 from agency import util
+from agency.schema import Message
 
 from agents.mixins.help_methods import HelpMethods
 from colorama import Fore, Style
@@ -94,7 +96,7 @@ class Host(HelpMethods, Agent):
 
             # return re.search(r"^y(es)?$", response)
 
-    def return_value(self, data, original_message_id: str):
+    def handle_return(self, data, original_message_id: str):
         if original_message_id == "request_permission":
             # handle a permission response and execute the command
             pass

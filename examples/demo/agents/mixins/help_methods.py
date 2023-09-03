@@ -1,5 +1,6 @@
 from typing import Dict
 from agency.agent import action
+from agency.schema import Message
 
 
 class HelpMethods():
@@ -41,7 +42,7 @@ class HelpMethods():
                 "name": "response",
                 "args": {
                     "data": self.help(),
-                    "original_message_id": "help_request",
+                    "original_message_id": None,
                 }
             }
         })

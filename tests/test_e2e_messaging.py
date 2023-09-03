@@ -21,7 +21,7 @@ def test_send_and_response(any_space):
         any_space, _ResponsesHaveOriginalMessageIdAgent, "Chatty")
 
     # this message will result in a response with data
-    any_space._route({
+    first_message = {
         'id': '123 whatever i feel like here',
         'to': 'Chatty',
         'from': 'Webster',
@@ -31,8 +31,8 @@ def test_send_and_response(any_space):
                 'content': 'Hi Chatty!'
             }
         }
-    })
-
+    }
+    any_space._route(first_message)
     assert_message_log(websters_log, [{
         "to": "Webster",
         "from": "Chatty",
@@ -40,7 +40,7 @@ def test_send_and_response(any_space):
             "name": "response",
             "args": {
                 "data": ["Hello!"],
-                "original_message_id": "123 whatever i feel like here",
+                "original_message_id": first_message,
             }
         }
     }])

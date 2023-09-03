@@ -93,7 +93,7 @@ Agents may also define callbacks for various purposes:
 ```python
 class CalculatorAgent(Agent):
     ...
-    def before_action(self, original_message: dict):
+    def before_action(self, message: dict):
         """Called before an action is attempted"""
 
     def after_action(self, original_message: dict, return_value: str, error: str):

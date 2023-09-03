@@ -1,4 +1,4 @@
-from agency.agent import (ACCESS_DENIED, ACCESS_REQUESTED, action)
+from agency.agent import action
 from tests.helpers import ObservableAgent, add_agent, assert_message_log
 
 
@@ -70,7 +70,7 @@ def test_help_action(any_space):
                         "stuff": ["a", "b", "c"]
                     }
                 },
-                "original_message": first_message,
+                "original_message_id": None,
             }
         }
     }
@@ -119,7 +119,7 @@ def test_help_specific_action(any_space):
             "action": {
                 "name": "response",
                 "args": {
-                    "data": {
+                    "value": {
                         "action_i_will_request_help_on": {
                             "args": {},
                         },
