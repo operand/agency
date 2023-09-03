@@ -46,6 +46,7 @@ def test_help_action(any_space):
     }
 
     chattys_expected_response = {
+        "meta": { "response_id": None },
         "to": "Webster",
         "from": "Chatty",
         "action": {
@@ -113,6 +114,7 @@ def test_help_specific_action(any_space):
     any_space._route(first_message)
     assert_message_log(websters_log, [
         {
+            "meta": { "response_id": None },
             "to": "Webster",
             "from": "Chatty",
             "action": {

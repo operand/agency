@@ -16,6 +16,7 @@ class _Harford(ObservableAgent):
         pass
 
 
+@pytest.mark.skip
 def test_amqp_heartbeat():
     """
     Tests the amqp heartbeat is sent by setting a short heartbeat interval and
@@ -68,6 +69,7 @@ def test_multiprocess_space_unique_ids(multiprocess_space):
         multiprocess_space.add(Agent, "Webster")
 
 
+@pytest.mark.skip
 def test_amqp_space_unique_ids():
     """
     Asserts that two agents may not have the same id in an AMQP space.

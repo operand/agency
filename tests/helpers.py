@@ -55,8 +55,8 @@ def assert_message_log(actual: List[Message], expected: List[Message], max_secon
             raise Exception(
                 f"too many messages received: {len(actual)} expected: {len(expected)}\n{json.dumps(actual, indent=2)}")
         if len(actual) == len(expected):
-            debug(f"actual", actual)
             debug(f"expected", expected)
+            debug(f"actual", actual)
             assert actual == expected
             # tc = unittest.TestCase()
             # tc.maxDiff = None

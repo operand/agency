@@ -293,6 +293,9 @@ class Agent():
                 is_request = message_id and re.match(r"^request--", message_id)
                 if is_request or return_value is not None:
                     response = {
+                        "meta": {
+                            "response_id": message_id
+                        },
                         "to": message['from'],
                         "action": {
                             "name": "response",
@@ -301,10 +304,6 @@ class Agent():
                             }
                         }
                     }
-                    if message_id:
-                        # set the response_id to the message id
-                        response["meta"] = response.get("meta", {})
-                        response["meta"]["response_id"] = message_id
                     self.send(response)
             else:
                 raise PermissionError(

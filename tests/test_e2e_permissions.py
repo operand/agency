@@ -70,13 +70,15 @@ def test_send_request_permitted_action(any_space):
     any_space._route(first_message)
     assert_message_log(websters_log, [
         {
+            "meta": {
+                "response_id": None,
+            },
             "from": "Chatty",
             "to": "Webster",
             "action": {
                 "name": "response",
                 "args": {
-                    "data": "42",
-                    "original_message_id": None,
+                    "value": "42",
                 }
             },
         },
@@ -111,13 +113,13 @@ def test_send_request_rejected_action(any_space):
     any_space._route(first_message)
     assert_message_log(websters_log, [
         {
+            "meta": { "response_id": None },
             "from": "Chatty",
             "to": "Webster",
             "action": {
-                "name": "error",
+                "name": "response",
                 "args": {
                     "error": "\"Chatty.say\" not permitted",
-                    "original_message_id": None,
                 }
             },
         },
