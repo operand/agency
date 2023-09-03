@@ -1,3 +1,4 @@
+import pytest
 from agency.agent import action
 from tests.helpers import ObservableAgent, add_agent, assert_message_log
 
@@ -122,10 +123,12 @@ def test_send_and_error(any_space):
     }])
 
 
+@pytest.mark.skip
 def test_request_and_return(any_space):
     raise NotImplementedError
 
 
+@pytest.mark.skip
 def test_request_and_error(any_space):
     raise NotImplementedError
 
@@ -188,7 +191,7 @@ def test_meta(any_space):
     """
 
     websters_log = add_agent(any_space, ObservableAgent, "Webster")
-    chattys_log = add_agent(any_space, _MetaAgent, "Chatty")
+    chattys_log = add_agent(any_space, _MessagingTestAgent, "Chatty")
 
     first_message = {
         "meta": {
@@ -231,13 +234,15 @@ def test_send_undefined_action(any_space):
     any_space._route(first_message)
     assert_message_log(websters_log, [
         {
+            "meta": {
+                "response_id": None,
+            },
             "from": "Chatty",
             "to": "Webster",
             "action": {
-                "name": "error",
+                "name": "response",
                 "args": {
                     "error": "\"say\" not found on \"Chatty\"",
-                    "original_message_id": None,
                 },
             }
         },

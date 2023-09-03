@@ -67,7 +67,7 @@ class QueueProtocol(Protocol):
 
 
 class ActionError(Exception):
-    """Raised from the request() method when an action returns an error"""
+    """Raised from the request() method if the action returns an error"""
 
 
 class Agent():
