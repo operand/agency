@@ -27,13 +27,15 @@ def test_send_unpermitted_action(any_space):
     any_space._route(first_message)
     assert_message_log(websters_log, [
         {
+            "meta": {
+                "response_id": None,
+            },
             "from": "Chatty",
             "to": "Webster",
             "action": {
-                "name": "error",
+                "name": "response",
                 "args": {
                     "error": "\"Chatty.say\" not permitted",
-                    "original_message_id": None,
                 }
             }
         },
