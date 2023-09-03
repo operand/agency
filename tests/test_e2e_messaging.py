@@ -94,7 +94,9 @@ def test_send_and_error(any_space):
 
     # this message will result in an error
     any_space._route({
-        'id': '456 whatever i feel like here',
+        'meta': {
+            'id': '456 whatever i feel like here',
+        },
         'to': 'Chatty',
         'from': 'Webster',
         'action': {
@@ -106,13 +108,15 @@ def test_send_and_error(any_space):
     })
 
     assert_message_log(websters_log, [{
+        "meta": {
+            "response_id": "456 whatever i feel like here",
+        },
         "to": "Webster",
         "from": "Chatty",
         "action": {
             "name": "error",
             "args": {
                 "error": "\"some non existent action\" not found on \"Chatty\"",
-                "original_message_id": "456 whatever i feel like here",
             }
         }
     }])

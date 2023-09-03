@@ -238,13 +238,15 @@ class Agent():
             # PermissionError's from access denial, by reporting the error back
             # to the sender.
             self.send({
+                "meta": {
+                    "response_id": message.get("meta", {}).get("id")
+                },
                 "to": message['from'],
                 "from": self.id(),
                 "action": {
                     "name": "response",
                     "args": {
                         "error": f"{e}",
-                        "original_message_id": message.get("meta", {}).get("id")
                     }
                 }
             })
