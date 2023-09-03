@@ -114,7 +114,7 @@ def test_send_and_error(any_space):
         "to": "Webster",
         "from": "Chatty",
         "action": {
-            "name": "error",
+            "name": "response",
             "args": {
                 "error": "\"some non existent action\" not found on \"Chatty\"",
             }
