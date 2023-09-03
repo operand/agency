@@ -13,6 +13,7 @@ ACCESS_PERMITTED = "ACCESS_PERMITTED"
 ACCESS_DENIED = "ACCESS_DENIED"
 ACCESS_REQUESTED = "ACCESS_REQUESTED"
 
+RESERVED_ACTION_NAMES = ["response"]
 
 def action(*args, **kwargs):
     """
@@ -24,6 +25,9 @@ def action(*args, **kwargs):
         access_policy: The access policy. Defaults to ACCESS_PERMITTED.
     """
     def decorator(method):
+        action_name = kwargs.get("name", method.__name__)
+        if action_name in RESERVED_ACTION_NAMES:
+            raise ValueError(f"action name '{action_name}' is reserved")
         method.action_properties = {
             "name": method.__name__,
             "help": util.generate_help(method),
@@ -181,8 +185,11 @@ class Agent():
            and message['to'] == '*':
             return
 
+        # Record received message
+        self._message_log.append(message)
+
         # Handle incoming responses
-        if message["action"]["name"] == "response":
+        if message["action"]["name"] == "response": # TODO: prevent defining 'response' action
             response_id = message.get("meta", {}).get("response_id")
             if response_id:
                 # This was a response to a request()
@@ -195,7 +202,7 @@ class Agent():
             else:
                 # This was a response to a send()
                 if "value" in message["action"]["args"]:
-                    debug(f"handling return", message)
+                    debug(f"handling return from send()", message)
                     self.handle_return(
                         message["action"]["args"]["value"],
                         message["action"]["args"]["original_message"],
@@ -221,7 +228,7 @@ class Agent():
         Outside of an action this method will return None.
 
         Returns:
-            The current message or None if called outside of an action
+            The current message or None
         """
         return self._thread_local_current_message.value
 
@@ -230,8 +237,6 @@ class Agent():
         Top level method within the action processing thread.
         """
         try:
-            # Record message and commit action
-            self._message_log.append(message)
             self.__commit(message)
         except Exception as e:
             # Handle exceptions that occur while committing an action, including

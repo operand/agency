@@ -2,6 +2,7 @@ import json
 import multiprocessing
 import time
 from typing import List
+import unittest
 
 from agency.agent import Agent, QueueProtocol
 from agency.schema import Message
@@ -41,7 +42,7 @@ def add_agent(space: Space, agent_type: ObservableAgent, agent_id: str, **agent_
     return _message_log
 
 
-def assert_message_log(actual: List[Message], expected: List[Message], max_seconds=5):
+def assert_message_log(actual: List[Message], expected: List[Message], max_seconds=2):
     """
     Asserts that a list of messages is as expected.
     """
@@ -54,7 +55,12 @@ def assert_message_log(actual: List[Message], expected: List[Message], max_secon
             raise Exception(
                 f"too many messages received: {len(actual)} expected: {len(expected)}\n{json.dumps(actual, indent=2)}")
         if len(actual) == len(expected):
-            assert actual == expected
+            # debug(f"actual", actual)
+            # debug(f"expected", expected)
+            # assert actual == expected
+            tc = unittest.TestCase()
+            tc.maxDiff = None
+            tc.assertEqual(actual, expected)
             return
     raise Exception(
         f"too few messages received: {len(actual)} expected: {len(expected)}\n{json.dumps(actual, indent=2)}")

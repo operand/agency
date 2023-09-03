@@ -51,7 +51,7 @@ def test_help_action(any_space):
         "action": {
             "name": "response",
             "args": {
-                "data": {
+                "value": {
                     "action_with_docstring": {
                         "description": "A test action Some more description text",
                         "args": {
