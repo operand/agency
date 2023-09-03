@@ -67,7 +67,7 @@ class QueueProtocol(Protocol):
 
 
 class ActionError(Exception):
-    pass
+    """Raised from the request() method when an action returns an error"""
 
 
 class Agent():
@@ -148,19 +148,19 @@ class Agent():
             ActionError: If the action raised an exception
         """
         # Add id to the meta field. This identifies it as a request
-        request_id = str(uuid.uuid4())
+        request_id = str("request--" + uuid.uuid4())
         message["meta"] = message.get("meta", {})
         message["meta"]["id"] = request_id
 
         # Send and mark the request as pending
         self.send(message)
-        pending_flag = "pending--" + request_id
         # TODO: add a lock here
-        self._pending_responses[request_id] = pending_flag
+        pending = object()
+        self._pending_responses[request_id] = pending
 
         # Wait for response
         start_time = time.time()
-        while self._pending_responses[request_id] == pending_flag:
+        while self._pending_responses[request_id] == pending:
             time.sleep(0.001)
             if time.time() - start_time > timeout:
                 raise TimeoutError
@@ -184,7 +184,7 @@ class Agent():
            and message['to'] == '*':
             return
 
-        # Record received message
+        # Record the received message before handling
         self._message_log.append(message)
 
         # Handle incoming responses
@@ -222,7 +222,7 @@ class Agent():
         Outside of an action this method will return None.
 
         Returns:
-            The current message or None
+            The current message
         """
         return self._thread_local_current_message.value
 
@@ -233,7 +233,7 @@ class Agent():
         try:
             self.__commit(message)
         except Exception as e:
-            debug(f"error processing message: {e}", traceback.format_exc())
+            debug(f"error processing message", traceback.format_exc())
             # Handle exceptions that occur while committing an action, including
             # PermissionError's from access denial, by reporting the error back
             # to the sender.
@@ -285,9 +285,12 @@ class Agent():
 
                 # If the action returned a value, or this was a request (which
                 # expects a value), send the value back
-                request_id = message.get("meta", {}).get("request_id")
-                if return_value is not None or request_id:
-                    response_message = {
+                message_id = message.get("meta", {}).get("id")
+                # This is a small hack to determine if it was a request by
+                # inspecting the id string format
+                is_request = message_id and re.match(r"^request--", message_id)
+                if is_request or return_value is not None:
+                    response = {
                         "to": message['from'],
                         "action": {
                             "name": "response",
@@ -296,13 +299,11 @@ class Agent():
                             }
                         }
                     }
-                    if request_id:
-                        # provide the request_id as response_id
-                        response_message["meta"] = {
-                            **response_message.get("meta"),
-                            "response_id": request_id
-                        },
-                    self.send(response_message)
+                    if message_id:
+                        # set the response_id to the message id
+                        response["meta"] = response.get("meta", {})
+                        response["meta"]["response_id"] = message_id
+                    self.send(response)
             else:
                 raise PermissionError(
                   f"\"{self.id()}.{message['action']['name']}\" not permitted")
