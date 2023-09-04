@@ -165,7 +165,7 @@ class Agent():
         # Wait for response
         start_time = time.time()
         while self._pending_responses[request_id] == pending:
-            time.sleep(0.1)
+            time.sleep(0.001)
             debug(f"{self.id()} waiting for response...")
             if time.time() - start_time > timeout:
                 raise TimeoutError

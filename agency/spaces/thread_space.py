@@ -40,11 +40,9 @@ class _AgentThread():
                 agent._is_processing = True
                 self.__started.set()
                 while not self.__stopping.is_set():
-                    time.sleep(0.1)
-                    debug(f"{self.agent_id} checking inbound queue {self.inbound_queue}")
+                    time.sleep(0.001)
                     try:
                         message = self.inbound_queue.get(block=False)
-                        debug(f"dequeued message", message)
                         agent._receive(message)
                     except queue.Empty:
                         pass
@@ -87,7 +85,7 @@ class ThreadSpace(Space):
         to other agents.
         """
         while True:
-            time.sleep(0.1)
+            time.sleep(0.001)
             for agent_thread in list(self.__agent_threads.values()):
                 outbound_queue = agent_thread.outbound_queue
                 try:

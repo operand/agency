@@ -47,12 +47,7 @@ def assert_message_log(actual: List[Message], expected: List[Message], max_secon
     Asserts that a list of messages is as expected.
     """
     wait_for_length(actual, len(expected), max_seconds)
-    debug(f"expected", list(expected))
-    debug(f"actual", list(actual))
     assert list(actual) == list(expected)
-    # tc = unittest.TestCase()
-    # tc.maxDiff = None
-    # tc.assertEqual(actual, expected)
 
 def wait_for_length(actual_list: List, expected_length: int, max_seconds=2):
     """Waits for the agent's _message_log to be populated."""
