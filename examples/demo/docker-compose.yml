@@ -12,8 +12,8 @@ x-demo-base:
     - $MODELS_PATH:/models
     # mounts source into container for development
     - ../..:/agency
-  env_file: .env
   environment:
+    LOGLEVEL: # pass through
     TRANSFORMERS_CACHE: /models/transformers_cache
 
 

@@ -3,7 +3,7 @@ import logging
 import os
 
 
-_LOG_LEVELS = {
+_LOGLEVELS = {
     'CRITICAL': 50,
     'ERROR': 40,
     'WARNING': 30,
@@ -12,10 +12,12 @@ _LOG_LEVELS = {
     'NOTSET': 0
 }
 
-_LOGLEVEL = _LOG_LEVELS[os.environ.get('LOGLEVEL', 'WARNING').upper()]
+_env_loglevel = os.environ.get('LOGLEVEL', 'WARNING').upper()
+_LOGLEVEL = _LOGLEVELS[_env_loglevel]
 _LOGFORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 
 # Initialize the logger
+print(f"Logging level set to {_env_loglevel}", flush=True)
 _logger = logging.getLogger("agency")
 _logger.setLevel(_LOGLEVEL)
 _handler = logging.StreamHandler()
@@ -56,7 +58,7 @@ def log(level: str, message: str, object: object = None):
     if pretty_object != None:
         message = f"{message}\n{pretty_object}"
 
-    numeric_level = _LOG_LEVELS.get(level.upper())
+    numeric_level = _LOGLEVELS.get(level.upper())
     if numeric_level is not None:
         _logger.log(numeric_level, message)
     else:
