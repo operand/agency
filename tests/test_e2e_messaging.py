@@ -137,7 +137,6 @@ class _RequestingAgent(ObservableAgent):
         debug(f"requester logged return value", return_value)
 
 
-@pytest.mark.focus
 def test_request_and_return(any_space):
     requesters_log = add_agent(any_space, _RequestingAgent, "Requester")
     responders_log = add_agent(any_space, _MessagingTestAgent, "Responder")
@@ -199,7 +198,6 @@ class _RequestAndErrorAgent(ObservableAgent):
             self._message_log.append(e)
             debug(f"requester logged exception", e)
 
-@pytest.mark.focus
 def test_request_and_error(any_space):
     requesters_log = add_agent(any_space, _RequestAndErrorAgent, "Requester")
     responders_log = add_agent(any_space, _MessagingTestAgent, "Responder")
