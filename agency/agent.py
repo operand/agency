@@ -5,14 +5,103 @@ import time
 import uuid
 from typing import Dict, List, Protocol
 
+from docstring_parser import DocstringStyle, parse
+
 from agency.schema import Message
-from agency.util import print_warning
 
 ACCESS_PERMITTED = "ACCESS_PERMITTED"
 ACCESS_DENIED = "ACCESS_DENIED"
 ACCESS_REQUESTED = "ACCESS_REQUESTED"
 
 RESPONSE_ACTION_NAME = "[response]"
+
+
+def _python_to_json_type_name(python_type_name: str) -> str:
+    return {
+        'str': 'string',
+        'int': 'number',
+        'float': 'number',
+        'bool': 'boolean',
+        'list': 'array',
+        'dict': 'object'
+    }[python_type_name]
+
+
+def _generate_help(method: callable) -> dict:
+    """
+    Generates a help object from a method's docstring and signature
+
+    Args:
+        method: the method
+
+    Returns:
+        A help object of the form:
+
+        {
+            "description": <description>,
+            "args": {
+                "arg_name": {
+                    "type": <type>,
+                    "description": <description>
+                },
+            }
+            "returns": {
+                "type": <type>,
+                "description": <description>
+            }
+        }
+    """
+    signature = inspect.signature(method)
+    parsed_docstring = parse(method.__doc__, DocstringStyle.GOOGLE)
+
+    help_object = {}
+
+    # description
+    if parsed_docstring.short_description is not None:
+        description = parsed_docstring.short_description
+        if parsed_docstring.long_description is not None:
+            description += " " + parsed_docstring.long_description
+        help_object["description"] = re.sub(r"\s+", " ", description).strip()
+
+    # args
+    help_object["args"] = {}
+    docstring_args = {arg.arg_name: arg for arg in parsed_docstring.params}
+    arg_names = list(signature.parameters.keys())[1:]  # skip 'self' argument
+    for arg_name in arg_names:
+        arg_object = {}
+
+        # type
+        sig_annotation = signature.parameters[arg_name].annotation
+        if sig_annotation is not None and sig_annotation.__name__ != "_empty":
+            arg_object["type"] = _python_to_json_type_name(
+                signature.parameters[arg_name].annotation.__name__)
+        elif arg_name in docstring_args and docstring_args[arg_name].type_name is not None:
+            arg_object["type"] = _python_to_json_type_name(
+                docstring_args[arg_name].type_name)
+
+        # description
+        if arg_name in docstring_args and docstring_args[arg_name].description is not None:
+            arg_object["description"] = docstring_args[arg_name].description.strip()
+
+        help_object["args"][arg_name] = arg_object
+
+    # returns
+    if parsed_docstring.returns is not None:
+        help_object["returns"] = {}
+
+        # type
+        if signature.return_annotation is not None:
+            help_object["returns"]["type"] = _python_to_json_type_name(
+                signature.return_annotation.__name__)
+        elif parsed_docstring.returns.type_name is not None:
+            help_object["returns"]["type"] = _python_to_json_type_name(
+                parsed_docstring.returns.type_name)
+
+        # description
+        if parsed_docstring.returns.description is not None:
+            help_object["returns"]["description"] = parsed_docstring.returns.description.strip()
+
+    return help_object
 
 
 def action(*args, **kwargs):
@@ -30,7 +119,7 @@ def action(*args, **kwargs):
             raise ValueError(f"action name '{action_name}' is reserved")
         method.action_properties = {
             "name": method.__name__,
-            "help": util.generate_help(method),
+            "help": _generate_help(method),
             "access_policy": ACCESS_PERMITTED,
             **kwargs}
         return method

@@ -44,3 +44,8 @@ def log(level: str, message: str):
     """Logs a message at the specified level"""
     message = debug_text(level, message)
     logger.log(level.upper(), message)
+
+
+
+def print_warning(text):
+    print(f"\033[93mWARNING: {text}\033[0m")
