@@ -4,7 +4,7 @@ import time
 import pytest
 
 from agency.agent import ActionError, action
-from agency.util import debug
+from agency.util.util import log
 from tests.helpers import (ObservableAgent, add_agent, assert_message_log,
                            wait_for_length)
 

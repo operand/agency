@@ -2,13 +2,12 @@ import inspect
 import re
 import threading
 import time
-import traceback
 import uuid
 from typing import Dict, List, Protocol
 
-from agency import util
+from agency.util import util
 from agency.schema import Message
-from agency.util import debug, print_warning
+from agency.util.util import log, print_warning
 
 ACCESS_PERMITTED = "ACCESS_PERMITTED"
 ACCESS_DENIED = "ACCESS_DENIED"
@@ -120,7 +119,7 @@ class Agent():
         Args:
             message: The message
         """
-        debug(f"")
+        log(f"")
         message["from"] = self.id()
         with self._message_log_lock:
             self._message_log.append(message)

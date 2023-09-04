@@ -1,7 +1,7 @@
 from agency.agent import ACCESS_PERMITTED, Agent, action
 from agents.mixins.prompt_methods import PromptMethods
 from transformers import AutoModelForCausalLM, AutoTokenizer
-import agency.util as util
+import agency.util.util as util
 import os
 import textwrap
 

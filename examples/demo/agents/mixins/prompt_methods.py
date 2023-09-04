@@ -1,7 +1,7 @@
 from abc import ABC, ABCMeta, abstractmethod
 from datetime import datetime
 from typing import List
-from agency import util
+from agency.util import util
 from agency.schema import Message
 
 

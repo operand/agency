@@ -7,7 +7,7 @@ from agents.mixins.help_methods import HelpMethods
 from agents.mixins.prompt_methods import PromptMethods
 from agents.mixins.say_response_methods import SayResponseMethods
 
-from agency import util
+from agency.util import util
 from agency.agent import Agent, action
 from agency.schema import Message
 

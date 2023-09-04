@@ -42,41 +42,6 @@ def strip_ansi_codes(text):
 def print_warning(text):
     print(f"\033[93mWARNING: {text}\033[0m")
 
-
-def debug(key: str, object=None):
-    """Pretty prints an object to the terminal for inspection"""
-    if os.getenv("DEBUG", False):
-        print(debug_text(key, object), flush=True)
-
-
-class CustomEncoder(json.JSONEncoder):
-    def default(self, obj):
-        try:
-            return super().default(obj)
-        except TypeError:
-            return str(obj)
-
-
-def debug_text(name, object=None):
-    """
-    Returns a pretty printed string for debugging
-    """
-    START_STYLE = "\033[33m"  # yellow
-    RESET_STYLE = "\033[0m"
-    debug_value = ""
-    if object != None:
-        debug_object_value = object
-        try:
-            # since this is always for a human we hardcode 2 space indentation
-            debug_object_value = json.dumps(
-                object, indent=2, cls=CustomEncoder)
-        except Exception as e:
-            print(f"debug_text: {e}")
-            pass
-        debug_value = f"{debug_object_value}\n{RESET_STYLE}{'_'*5} {name} {'_'*5}"
-    return f"\n{START_STYLE}{'>'*5} {name} {'<'*5}{RESET_STYLE}\n{debug_value}{RESET_STYLE}".replace("\\n", "\n")
-
-
 def python_to_json_type_name(python_type_name: str) -> str:
     return {
         'str': 'string',
