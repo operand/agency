@@ -1,12 +1,8 @@
 import json
 import os
 import subprocess
-import time
-from typing import Dict
 import uuid
-
-from agency import util
-from agency.schema import Message
+from typing import Dict
 
 from agents.mixins.help_methods import HelpMethods
 from colorama import Fore, Style
@@ -28,7 +24,6 @@ class Host(HelpMethods, Agent):
         self.admin_id = admin_id
         # used by the request_permission method to asynchronously ask for permission
         self.pending_permissions: Dict[str, bool] = {}
-        
 
     @action(access_policy=ACCESS_REQUESTED)
     def shell_command(self, command: str) -> str:

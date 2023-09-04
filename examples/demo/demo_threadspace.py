@@ -22,8 +22,8 @@ if __name__ == "__main__":
               # user_id determines the "user" role in the OpenAI chat API
               user_id="User")
 
-    # Add the Gradio app and user to the space
-    # space.add(GradioApp, "User")
+    # GradioApp adds its own user to the space in its constructor
+    GradioApp(space).demo().launch()
 
 
     # Other agents to try

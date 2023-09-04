@@ -29,11 +29,9 @@ class HelpMethods():
         """
         self._available_actions: Dict[str, Dict[str, dict]] = {}
         self.send({
-            "id": "help_request",
             "to": "*",
             "action": {
                 "name": "help",
-                "args": {},
             }
         })
         self.send({
@@ -42,13 +40,11 @@ class HelpMethods():
                 "name": "response",
                 "args": {
                     "data": self.help(),
-                    "original_message_id": None,
                 }
             }
         })
 
-    @action
-    def response(self, data, original_message_id: str):
+    def handle_return(self, value, original_message_id: str):
         if original_message_id == "help_request":
             self._available_actions[self._current_message['from']] = data
         else:
