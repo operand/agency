@@ -370,7 +370,7 @@ def test_send_undefined_action(any_space):
         "from": "Sender",
         "to": "Receiver",
         "action": {
-            "name": "null_action",
+            "name": "undefined_action",
         }
     }
     any_space._route(first_message)
@@ -384,7 +384,7 @@ def test_send_undefined_action(any_space):
             "action": {
                 "name": "response",
                 "args": {
-                    "error": "\"say\" not found on \"Receiver\"",
+                    "error": "\"undefined_action\" not found on \"Receiver\"",
                 },
             }
         },

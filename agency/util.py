@@ -44,7 +44,7 @@ def print_warning(text):
 
 # enables debug messages for the listed keys
 DEBUG_KEYS = {
-  # "*",  # special key, uncomment to force enable all debug messages
+  "*",  # special key, uncomment to force enable all debug messages
   # "-", # special key, uncomment to force disable all debug messages
 
   # you can also list keys to watch directly below:
