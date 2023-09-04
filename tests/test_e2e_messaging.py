@@ -1,5 +1,6 @@
+import re
 import pytest
-from agency.agent import action
+from agency.agent import ActionError, action
 from agency.util import debug
 from tests.helpers import ObservableAgent, add_agent, assert_message_log, wait_for_length
 
@@ -33,12 +34,12 @@ def test_send_and_receive_say(any_space):
 
     # Send the first message and wait for a response
     first_message = {
-        'from': 'Sender',
-        'to': 'Receiver',
-        'action': {
-            'name': 'say_with_say',
-            'args': {
-                'content': 'Hello, Receiver!'
+        "from": "Sender",
+        "to": "Receiver",
+        "action": {
+            "name": "say_with_say",
+            "args": {
+                "content": "Hello, Receiver!"
             }
         }
     }
@@ -62,13 +63,13 @@ def test_send_and_return(any_space):
     receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
     first_message = {
-        'meta': {
+        "meta": {
             "id": "123 whatever i feel like here"
         },
-        'to': 'Receiver',
-        'from': 'Sender',
-        'action': {
-            'name': 'action_with_return',
+        "to": "Receiver",
+        "from": "Sender",
+        "action": {
+            "name": "action_with_return",
         }
     }
     any_space._route(first_message)
@@ -93,15 +94,15 @@ def test_send_and_error(any_space):
 
     # this message will result in an error
     any_space._route({
-        'meta': {
-            'id': '456 whatever i feel like here',
+        "meta": {
+            "id": "456 whatever i feel like here",
         },
-        'to': 'Receiver',
-        'from': 'Sender',
-        'action': {
-            'name': 'some non existent action',
-            'args': {
-                'content': 'Hi Receiver!'
+        "to": "Receiver",
+        "from": "Sender",
+        "action": {
+            "name": "some non existent action",
+            "args": {
+                "content": "Hi Receiver!"
             }
         }
     })
@@ -125,9 +126,9 @@ class _RequestingAgent(ObservableAgent):
     @action
     def do_request(self):
         return_value = self.request({
-            'to': 'Responder',
-            'action': {
-                'name': 'action_with_return',
+            "to": "Responder",
+            "action": {
+                "name": "action_with_return",
             }
         })
         # we place the return value on the message log as a small hack so we can
@@ -136,34 +137,39 @@ class _RequestingAgent(ObservableAgent):
         debug(f"requester logged return value", return_value)
 
 
+@pytest.mark.focus
 def test_request_and_return(any_space):
     requesters_log = add_agent(any_space, _RequestingAgent, "Requester")
     responders_log = add_agent(any_space, _MessagingTestAgent, "Responder")
 
     # send a message to the requester first to kick off the request/response
     first_message = {
-        'from': 'Responder',
-        'to': 'Requester',
-        'action': {
-            'name': 'do_request',
+        "from": "Responder",
+        "to": "Requester",
+        "action": {
+            "name": "do_request",
         }
     }
     any_space._route(first_message)
     wait_for_length(requesters_log, 4)
     requesters_log = list(requesters_log)
-    # remove dynamic meta fields. we assert they're presence by doing this
-    requesters_log[1].pop("meta")
-    requesters_log[2].pop("meta")
+    # first remove dynamic meta fields and assert they are correct
+    request_id = requesters_log[1]["meta"].pop("id")
+    response_id = requesters_log[2]["meta"].pop("response_id")
+    assert re.match(r"^request--.+$", request_id)
+    assert response_id == request_id
     assert requesters_log == [
         first_message,
         {
-            'from': 'Requester',
-            'to': 'Responder',
-            'action': {
-                'name': 'action_with_return',
+            "meta": {},
+            "from": "Requester",
+            "to": "Responder",
+            "action": {
+                "name": "action_with_return",
             }
         },
         {
+            "meta": {},
             "from": "Responder",
             "to": "Requester",
             "action": {
@@ -177,9 +183,66 @@ def test_request_and_return(any_space):
     ]
 
 
-@pytest.mark.skip
+class _RequestAndErrorAgent(ObservableAgent):
+    @action
+    def do_request(self):
+        try:
+            return_value = self.request({
+                "to": "Responder",
+                "action": {
+                    "name": "some non existent action",
+                }
+            })
+        except Exception as e:
+            # we place the return value on the message log as a small hack so we can
+            # inspect it in the test
+            self._message_log.append(e)
+            debug(f"requester logged exception", e)
+
+@pytest.mark.focus
 def test_request_and_error(any_space):
-    raise NotImplementedError
+    requesters_log = add_agent(any_space, _RequestAndErrorAgent, "Requester")
+    responders_log = add_agent(any_space, _MessagingTestAgent, "Responder")
+
+    # send a message to the requester first to kick off the request/response
+    first_message = {
+        "from": "Responder",
+        "to": "Requester",
+        "action": {
+            "name": "do_request",
+        }
+    }
+    any_space._route(first_message)
+    wait_for_length(requesters_log, 4)
+    requesters_log = list(requesters_log)
+    # first remove dynamic meta fields and assert they are correct
+    request_id = requesters_log[1]["meta"].pop("id")
+    response_id = requesters_log[2]["meta"].pop("response_id")
+    assert re.match(r"^request--.+$", request_id)
+    assert response_id == request_id
+    # now assert each message one by one
+    assert requesters_log[0] == first_message
+    assert requesters_log[1] == {
+        "meta": {},
+        "from": "Requester",
+        "to": "Responder",
+        "action": {
+            "name": "some non existent action",
+        }
+    }
+    assert requesters_log[2] == {
+        "meta": {},
+        "from": "Responder",
+        "to": "Requester",
+        "action": {
+            "name": "response",
+            "args": {
+                "error": "\"some non existent action\" not found on \"Responder\"",
+            }
+        }
+    }
+    assert type(requesters_log[3]) == ActionError
+    assert requesters_log[3].__str__() == "\"some non existent action\" not found on \"Responder\""
 
 
 @pytest.mark.skip
@@ -262,12 +325,12 @@ def test_send_undefined_action(any_space):
     receivers_log = add_agent(any_space, ObservableAgent, "Receiver")
 
     first_message = {
-        'from': 'Sender',
-        'to': 'Receiver',
-        'action': {
-            'name': 'say',
-            'args': {
-                'content': 'Hello, Receiver!'
+        "from": "Sender",
+        "to": "Receiver",
+        "action": {
+            "name": "say",
+            "args": {
+                "content": "Hello, Receiver!"
             }
         }
     }
