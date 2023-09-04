@@ -3,24 +3,6 @@ import logging
 import os
 
 
-class _CustomEncoder(json.JSONEncoder):
-    def default(self, obj):
-        try:
-            return super().default(obj)
-        except TypeError:
-            return str(obj)
-
-
-LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
-
-
-logging.basicConfig(
-    level=LOGLEVEL,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-
-_logger = logging.getLogger(__name__)
-
 _LOG_LEVELS = {
     'CRITICAL': 50,
     'ERROR': 40,
@@ -29,6 +11,26 @@ _LOG_LEVELS = {
     'DEBUG': 10,
     'NOTSET': 0
 }
+
+_LOGLEVEL = _LOG_LEVELS[os.environ.get('LOGLEVEL', 'WARNING').upper()]
+_LOGFORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+
+# Initialize the logger
+_logger = logging.getLogger("agency")
+_logger.setLevel(_LOGLEVEL)
+_handler = logging.StreamHandler()
+_handler.setLevel(_LOGLEVEL)
+_formatter = logging.Formatter(_LOGFORMAT)
+_handler.setFormatter(_formatter)
+_logger.addHandler(_handler)
+
+
+class _CustomEncoder(json.JSONEncoder):
+    def default(self, obj):
+        try:
+            return super().default(obj)
+        except TypeError:
+            return str(obj)
 
 
 def log(level: str, message: str, object: object = None):

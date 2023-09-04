@@ -6,7 +6,6 @@ from agents.mixins.help_methods import HelpMethods
 from agents.mixins.say_response_methods import SayResponseMethods
 
 from agency.agent import Agent, action
-from agency.util import log
 
 
 class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
@@ -19,9 +18,6 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
         self.__model = model
         self.__user_id = user_id
         openai.api_key = openai_api_key
-
-    def after_add(self):
-        log("OpenAIFunctionAgent after_add")
 
     def __system_prompt(self):
         return textwrap.dedent(f"""

@@ -52,7 +52,7 @@ class HelpMethods():
 
     def handle_return(self, value, original_message_id: str):
         if original_message_id == "help_request":
-            self._available_actions[self._current_message['from']] = data
+            self._available_actions[self._current_message['from']] = value
         else:
             # this was in response to something else, call the original
-            super().response(data, original_message_id)
+            super().response(value, original_message_id)

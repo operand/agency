@@ -9,22 +9,20 @@ class SayResponseMethods():
     NOTE The _message_log will contain both messages
     """
 
-    @action
-    def response(self, data, original_message_id: str):
+    def handle_return(self, value, original_message_id: str):
         self._receive({
-            **self._current_message,
+            **self._current_message(),
             "action": {
                 "name": "say",
                 "args": {
-                    "content": str(data),
+                    "content": str(value),
                 }
             },
         })
 
-    @action
-    def error(self, error: str, original_message_id: dict):
+    def handle_error(self, error: str, original_message_id: dict):
         self._receive({
-            **self._current_message,
+            **self._current_message(),
             "action": {
                 "name": "say",
                 "args": {
