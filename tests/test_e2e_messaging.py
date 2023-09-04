@@ -1,21 +1,24 @@
 import re
+
 import pytest
+
 from agency.agent import ActionError, action
 from agency.util import debug
-from tests.helpers import ObservableAgent, add_agent, assert_message_log, wait_for_length
+from tests.helpers import (ObservableAgent, add_agent, assert_message_log,
+                           wait_for_length)
 
 
 class _MessagingTestAgent(ObservableAgent):
     @action
-    def say(self, content: str):
-        """This implementation does nothing"""
+    def null_action(self, *args, **kwargs):
+        """This does nothing"""
 
     @action
-    def say_with_say(self, content: str):
+    def action_with_send(self):
         self.send({
             "to": "Sender",
             "action": {
-                "name": "say",
+                "name": "null_action",
                 "args": {
                     "content": f"Hello, {self._current_message()['from']}!",
                 }
@@ -27,8 +30,8 @@ class _MessagingTestAgent(ObservableAgent):
         return ["Hello!"]
 
 
-def test_send_and_receive_say(any_space):
-    """Tests sending a basic "say" message and receiving one back"""
+def test_receive_and_send(any_space):
+    """Tests receiving a message and responding using send()"""
     senders_log = add_agent(any_space, _MessagingTestAgent, "Sender")
     receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
@@ -37,10 +40,7 @@ def test_send_and_receive_say(any_space):
         "from": "Sender",
         "to": "Receiver",
         "action": {
-            "name": "say_with_say",
-            "args": {
-                "content": "Hello, Receiver!"
-            }
+            "name": "action_with_send",
         }
     }
     any_space._route(first_message)
@@ -49,16 +49,16 @@ def test_send_and_receive_say(any_space):
             "from": "Receiver",
             "to": "Sender",
             "action": {
-                "name": "say",
+                "name": "null_action",
                 "args": {
-                    "content": "Hello, Sender!"
+                    "content": "Hello, Sender!",
                 }
             },
         },
     ])
 
 
-def test_send_and_return(any_space):
+def test_receive_and_return(any_space):
     senders_log = add_agent(any_space, ObservableAgent, "Sender")
     receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
@@ -193,7 +193,7 @@ class _RequestAndErrorAgent(ObservableAgent):
                 }
             })
         except Exception as e:
-            # we place the return value on the message log as a small hack so we can
+            # we place the exception on the message log as a small hack so we can
             # inspect it in the test
             self._message_log.append(e)
             debug(f"requester logged exception", e)
@@ -213,12 +213,12 @@ def test_request_and_error(any_space):
     any_space._route(first_message)
     wait_for_length(requesters_log, 4)
     requesters_log = list(requesters_log)
-    # first remove dynamic meta fields and assert they are correct
+    # first remove dynamic meta fields and assert their pattern
     request_id = requesters_log[1]["meta"].pop("id")
     response_id = requesters_log[2]["meta"].pop("response_id")
     assert re.match(r"^request--.+$", request_id)
     assert response_id == request_id
-    # now assert each message one by one
+    # assert each message one by one
     assert requesters_log[0] == first_message
     assert requesters_log[1] == {
         "meta": {},
@@ -243,7 +243,23 @@ def test_request_and_error(any_space):
     assert requesters_log[3].__str__() == "\"some non existent action\" not found on \"Responder\""
 
 
-@pytest.mark.skip
+class _RequestAndTimeoutAgent(ObservableAgent):
+    @action
+    def do_request(self):
+        try:
+            return_value = self.request({
+                "to": "Responder",
+                "action": {
+                    "name": "some non existent action",
+                }
+            })
+        except TimeoutError as e:
+            # we place the exception on the message log as a small hack so we can
+            # inspect it in the test
+            self._message_log.append(e)
+            debug(f"requester logged exception", e)
+
+@pytest.mark.focus
 def test_request_and_timeout(any_space):
     raise NotImplementedError
 
@@ -256,7 +272,7 @@ def test_self_received_broadcast(any_space):
         "from": "Sender",
         "to": "*",  # makes it a broadcast
         "action": {
-            "name": "say",
+            "name": "null_action",
             "args": {
                 "content": "Hello, everyone!",
             },
@@ -277,7 +293,7 @@ def test_non_self_received_broadcast(any_space):
         "from": "Sender",
         "to": "*",  # makes it a broadcast
         "action": {
-            "name": "say",
+            "name": "null_action",
             "args": {
                 "content": "Hello, everyone!",
             },
@@ -303,10 +319,7 @@ def test_meta(any_space):
         "from": "Sender",
         "to": "Receiver",
         "action": {
-            "name": "say",
-            "args": {
-                "content": "Hello, Receiver!"
-            }
+            "name": "null_action",
         },
     }
     any_space._route(first_message)
@@ -326,10 +339,7 @@ def test_send_undefined_action(any_space):
         "from": "Sender",
         "to": "Receiver",
         "action": {
-            "name": "say",
-            "args": {
-                "content": "Hello, Receiver!"
-            }
+            "name": "null_action",
         }
     }
     any_space._route(first_message)
