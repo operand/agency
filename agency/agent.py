@@ -67,7 +67,7 @@ class QueueProtocol(Protocol):
 
 
 class ActionError(Exception):
-    """Raised from the request() method if the action returns an error"""
+    """Raised from the request() method if the action responds with an error"""
 
 
 class Agent():
@@ -120,6 +120,7 @@ class Agent():
         Args:
             message: The message
         """
+        debug(f"")
         message["from"] = self.id()
         with self._message_log_lock:
             self._message_log.append(message)

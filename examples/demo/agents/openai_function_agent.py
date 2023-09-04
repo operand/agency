@@ -20,6 +20,9 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
         self.__user_id = user_id
         openai.api_key = openai_api_key
 
+    def after_add(self):
+        debug("OpenAIFunctionAgent after_add")
+
     def __system_prompt(self):
         return textwrap.dedent(f"""
         You are "{self.id()}". You are a prototype of an "agent" system which

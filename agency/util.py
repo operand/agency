@@ -1,5 +1,6 @@
 import inspect
 import json
+import os
 import re
 from datetime import datetime
 
@@ -42,37 +43,10 @@ def print_warning(text):
     print(f"\033[93mWARNING: {text}\033[0m")
 
 
-# enables debug messages for the listed keys
-DEBUG_KEYS = {
-  "*",  # special key, uncomment to force enable all debug messages
-  # "-", # special key, uncomment to force disable all debug messages
-
-  # you can also list keys to watch directly below:
-  # "abc",
-  # ...
-}
-
-
-def debug(name, object=None):
+def debug(key: str, object=None):
     """Pretty prints an object to the terminal for inspection"""
-    if (
-        name
-        and (
-            name in DEBUG_KEYS and
-            "-" not in DEBUG_KEYS  # - overrides others and globally disables
-            and not name.startswith("*")  # starting with * overrides -
-        ) or (
-            name not in DEBUG_KEYS
-            and name.startswith("*")  # * forces debug message
-            or (
-                "*" in DEBUG_KEYS
-                and "-" not in DEBUG_KEYS  # - overrides * here
-                # -{name} disables specific messages when * is on
-                    and f"-{name}" not in DEBUG_KEYS
-            )
-        )
-    ):
-        print(debug_text(name, object), flush=True)
+    if os.getenv("DEBUG", False):
+        print(debug_text(key, object), flush=True)
 
 
 class CustomEncoder(json.JSONEncoder):
