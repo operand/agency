@@ -103,10 +103,12 @@ class Agent():
         self._id: str = id
         self._outbound_queue: QueueProtocol = outbound_queue
         self._receive_own_broadcasts: bool = receive_own_broadcasts
+        self._is_processing: bool = False # set by the Space
         # TODO: place a lock around access
         self._message_log: List[Message] = []
         # TODO: place a lock around access
         self._pending_responses: Dict[str, Message] = {}
+        self._pending_responses_lock = threading.Lock()
         self._thread_local_current_message = threading.local()
 
     def id(self) -> str:
@@ -120,6 +122,7 @@ class Agent():
             message: The message
         """
         message["from"] = self.id()
+        debug(f"{self.id()} sending message", message)
         self._message_log.append(message)
         self._outbound_queue.put(message)
 
@@ -145,6 +148,9 @@ class Agent():
             TimeoutError: If the timeout is reached
             ActionError: If the action raised an exception
         """
+        if not self._is_processing:
+            raise RuntimeError("request() called while agent is not processing incoming messages. Use send() instead.")
+
         # Add id to the meta field. This prefix identifies it as a request
         request_id = "request--" + str(uuid.uuid4())
         message["meta"] = message.get("meta", {})
@@ -152,19 +158,21 @@ class Agent():
 
         # Send and mark the request as pending
         self.send(message)
-        # TODO: add a lock here
         pending = object()
-        self._pending_responses[request_id] = pending
+        with self._pending_responses_lock:
+            self._pending_responses[request_id] = pending
 
         # Wait for response
         start_time = time.time()
         while self._pending_responses[request_id] == pending:
-            time.sleep(0.001)
+            time.sleep(0.1)
+            debug(f"{self.id()} waiting for response...")
             if time.time() - start_time > timeout:
                 raise TimeoutError
 
         # Raise error or return value from response
-        response_message = self._pending_responses.pop(request_id)
+        with self._pending_responses_lock:
+            response_message = self._pending_responses.pop(request_id)
         if "error" in response_message["action"]["args"]:
             raise ActionError(response_message["action"]["args"]["error"])
         return response_message["action"]["args"]["value"]
@@ -181,6 +189,8 @@ class Agent():
            and message['from'] == self.id() \
            and message['to'] == '*':
             return
+
+        debug(f"{self.id()} received message", message)
 
         # Record the received message before handling
         self._message_log.append(message)
@@ -281,7 +291,7 @@ class Agent():
                 # Invoke the action method
                 # (set _thread_local_current_message so that it can be used by the action)
                 self._thread_local_current_message.value = message
-                return_value = action_method(**message['action']['args'])
+                return_value = action_method(**message['action'].get('args', {}))
 
                 # If the action returned a value, or this was a request (which
                 # expects a value), send the value back
@@ -368,18 +378,22 @@ class Agent():
 
     def after_add(self):
         """
-        Called immediately after the agent is added to a space.
+        Called after the agent is added to a space, before it begins processing
+        incoming messages.
 
-        The agent may send initial messages during this callback, but will not
-        begin processing received messages until this callback returns.
+        The agent may send messages during this callback using the send()
+        method, but may not use the request() method since it relies on
+        processing incoming messages.
         """
 
     def before_remove(self):
         """
-        Called before the agent is removed from a space.
+        Called before the agent is removed from a space, after it has finished
+        processing incoming messages.
 
-        The agent may send final messages during this callback, but will not
-        process any further received messages.
+        The agent may send final messages during this callback using the send()
+        method, but may not use the request() method since it relies on
+        processing incoming messages.
         """
 
     def before_action(self, message: dict):

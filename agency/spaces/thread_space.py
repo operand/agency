@@ -9,7 +9,7 @@ from numpy import block
 from agency.agent import Agent, QueueProtocol
 from agency.schema import Message, validate_message
 from agency.space import Space
-from agency.util import print_warning
+from agency.util import debug, print_warning
 
 
 class _AgentThread():
@@ -29,7 +29,7 @@ class _AgentThread():
         self.__stopping = threading.Event()
 
     def start(self):
-        def _thread():
+        def _thread(exception_info):
             try:
                 agent = self.agent_type(
                     self.agent_id,
@@ -38,24 +38,32 @@ class _AgentThread():
                 )
                 agent.after_add()
                 self.__started.set()
+                agent._is_processing = True
                 while not self.__stopping.is_set():
-                    time.sleep(0.001)
+                    time.sleep(0.1)
+                    debug(f"{self.agent_id} checking inbound queue {self.inbound_queue}")
                     try:
                         message = self.inbound_queue.get(block=False)
+                        debug(f"dequeued message", message)
                         agent._receive(message)
                     except queue.Empty:
                         pass
+                agent._is_processing = False
                 agent.before_remove()
             except Exception as e:
-                print_warning(f"Error starting agent {self.agent_id}: {e}\n" + traceback.format_exc())
+                exception_info["exception"] = e
 
-        self.__thread = threading.Thread(target=_thread)
+        exception_info = {"exception": None}
+        self.__thread = threading.Thread(target=_thread, args=(exception_info,))
         self.__thread.start()
 
         if not self.__started.wait(timeout=10):
             # it couldn't start clean up and raise an exception
             self.stop()
-            raise Exception("Thread could not be started.")
+            if exception_info["exception"] is not None:
+                raise exception_info["exception"]
+            else:
+                raise Exception("Thread could not be started.")
 
     def stop(self):
         self.__stopping.set()
@@ -79,7 +87,7 @@ class ThreadSpace(Space):
         to other agents.
         """
         while True:
-            time.sleep(0.001)
+            time.sleep(0.1)
             for agent_thread in list(self.__agent_threads.values()):
                 outbound_queue = agent_thread.outbound_queue
                 try:
@@ -90,12 +98,16 @@ class ThreadSpace(Space):
                     pass
 
     def _route(self, message: Message):
+        debug(f"routing message", message)
         message = validate_message(message)
-        if message["to"] == "*":
-            for agent_thread in self.__agent_threads.values():
-                agent_thread.inbound_queue.put(message)
-        else:
-            self.__agent_threads[message["to"]].inbound_queue.put(message)
+        recipient_threads = [
+            agent_thread
+            for agent_thread in list(self.__agent_threads.values())
+            if message["to"] == agent_thread.agent_id or message["to"] == "*"
+        ]
+        for recipient_thread in recipient_threads:
+            debug(f"enqueuing message to queue {recipient_thread.inbound_queue}", message)
+            recipient_thread.inbound_queue.put(message)
 
     def add(self, agent_type: Type[Agent], agent_id: str, **agent_kwargs):
         if agent_id in self.__agent_threads.keys():

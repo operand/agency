@@ -46,21 +46,25 @@ def assert_message_log(actual: List[Message], expected: List[Message], max_secon
     """
     Asserts that a list of messages is as expected.
     """
-    print(f"waiting {max_seconds} seconds for {len(expected)} messages...")
+    wait_for_length(actual, len(expected), max_seconds)
+    debug(f"expected", list(expected))
+    debug(f"actual", list(actual))
+    assert list(actual) == list(expected)
+    # tc = unittest.TestCase()
+    # tc.maxDiff = None
+    # tc.assertEqual(actual, expected)
+
+def wait_for_length(actual_list: List, expected_length: int, max_seconds=2):
+    """Waits for the agent's _message_log to be populated."""
+    print(f"Waiting {max_seconds} seconds for {expected_length} messages...")
     start_time = time.time()
     while ((time.time() - start_time) < max_seconds):
         time.sleep(0.01)
-        actual = list(actual)  # cast to list
-        if len(actual) > len(expected):
+        actual = list(actual_list)  # cast to list
+        if len(actual) > expected_length:
             raise Exception(
-                f"too many messages received: {len(actual)} expected: {len(expected)}\n{json.dumps(actual, indent=2)}")
-        if len(actual) == len(expected):
-            debug(f"expected", expected)
-            debug(f"actual", actual)
-            assert actual == expected
-            # tc = unittest.TestCase()
-            # tc.maxDiff = None
-            # tc.assertEqual(actual, expected)
+                f"too many messages received: {len(actual)} expected: {expected_length}\n{json.dumps(actual, indent=2)}")
+        if len(actual) == expected_length:
             return
     raise Exception(
-        f"too few messages received: {len(actual)} expected: {len(expected)}\n{json.dumps(actual, indent=2)}")
+        f"too few messages received: {len(actual)} expected: {expected_length}\n{json.dumps(actual, indent=2)}")

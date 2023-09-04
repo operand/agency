@@ -1,6 +1,7 @@
 import pytest
 from agency.agent import action
-from tests.helpers import ObservableAgent, add_agent, assert_message_log
+from agency.util import debug
+from tests.helpers import ObservableAgent, add_agent, assert_message_log, wait_for_length
 
 
 class _MessagingTestAgent(ObservableAgent):
@@ -21,7 +22,7 @@ class _MessagingTestAgent(ObservableAgent):
         })
 
     @action
-    def say_with_return(self, content: str):
+    def action_with_return(self):
         return ["Hello!"]
 
 
@@ -123,48 +124,48 @@ def test_send_and_error(any_space):
     }])
 
 
-class _SendingAgent(ObservableAgent):
-    def after_add(self):
+class _RequestingAgent(ObservableAgent):
+    @action
+    def do_request(self):
         return_value = self.request({
-            'to': 'Receiver',
+            'to': 'Responder',
             'action': {
-                'name': 'say_with_return',
-                'args': {
-                    'content': 'Hi Receiver!'
-                }
+                'name': 'action_with_return',
             }
         })
-        # we place the return value on the message log so we can inspect it in
-        # the test
+        # we place the return value on the message log as a small hack so we can
+        # inspect it in the test
         self._message_log.append(return_value)
+        debug(f"requester logged return value", return_value)
 
 
 @pytest.mark.focus
 def test_request_and_return(any_space):
-    receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
-    senders_log = add_agent(any_space, _SendingAgent, "Sender")
+    requesters_log = add_agent(any_space, _RequestingAgent, "Requester")
+    responders_log = add_agent(any_space, _MessagingTestAgent, "Responder")
 
+    # send a message to the requester first to kick off the request/response
     first_message = {
-        'meta': {
-            "id": "123 whatever i feel like here"
-        },
-        'to': 'Receiver',
-        'from': 'Sender',
+        'from': 'Responder',
+        'to': 'Requester',
         'action': {
-            'name': 'say_with_return',
-            'args': {
-                'content': 'Hi Receiver!'
-            }
+            'name': 'do_request',
         }
     }
     any_space._route(first_message)
-    assert_message_log(senders_log, [
+    wait_for_length(requesters_log, 4)
+    assert list(requesters_log) == [
+        first_message,
         {
-            "meta": {
-                "response_id": "123 whatever i feel like here",
-            },
-            "to": "Sender",
-            "from": "Receiver",
+            'from': 'Requester',
+            'to': 'Responder',
+            'action': {
+                'name': 'action_with_return',
+            }
+        },
+        {
+            "from": "Responder",
+            "to": "Requester",
             "action": {
                 "name": "response",
                 "args": {
@@ -173,11 +174,16 @@ def test_request_and_return(any_space):
             }
         },
         ["Hello!"],
-    ])
+    ]
 
 
 @pytest.mark.skip
 def test_request_and_error(any_space):
+    raise NotImplementedError
+
+
+@pytest.mark.skip
+def test_request_and_timeout(any_space):
     raise NotImplementedError
 
 

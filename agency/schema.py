@@ -14,8 +14,8 @@ class Action(BaseModel):
         description="The name of the action."
     )
 
-    args: Dict = Field(
-        ...,
+    args: Optional[Dict] = Field(
+        None,
         description="The arguments for the action."
     )
 
