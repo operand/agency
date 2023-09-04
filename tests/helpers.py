@@ -2,12 +2,10 @@ import json
 import multiprocessing
 import time
 from typing import List
-import unittest
 
 from agency.agent import Agent, QueueProtocol
 from agency.schema import Message
 from agency.space import Space
-from agency.util import log
 
 multiprocessing.set_start_method('spawn', force=True)
 
@@ -48,6 +46,7 @@ def assert_message_log(actual: List[Message], expected: List[Message], max_secon
     """
     wait_for_length(actual, len(expected), max_seconds)
     assert list(actual) == list(expected)
+
 
 def wait_for_length(actual_list: List, expected_length: int, max_seconds=2):
     """Waits for the agent's _message_log to be populated."""

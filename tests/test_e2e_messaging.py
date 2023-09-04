@@ -1,10 +1,7 @@
 import re
 import time
 
-import pytest
-
 from agency.agent import ActionError, action
-from agency.util import log
 from tests.helpers import (ObservableAgent, add_agent, assert_message_log,
                            wait_for_length)
 
@@ -201,6 +198,7 @@ class _RequestAndErrorAgent(ObservableAgent):
             # inspect it in the test
             self._message_log.append(e)
 
+
 def test_request_and_error(any_space):
     requesters_log = add_agent(any_space, _RequestAndErrorAgent, "Requester")
     responders_log = add_agent(any_space, _MessagingTestAgent, "Responder")
@@ -243,7 +241,8 @@ def test_request_and_error(any_space):
         }
     }
     assert type(requesters_log[3]) == ActionError
-    assert requesters_log[3].__str__() == "\"some non existent action\" not found on \"Responder\""
+    assert requesters_log[3].__str__(
+    ) == "\"some non existent action\" not found on \"Responder\""
 
 
 class _RequestAndTimeoutAgent(ObservableAgent):
@@ -253,13 +252,14 @@ class _RequestAndTimeoutAgent(ObservableAgent):
             return_value = self.request({
                 "to": "Responder",
                 "action": {
-                    "name": "sleep_action", # sleep_action waits for a long time
+                    "name": "sleep_action",  # sleep_action waits for a long time
                 }
             })
         except TimeoutError as e:
             # we place the exception on the message log as a small hack so we can
             # inspect it in the test
             self._message_log.append(e)
+
 
 def test_request_and_timeout(any_space):
     requesters_log = add_agent(any_space, _RequestAndTimeoutAgent, "Requester")
@@ -293,7 +293,7 @@ def test_request_and_timeout(any_space):
 
 def test_self_received_broadcast(any_space):
     senders_log = add_agent(any_space, ObservableAgent,
-                             "Sender", receive_own_broadcasts=True)
+                            "Sender", receive_own_broadcasts=True)
     receivers_log = add_agent(any_space, ObservableAgent, "Receiver")
     first_message = {
         "from": "Sender",
@@ -312,7 +312,7 @@ def test_self_received_broadcast(any_space):
 
 def test_non_self_received_broadcast(any_space):
     senders_log = add_agent(any_space, ObservableAgent, "Sender",
-                             receive_own_broadcasts=False)
+                            receive_own_broadcasts=False)
     receivers_log = add_agent(
         any_space, ObservableAgent, "Receiver")
 

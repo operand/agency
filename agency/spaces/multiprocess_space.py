@@ -7,9 +7,9 @@ import traceback
 from typing import Dict, Type
 
 from agency.agent import Agent, QueueProtocol
+from agency.logger import log
 from agency.schema import Message, validate_message
 from agency.space import Space
-from agency.util import log, print_warning
 
 multiprocessing.set_start_method('spawn', force=True)
 
@@ -84,7 +84,7 @@ class _AgentProcess():
             agent._is_processing = False
             agent.before_remove()
         except Exception as e:
-            print_warning(f"Error starting agent {agent_id}: {e}\n" + traceback.format_exc())
+            log("error", f"Error starting agent {agent_id}: {e}\n" + traceback.format_exc())
 
 
 class MultiprocessSpace(Space):

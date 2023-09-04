@@ -6,6 +6,7 @@ import uuid
 from typing import Dict, List, Protocol
 
 from docstring_parser import DocstringStyle, parse
+from agency.logger import log
 
 from agency.schema import Message
 
@@ -207,7 +208,7 @@ class Agent():
         Args:
             message: The message
         """
-        log(f"")
+        log("info", f"[{self.id()}] Sending message", message)
         message["from"] = self.id()
         with self._message_log_lock:
             self._message_log.append(message)
@@ -528,7 +529,7 @@ class Agent():
             value: The return value from the action
             original_message_id: The original message id
         """
-        print_warning(
+        log("warning",
             f"A value was returned from an action. Implement {self.__class__.__name__}.handle_return() to handle it.")
 
     def handle_error(self, error: str, original_message_id: str):
@@ -546,5 +547,5 @@ class Agent():
             error_message: The error message
             original_message_id: The original message id
         """
-        print_warning(
+        log("warning",
             f"An error occurred in an action. Implement {self.__class__.__name__}.handle_error() to handle it.")

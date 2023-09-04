@@ -3,18 +3,7 @@ import logging
 import os
 
 
-log_level = os.environ.get('LOGLEVEL', 'INFO').upper()
-
-
-logging.basicConfig(
-    level=log_level,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-
-logger = logging.getLogger(__name__)
-
-
-class CustomEncoder(json.JSONEncoder):
+class _CustomEncoder(json.JSONEncoder):
     def default(self, obj):
         try:
             return super().default(obj)
@@ -22,30 +11,51 @@ class CustomEncoder(json.JSONEncoder):
             return str(obj)
 
 
-def debug_text(name, object=None):
-    """Returns a pretty printed string for debugging"""
-    START_STYLE = "\033[33m"  # yellow
-    RESET_STYLE = "\033[0m"
-    debug_value = ""
+LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
+
+
+logging.basicConfig(
+    level=LOGLEVEL,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+_logger = logging.getLogger(__name__)
+
+_LOG_LEVELS = {
+    'CRITICAL': 50,
+    'ERROR': 40,
+    'WARNING': 30,
+    'INFO': 20,
+    'DEBUG': 10,
+    'NOTSET': 0
+}
+
+
+def log(level: str, message: str, object: object = None):
+    """
+    Logs a message at the specified level
+
+    If the object argument is provided, it will be pretty printed after the
+    message.
+
+    Args:
+        level: The log level
+        message: The message
+        object: An optional object to pretty print
+    """
+    pretty_object: str = None
     if object != None:
-        debug_object_value = object
         try:
-            # since this is always for a human we hardcode 2 space indentation
-            debug_object_value = json.dumps(
-                object, indent=2, cls=CustomEncoder)
-        except Exception as e:
-            print(f"debug_text: {e}")
+            # Try to json dumps it
+            pretty_object = json.dumps(object, indent=2, cls=_CustomEncoder)
+        except:
             pass
-        debug_value = f"{debug_object_value}\n{RESET_STYLE}{'_'*5} {name} {'_'*5}"
-    return f"\n{START_STYLE}{'>'*5} {name} {'<'*5}{RESET_STYLE}\n{debug_value}{RESET_STYLE}".replace("\\n", "\n")
 
+    if pretty_object != None:
+        message = f"{message}\n{pretty_object}"
 
-def log(level: str, message: str):
-    """Logs a message at the specified level"""
-    message = debug_text(level, message)
-    logger.log(level.upper(), message)
-
-
-
-def print_warning(text):
-    print(f"\033[93mWARNING: {text}\033[0m")
+    numeric_level = _LOG_LEVELS.get(level.upper())
+    if numeric_level is not None:
+        _logger.log(numeric_level, message)
+    else:
+        raise ValueError(f"Invalid log level: {level}")

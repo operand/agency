@@ -1,15 +1,11 @@
 import queue
 import threading
 import time
-import traceback
-from typing import Dict, Tuple, Type
-
-from numpy import block
+from typing import Dict, Type
 
 from agency.agent import Agent, QueueProtocol
 from agency.schema import Message, validate_message
 from agency.space import Space
-from agency.util import log, print_warning
 
 
 class _AgentThread():

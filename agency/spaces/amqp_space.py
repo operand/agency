@@ -15,7 +15,6 @@ from kombu import Connection, Queue
 from agency.agent import Agent
 from agency.schema import Message, validate_message
 from agency.space import Space
-from agency.util import log
 
 multiprocessing.set_start_method('spawn', force=True)
 
