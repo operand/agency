@@ -9,7 +9,7 @@ from typing import Dict, Type
 from agency.agent import Agent, QueueProtocol
 from agency.schema import Message, validate_message
 from agency.space import Space
-from agency.util.util import log, print_warning
+from agency.util import log, print_warning
 
 multiprocessing.set_start_method('spawn', force=True)
 

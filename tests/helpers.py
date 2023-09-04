@@ -7,7 +7,7 @@ import unittest
 from agency.agent import Agent, QueueProtocol
 from agency.schema import Message
 from agency.space import Space
-from agency.util.util import log
+from agency.util import log
 
 multiprocessing.set_start_method('spawn', force=True)
 

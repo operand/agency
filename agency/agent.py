@@ -5,9 +5,8 @@ import time
 import uuid
 from typing import Dict, List, Protocol
 
-from agency.util import util
 from agency.schema import Message
-from agency.util.util import log, print_warning
+from agency.util import print_warning
 
 ACCESS_PERMITTED = "ACCESS_PERMITTED"
 ACCESS_DENIED = "ACCESS_DENIED"

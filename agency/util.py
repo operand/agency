@@ -1,11 +1,9 @@
 import inspect
 import json
-import os
 import re
 from datetime import datetime
 
 from docstring_parser import DocstringStyle, parse
-
 
 DEFAULT_TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -41,6 +39,7 @@ def strip_ansi_codes(text):
 
 def print_warning(text):
     print(f"\033[93mWARNING: {text}\033[0m")
+
 
 def python_to_json_type_name(python_type_name: str) -> str:
     return {
