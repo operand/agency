@@ -12,7 +12,7 @@ from agency.spaces.thread_space import ThreadSpace
 
 RABBITMQ_OUT = subprocess.DEVNULL  # use subprocess.PIPE for output
 
-# @pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def rabbitmq_container():
     """
     Starts and stops a RabbitMQ container for the duration of the test
@@ -89,8 +89,8 @@ def amqp_space():
         space.remove_all()
 
 
-@pytest.fixture(params=['thread_space', 'multiprocess_space'])
-def any_space(request, thread_space, multiprocess_space):
+@pytest.fixture(params=['thread_space', 'multiprocess_space', 'amqp_space'])
+def any_space(request, thread_space, multiprocess_space, amqp_space):
     """
     Used for testing all space types
     """

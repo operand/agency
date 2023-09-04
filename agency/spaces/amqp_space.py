@@ -133,6 +133,7 @@ class _AgentAMQPProcess():
 
             # Start loop
             agent.after_add()
+            agent._is_processing = True
             started.set()
             while not stopping.is_set():
                 time.sleep(0.001)
@@ -141,6 +142,7 @@ class _AgentAMQPProcess():
                     connection.drain_events(timeout=0.001)
                 except socket.timeout:
                     pass
+            agent._is_processing = False
             agent.before_remove()
 
         except amqp.exceptions.ResourceLocked:
