@@ -85,7 +85,7 @@ def test_receive_and_return(any_space):
         "to": "Sender",
         "from": "Receiver",
         "action": {
-            "name": "response",
+            "name": "[response]",
             "args": {
                 "value": ["Hello!"],
             }
@@ -119,7 +119,7 @@ def test_send_and_error(any_space):
         "to": "Sender",
         "from": "Receiver",
         "action": {
-            "name": "response",
+            "name": "[response]",
             "args": {
                 "error": "\"some non existent action\" not found on \"Receiver\"",
             }
@@ -176,7 +176,7 @@ def test_request_and_return(any_space):
             "from": "Responder",
             "to": "Requester",
             "action": {
-                "name": "response",
+                "name": "[response]",
                 "args": {
                     "value": ["Hello!"],
                 }
@@ -236,7 +236,7 @@ def test_request_and_error(any_space):
         "from": "Responder",
         "to": "Requester",
         "action": {
-            "name": "response",
+            "name": "[response]",
             "args": {
                 "error": "\"some non existent action\" not found on \"Responder\"",
             }
@@ -261,7 +261,6 @@ class _RequestAndTimeoutAgent(ObservableAgent):
             # inspect it in the test
             self._message_log.append(e)
 
-@pytest.mark.focus
 def test_request_and_timeout(any_space):
     requesters_log = add_agent(any_space, _RequestAndTimeoutAgent, "Requester")
     responders_log = add_agent(any_space, _MessagingTestAgent, "Responder")
@@ -379,7 +378,7 @@ def test_send_undefined_action(any_space):
             "from": "Receiver",
             "to": "Sender",
             "action": {
-                "name": "response",
+                "name": "[response]",
                 "args": {
                     "error": "\"undefined_action\" not found on \"Receiver\"",
                 },

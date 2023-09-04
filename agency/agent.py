@@ -14,7 +14,7 @@ ACCESS_PERMITTED = "ACCESS_PERMITTED"
 ACCESS_DENIED = "ACCESS_DENIED"
 ACCESS_REQUESTED = "ACCESS_REQUESTED"
 
-RESERVED_ACTION_NAMES = ["response"]
+RESPONSE_ACTION_NAME = "[response]"
 
 
 def action(*args, **kwargs):
@@ -28,7 +28,7 @@ def action(*args, **kwargs):
     """
     def decorator(method):
         action_name = kwargs.get("name", method.__name__)
-        if action_name in RESERVED_ACTION_NAMES:
+        if action_name == RESPONSE_ACTION_NAME:
             raise ValueError(f"action name '{action_name}' is reserved")
         method.action_properties = {
             "name": method.__name__,
@@ -192,7 +192,7 @@ class Agent():
         self._message_log.append(message)
 
         # Handle incoming responses
-        if message["action"]["name"] == "response":
+        if message["action"]["name"] == RESPONSE_ACTION_NAME:
             response_id = message.get("meta", {}).get("response_id")
             if response_id in self._pending_responses.keys():
                 # This was a response to a request()
@@ -246,7 +246,7 @@ class Agent():
                 "to": message['from'],
                 "from": self.id(),
                 "action": {
-                    "name": "response",
+                    "name": RESPONSE_ACTION_NAME,
                     "args": {
                         "error": f"{e}",
                     }
@@ -298,7 +298,7 @@ class Agent():
                         },
                         "to": message['from'],
                         "action": {
-                            "name": "response",
+                            "name": RESPONSE_ACTION_NAME,
                             "args": {
                                 "value": return_value,
                             }
@@ -426,21 +426,21 @@ class Agent():
 
     def handle_return(self, value, original_message_id: str):
         """
-        Receives a return value for a prior action.
+        Receives a return value from a prior action.
 
         This method receives values returned from actions invoked by the send()
         method. It is not called when using the request() method, which will
         return the value directly.
 
-        If the original message defined the meta.id field, it will be provided as the
-        original_message_id argument.
+        If the original message defines the meta.id field, it will be provided
+        as the original_message_id argument.
 
         Args:
-            return_value: The return value from the action
+            value: The return value from the action
             original_message_id: The original message id
         """
         print_warning(
-            f"A value was returned from an action. Implement {self.__class__.__name__}.handle_return to handle it.")
+            f"A value was returned from an action. Implement {self.__class__.__name__}.handle_return() to handle it.")
 
     def handle_error(self, error: str, original_message_id: str):
         """
@@ -450,12 +450,12 @@ class Agent():
         method. It is not called when using the request() method, which will
         instead raise the error as an exception.
 
-        If the original message defined the meta.id field, it will be provided as the
-        original_message_id argument.
+        If the original message defines the meta.id field, it will be provided
+        as the original_message_id argument.
 
         Args:
             error_message: The error message
             original_message_id: The original message id
         """
         print_warning(
-            f"An error occurred in an action. Implement {self.__class__.__name__}.handle_error to handle it.")
+            f"An error occurred in an action. Implement {self.__class__.__name__}.handle_error() to handle it.")

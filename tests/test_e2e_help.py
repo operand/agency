@@ -1,4 +1,4 @@
-from agency.agent import action
+from agency.agent import RESPONSE_ACTION_NAME, action
 from tests.helpers import ObservableAgent, add_agent, assert_message_log
 
 
@@ -50,7 +50,7 @@ def test_help_action(any_space):
         "to": "Sender",
         "from": "Receiver",
         "action": {
-            "name": "response",
+            "name": "[response]",
             "args": {
                 "value": {
                     "action_with_docstring": {
@@ -118,7 +118,7 @@ def test_help_specific_action(any_space):
             "to": "Sender",
             "from": "Receiver",
             "action": {
-                "name": "response",
+                "name": "[response]",
                 "args": {
                     "value": {
                         "action_i_will_request_help_on": {
