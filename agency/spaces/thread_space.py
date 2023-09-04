@@ -37,8 +37,8 @@ class _AgentThread():
                     **self.agent_kwargs,
                 )
                 agent.after_add()
-                self.__started.set()
                 agent._is_processing = True
+                self.__started.set()
                 while not self.__stopping.is_set():
                     time.sleep(0.1)
                     debug(f"{self.agent_id} checking inbound queue {self.inbound_queue}")

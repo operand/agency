@@ -138,8 +138,8 @@ class Agent():
         Args:
             message: The message to send
             timeout:
-                The timeout in seconds to wait for the returned value. Defaults
-                to 3 seconds.
+                The timeout in seconds to wait for the returned value.
+                Defaults to 3 seconds.
 
         Returns:
             object: The return value of the action.

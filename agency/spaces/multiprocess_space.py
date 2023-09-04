@@ -72,6 +72,7 @@ class _AgentProcess():
                 **agent_kwargs,
             )
             agent.after_add()
+            agent._is_processing = True
             started.set()
             while not stopping.is_set():
                 time.sleep(0.001)
@@ -80,6 +81,7 @@ class _AgentProcess():
                     agent._receive(message)
                 except queue.Empty:
                     pass
+            agent._is_processing = False
             agent.before_remove()
         except Exception as e:
             print_warning(f"Error starting agent {agent_id}: {e}\n" + traceback.format_exc())

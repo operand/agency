@@ -228,9 +228,7 @@ def test_non_self_received_broadcast(any_space):
 
 
 def test_meta(any_space):
-    """
-    Tests that the meta field is transmitted
-    """
+    """Tests that the meta field is transmitted"""
 
     senders_log = add_agent(any_space, ObservableAgent, "Sender")
     receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
