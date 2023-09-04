@@ -1,4 +1,5 @@
 import re
+import time
 
 import pytest
 
@@ -12,6 +13,10 @@ class _MessagingTestAgent(ObservableAgent):
     @action
     def null_action(self, *args, **kwargs):
         """This does nothing"""
+
+    @action
+    def sleep_action(self):
+        time.sleep(10)
 
     @action
     def action_with_send(self):
@@ -250,18 +255,45 @@ class _RequestAndTimeoutAgent(ObservableAgent):
             return_value = self.request({
                 "to": "Responder",
                 "action": {
-                    "name": "some non existent action",
+                    "name": "sleep_action", # sleep_action waits for a long time
                 }
             })
         except TimeoutError as e:
             # we place the exception on the message log as a small hack so we can
             # inspect it in the test
+            debug(f"*requester logged exception", e)
             self._message_log.append(e)
-            debug(f"requester logged exception", e)
 
 @pytest.mark.focus
 def test_request_and_timeout(any_space):
-    raise NotImplementedError
+    requesters_log = add_agent(any_space, _RequestAndTimeoutAgent, "Requester")
+    responders_log = add_agent(any_space, _MessagingTestAgent, "Responder")
+
+    # send a message to the requester first to kick off the request/response
+    first_message = {
+        "from": "Responder",
+        "to": "Requester",
+        "action": {
+            "name": "do_request",
+        }
+    }
+    any_space._route(first_message)
+    wait_for_length(requesters_log, 3, max_seconds=5)
+    requesters_log = list(requesters_log)
+    # first remove dynamic meta fields and assert their pattern
+    assert re.match(r"^request--.+$", requesters_log[1]["meta"].pop("id"))
+    # assert each message one by one
+    assert requesters_log[0] == first_message
+    assert requesters_log[1] == {
+        "meta": {},
+        "from": "Requester",
+        "to": "Responder",
+        "action": {
+            "name": "sleep_action",
+        }
+    }
+    assert type(requesters_log[2]) == TimeoutError
+    assert requesters_log[2].__str__() == "???"
 
 
 def test_self_received_broadcast(any_space):
