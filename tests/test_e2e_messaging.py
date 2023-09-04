@@ -154,7 +154,11 @@ def test_request_and_return(any_space):
     }
     any_space._route(first_message)
     wait_for_length(requesters_log, 4)
-    assert list(requesters_log) == [
+    requesters_log = list(requesters_log)
+    # remove dynamic meta fields. we assert they're presence by doing this
+    requesters_log[1].pop("meta")
+    requesters_log[2].pop("meta")
+    assert requesters_log == [
         first_message,
         {
             'from': 'Requester',
