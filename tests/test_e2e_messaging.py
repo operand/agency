@@ -139,7 +139,6 @@ class _RequestingAgent(ObservableAgent):
         # we place the return value on the message log as a small hack so we can
         # inspect it in the test
         self._message_log.append(return_value)
-        debug(f"requester logged return value", return_value)
 
 
 def test_request_and_return(any_space):
@@ -201,7 +200,6 @@ class _RequestAndErrorAgent(ObservableAgent):
             # we place the exception on the message log as a small hack so we can
             # inspect it in the test
             self._message_log.append(e)
-            debug(f"requester logged exception", e)
 
 def test_request_and_error(any_space):
     requesters_log = add_agent(any_space, _RequestAndErrorAgent, "Requester")
@@ -261,7 +259,6 @@ class _RequestAndTimeoutAgent(ObservableAgent):
         except TimeoutError as e:
             # we place the exception on the message log as a small hack so we can
             # inspect it in the test
-            debug(f"*requester logged exception", e)
             self._message_log.append(e)
 
 @pytest.mark.focus

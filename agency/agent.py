@@ -122,7 +122,6 @@ class Agent():
             message: The message
         """
         message["from"] = self.id()
-        debug(f"{self.id()} sending message", message)
         self._message_log.append(message)
         self._outbound_queue.put(message)
 
@@ -166,7 +165,6 @@ class Agent():
         start_time = time.time()
         while self._pending_responses[request_id] == pending:
             time.sleep(0.001)
-            debug(f"{self.id()} waiting for response...")
             if time.time() - start_time > timeout:
                 raise TimeoutError
 
@@ -190,8 +188,6 @@ class Agent():
            and message['to'] == '*':
             return
 
-        debug(f"{self.id()} received message", message)
-
         # Record the received message before handling
         self._message_log.append(message)
 
@@ -205,7 +201,6 @@ class Agent():
             else:
                 # This was a response to a send()
                 if "value" in message["action"]["args"]:
-                    debug(f"handling return value from send()", message)
                     self.handle_return(
                         message["action"]["args"]["value"], response_id)
                 # Handle incoming errors
@@ -241,7 +236,6 @@ class Agent():
         try:
             self.__commit(message)
         except Exception as e:
-            debug(f"error processing message", traceback.format_exc())
             # Handle exceptions that occur while committing an action, including
             # PermissionError's from access denial, by reporting the error back
             # to the sender.

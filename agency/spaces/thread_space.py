@@ -96,7 +96,6 @@ class ThreadSpace(Space):
                     pass
 
     def _route(self, message: Message):
-        debug(f"routing message", message)
         message = validate_message(message)
         recipient_threads = [
             agent_thread
@@ -104,7 +103,6 @@ class ThreadSpace(Space):
             if message["to"] == agent_thread.agent_id or message["to"] == "*"
         ]
         for recipient_thread in recipient_threads:
-            debug(f"enqueuing message to queue {recipient_thread.inbound_queue}", message)
             recipient_thread.inbound_queue.put(message)
 
     def add(self, agent_type: Type[Agent], agent_id: str, **agent_kwargs):

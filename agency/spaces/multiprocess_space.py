@@ -116,7 +116,6 @@ class MultiprocessSpace(Space):
 
     def _route(self, message: Message):
         message = validate_message(message)
-        debug(f"routing message", message)
         recipient_processes = [
             agent_process
             for agent_process in list(self.__agent_processes.values())
