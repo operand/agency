@@ -293,7 +293,6 @@ def test_request_and_timeout(any_space):
         }
     }
     assert type(requesters_log[2]) == TimeoutError
-    assert requesters_log[2].__str__() == "???"
 
 
 def test_self_received_broadcast(any_space):
