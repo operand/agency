@@ -52,7 +52,8 @@ class _AgentThread():
                 exception_info["exception"] = e
 
         exception_info = {"exception": None}
-        self.__thread = threading.Thread(target=_thread, args=(exception_info,))
+        self.__thread = threading.Thread(
+            target=_thread, args=(exception_info,), daemon=True)
         self.__thread.start()
 
         if not self.__started.wait(timeout=10):

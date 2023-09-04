@@ -11,7 +11,7 @@ if __name__ == "__main__":
     # Create the space instance
     space = ThreadSpace()
 
-    # Add a host agent to the space, exposing access to the host system
+    # Add a Host agent to the space, exposing access to the host system
     space.add(Host, "Host")
 
     # Add an OpenAI function API agent to the space
@@ -23,7 +23,8 @@ if __name__ == "__main__":
               user_id="User")
 
     # Add the Gradio app and user to the space
-    space.add(GradioApp, "User")
+    # space.add(GradioApp, "User")
+
 
     # Other agents to try
 
