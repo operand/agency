@@ -68,10 +68,7 @@ def test_send_and_return(any_space):
         'to': 'Receiver',
         'from': 'Sender',
         'action': {
-            'name': 'say_with_return',
-            'args': {
-                'content': 'Hi Receiver!'
-            }
+            'name': 'action_with_return',
         }
     }
     any_space._route(first_message)
@@ -139,7 +136,6 @@ class _RequestingAgent(ObservableAgent):
         debug(f"requester logged return value", return_value)
 
 
-@pytest.mark.focus
 def test_request_and_return(any_space):
     requesters_log = add_agent(any_space, _RequestingAgent, "Requester")
     responders_log = add_agent(any_space, _MessagingTestAgent, "Responder")
