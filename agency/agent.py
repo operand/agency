@@ -104,9 +104,8 @@ class Agent():
         self._outbound_queue: QueueProtocol = outbound_queue
         self._receive_own_broadcasts: bool = receive_own_broadcasts
         self._is_processing: bool = False # set by the Space
-        # TODO: place a lock around access
         self._message_log: List[Message] = []
-        # TODO: place a lock around access
+        self._message_log_lock = threading.Lock()
         self._pending_responses: Dict[str, Message] = {}
         self._pending_responses_lock = threading.Lock()
         self._thread_local_current_message = threading.local()
@@ -122,7 +121,8 @@ class Agent():
             message: The message
         """
         message["from"] = self.id()
-        self._message_log.append(message)
+        with self._message_log_lock:
+            self._message_log.append(message)
         self._outbound_queue.put(message)
 
     def request(self, message: dict, timeout: float = 3) -> object:
@@ -189,7 +189,8 @@ class Agent():
             return
 
         # Record the received message before handling
-        self._message_log.append(message)
+        with self._message_log_lock:
+            self._message_log.append(message)
 
         # Handle incoming responses
         if message["action"]["name"] == RESPONSE_ACTION_NAME:
