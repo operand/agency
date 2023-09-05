@@ -34,7 +34,7 @@ class _AgentThread():
                     **self.agent_kwargs,
                 )
                 agent.after_add()
-                log("info", f"{agent.id()} started")
+                log("info", f"{agent.id()} added to space")
                 agent._is_processing = True
                 self.__started.set()
                 while not self.__stopping.is_set():
@@ -46,7 +46,9 @@ class _AgentThread():
                         pass
                 agent._is_processing = False
                 agent.before_remove()
+                log("info", f"{agent.id()} removed from space")
             except Exception as e:
+                log("error", f"{agent.id()} removed from space with exception", e)
                 exception_info["exception"] = e
 
         exception_info = {"exception": None}

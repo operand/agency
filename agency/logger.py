@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import traceback
 
 
 _LOGLEVELS = {
@@ -50,8 +51,12 @@ def log(level: str, message: str, object: object = None):
     pretty_object: str = None
     if object != None:
         try:
-            # Try to json dumps it
-            pretty_object = json.dumps(object, indent=2, cls=_CustomEncoder)
+            if isinstance(object, Exception):
+                # Print the traceback on exceptions
+                pretty_object = "".join(traceback.format_tb(object.__traceback__))
+            else:
+                # Try to json dumps it
+                pretty_object = json.dumps(object, indent=2, cls=_CustomEncoder)
         except:
             pass
 

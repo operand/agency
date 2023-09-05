@@ -331,6 +331,7 @@ class Agent():
             # Handle exceptions that occur while committing an action, including
             # PermissionError's from access denial, by reporting the error back
             # to the sender.
+            log("debug", f"{self.id()} exception while committing action {message['action']['name']}", e)
             self.send({
                 "meta": {
                     "response_id": message.get("meta", {}).get("id")
@@ -464,8 +465,8 @@ class Agent():
 
     def after_add(self):
         """
-        Called after the agent is added to a space, before it begins processing
-        incoming messages.
+        Called after the agent is added to a space, but before it begins
+        processing incoming messages.
 
         The agent may send messages during this callback using the send()
         method, but may not use the request() method since it relies on

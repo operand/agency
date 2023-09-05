@@ -55,4 +55,4 @@ class HelpMethods():
             self._available_actions[self._current_message['from']] = value
         else:
             # this was in response to something else, call the original
-            super().response(value, original_message_id)
+            super().handle_return(value, original_message_id)
