@@ -1,5 +1,6 @@
 import json
 import multiprocessing
+from multiprocessing.managers import ListProxy
 import time
 from typing import List
 
@@ -45,7 +46,9 @@ def assert_message_log(actual: List[Message], expected: List[Message], max_secon
     Asserts that a list of messages is as expected.
     """
     wait_for_length(actual, len(expected), max_seconds)
-    assert list(actual) == list(expected)
+    print(f"list type: {type(list(actual))}")
+    assert list(actual) == list(expected), \
+        f"\nActual: {json.dumps(list(actual), indent=2)}\nExpected: {json.dumps(expected, indent=2)}"
 
 
 def wait_for_length(actual_list: List, expected_length: int, max_seconds=2):

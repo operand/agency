@@ -305,8 +305,7 @@ class Agent():
                     arg = message["action"]["args"]["value"]
                 elif "error" in message["action"]["args"]:
                     handler_callback = self.handle_action_error
-                    error = message["action"]["args"]["error"]
-                    arg = ActionError(f"{error['type']}: {error['message']}")
+                    arg = ActionError(message["action"]["args"]["error"])
                 else:
                     raise RuntimeError("We should never get here")
 
@@ -367,11 +366,7 @@ class Agent():
                 "action": {
                     "name": _RESPONSE_ACTION_NAME,
                     "args": {
-                        "error": {
-                            "type": e.__class__.__name__,
-                            "message": str(e),
-                            "traceback": traceback.format_tb(e.__traceback__),
-                        }
+                        "error": f"{e.__class__.__name__}: {e}"
                     }
                 }
             })
