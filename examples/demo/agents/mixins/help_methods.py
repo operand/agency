@@ -1,6 +1,4 @@
 from typing import Dict
-from agency.agent import action
-from agency.schema import Message
 
 
 class HelpMethods():
@@ -50,9 +48,10 @@ class HelpMethods():
             }
         })
 
-    def handle_return(self, value, original_message_id: str):
-        if original_message_id == "help_request":
+    def handle_action_value(self, value):
+        original_message = self._original_message()
+        if original_message and original_message["meta"]["id"] == "help_request":
             self._available_actions[self._current_message['from']] = value
         else:
             # this was in response to something else, call the original
-            super().handle_return(value, original_message_id)
+            super().handle_action_value(value)

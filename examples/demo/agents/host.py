@@ -90,8 +90,4 @@ class Host(HelpMethods, Agent):
             })
 
             # return re.search(r"^y(es)?$", response)
-
-    def handle_action_value(self, data, original_message_id: str):
-        if original_message_id == "request_permission":
-            # handle a permission response and execute the command
-            pass
+            raise NotImplementedError

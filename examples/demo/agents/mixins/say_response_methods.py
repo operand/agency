@@ -1,4 +1,4 @@
-from agency.agent import action
+from agency.agent import ActionError, action
 
 
 class SayResponseMethods():
@@ -8,7 +8,7 @@ class SayResponseMethods():
     NOTE The _message_log will contain both messages
     """
 
-    def handle_return(self, value, original_message_id: str):
+    def handle_action_value(self, value):
         self._receive({
             **self._current_message(),
             "action": {
@@ -19,7 +19,7 @@ class SayResponseMethods():
             },
         })
 
-    def handle_error(self, error: str, original_message_id: dict):
+    def handle_action_error(self, error: ActionError):
         self._receive({
             **self._current_message(),
             "action": {

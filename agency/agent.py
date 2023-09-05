@@ -2,6 +2,7 @@ import inspect
 import re
 import threading
 import time
+import traceback
 import uuid
 from typing import Any, Dict, List, Protocol, Union
 
@@ -298,22 +299,24 @@ class Agent():
                 # the existing thread
             else:
                 # This was a response to a send()
+                log("debug", f"{self.id()} handling response", message)
                 if "value" in message["action"]["args"]:
                     handler_callback = self.handle_action_value
                     arg = message["action"]["args"]["value"]
-                elif message["action"]["name"] == "error":
+                elif "error" in message["action"]["args"]:
                     handler_callback = self.handle_action_error
-                    arg = ActionError(message["action"]["args"]["error"])
+                    error = message["action"]["args"]["error"]
+                    arg = ActionError(f"{error['type']}: {error['message']}")
                 else:
                     raise RuntimeError("We should never get here")
 
                 # Spawn a thread to handle the response
-                def handle_response(arg, current_message):
+                def __process_response(arg, current_message):
                     self.__thread_local_current_message.value = current_message
                     handler_callback(arg)
 
                 threading.Thread(
-                    target=handle_response,
+                    target=__process_response,
                     args=(arg, message, ),
                     daemon=True,
                 ).start()
@@ -364,7 +367,11 @@ class Agent():
                 "action": {
                     "name": _RESPONSE_ACTION_NAME,
                     "args": {
-                        "error": f"{e}",
+                        "error": {
+                            "type": e.__class__.__name__,
+                            "message": str(e),
+                            "traceback": traceback.format_tb(e.__traceback__),
+                        }
                     }
                 }
             })
@@ -467,8 +474,15 @@ class Agent():
         Returns:
             The original message or None
         """
-        raise NotImplementedError
-
+        current_message = self.__thread_local_current_message.value
+        original_message_id = current_message.get("meta", {}).get("id")
+        if original_message_id:
+            original_message = None
+            for message in self._message_log:
+                if message["meta"]["id"] == original_message_id:
+                    original_message = message
+                    break
+            return original_message
 
     @action
     def help(self, action_name: str = None) -> dict:
@@ -501,9 +515,9 @@ class Agent():
         This method receives return values from actions invoked by the send()
         method. It is not called when using the request() method, which returns
         the value directly.
-        
+
         To inspect the full response message, use _current_message().
-        
+
         To inspect the original message, use _original_message(). Note that the
         original message must define the meta.id field or _original_message()
         will return None.
