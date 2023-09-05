@@ -9,7 +9,7 @@ from agency.agent import RESPONSE_ACTION_NAME, Agent, action
 from agency.logger import log
 
 
-class OpenAIFunctionAgent(SayResponseMethods, HelpMethods, Agent):
+class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
     """
     An agent which uses OpenAI's function calling API
     """

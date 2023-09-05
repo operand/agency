@@ -48,7 +48,7 @@ class _AgentThread():
                 agent.before_remove()
                 log("info", f"{agent.id()} removed from space")
             except Exception as e:
-                log("error", f"{agent.id()} removed from space with exception", e)
+                log("error", f"{self.agent_id} removed from space with exception", e)
                 exception_info["exception"] = e
 
         exception_info = {"exception": None}
