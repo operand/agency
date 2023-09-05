@@ -1,5 +1,4 @@
 import json
-from math import log
 import multiprocessing
 import os
 import queue
@@ -14,6 +13,7 @@ import amqp
 from kombu import Connection, Queue
 
 from agency.agent import Agent
+from agency.logger import log
 from agency.schema import Message, validate_message
 from agency.space import Space
 
