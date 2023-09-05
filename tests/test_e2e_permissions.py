@@ -33,7 +33,7 @@ def test_send_unpermitted_action(any_space):
             "from": "Receiver",
             "to": "Sender",
             "action": {
-                "name": "[response]",
+                "name": "[RESPONSE]",
                 "args": {
                     "error": "\"Receiver.say\" not permitted",
                 }
@@ -76,7 +76,7 @@ def test_send_request_permitted_action(any_space):
             "from": "Receiver",
             "to": "Sender",
             "action": {
-                "name": "[response]",
+                "name": "[RESPONSE]",
                 "args": {
                     "value": "42",
                 }
@@ -117,7 +117,7 @@ def test_send_request_rejected_action(any_space):
             "from": "Receiver",
             "to": "Sender",
             "action": {
-                "name": "[response]",
+                "name": "[RESPONSE]",
                 "args": {
                     "error": "\"Receiver.say\" not permitted",
                 }

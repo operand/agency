@@ -9,7 +9,9 @@ from tests.helpers import (ObservableAgent, add_agent, assert_message_log,
 class _MessagingTestAgent(ObservableAgent):
     @action
     def null_action(self, *args, **kwargs):
-        """This does nothing"""
+        """
+        This action does nothing. It accepts any arguments for convenience.
+        """
 
     @action
     def sleep_action(self):
@@ -82,7 +84,7 @@ def test_receive_and_return(any_space):
         "to": "Sender",
         "from": "Receiver",
         "action": {
-            "name": "[response]",
+            "name": "[RESPONSE]",
             "args": {
                 "value": ["Hello!"],
             }
@@ -116,7 +118,7 @@ def test_send_and_error(any_space):
         "to": "Sender",
         "from": "Receiver",
         "action": {
-            "name": "[response]",
+            "name": "[RESPONSE]",
             "args": {
                 "error": "\"some non existent action\" not found on \"Receiver\"",
             }
@@ -173,7 +175,7 @@ def test_request_and_return(any_space):
             "from": "Responder",
             "to": "Requester",
             "action": {
-                "name": "[response]",
+                "name": "[RESPONSE]",
                 "args": {
                     "value": ["Hello!"],
                 }
@@ -234,7 +236,7 @@ def test_request_and_error(any_space):
         "from": "Responder",
         "to": "Requester",
         "action": {
-            "name": "[response]",
+            "name": "[RESPONSE]",
             "args": {
                 "error": "\"some non existent action\" not found on \"Responder\"",
             }
@@ -378,7 +380,7 @@ def test_send_undefined_action(any_space):
             "from": "Receiver",
             "to": "Sender",
             "action": {
-                "name": "[response]",
+                "name": "[RESPONSE]",
                 "args": {
                     "error": "\"undefined_action\" not found on \"Receiver\"",
                 },
