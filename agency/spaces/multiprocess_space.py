@@ -92,6 +92,9 @@ class _AgentProcess():
 class MultiprocessSpace(Space):
     """
     A Space implementation that uses the multiprocessing module.
+
+    This Space type is recommended in most cases over ThreadSpace for single
+    host systems since it offers better parallelism.
     """
 
     def __init__(self):

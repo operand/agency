@@ -73,7 +73,11 @@ class _AgentThread():
 
 
 class ThreadSpace(Space):
-    """A Space implementation that uses the threading module."""
+    """
+    A Space implementation that uses the threading module.
+
+    This Space type is recommended for testing or simple applications.
+    """
 
     def __init__(self):
         self.__agent_threads: Dict[str, _AgentThread] = {}

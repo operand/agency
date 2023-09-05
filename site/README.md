@@ -1,7 +1,7 @@
 # https://createwith.agency
 
-This directory contains source files and content for the Agency website. See
-below for how to update the site.
+This directory contains source files and content for the Agency website. This
+page contains instructions for how to update the site.
 
 ## Updating Articles
 

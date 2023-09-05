@@ -174,6 +174,8 @@ class AMQPSpace(Space):
     """
     A Space that uses AMQP for message delivery.
 
+    This Space type is useful for distributing agents across multiple hosts.
+
     AMQPSpace uses multiprocessing for parallelism when multiple agents are
     added to the same instance.
     """
