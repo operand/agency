@@ -18,6 +18,8 @@ class HelpMethods():
 
     NOTE This does not handle agent removal
     """
+    def __init__(self) -> None:
+        self._available_actions: Dict[str, Dict[str, dict]] = {}
 
     def after_add(self):
         """
@@ -25,7 +27,6 @@ class HelpMethods():
         1. a message to request actions from other agents
         2. a message to announce its actions to other agents
         """
-        self._available_actions: Dict[str, Dict[str, dict]] = {}
         self.send({
             "meta": {
                 "id": "help_request",
