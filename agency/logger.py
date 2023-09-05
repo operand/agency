@@ -53,7 +53,8 @@ def log(level: str, message: str, object: object = None):
         try:
             if isinstance(object, Exception):
                 # Print the traceback on exceptions
-                pretty_object = "".join(traceback.format_tb(object.__traceback__))
+                pretty_object = "".join(traceback.format_exception(etype=type(object), value=object, tb=object.__traceback__))
+                # pretty_object = "".join(traceback.format_tb(object.__traceback__))
             else:
                 # Try to json dumps it
                 pretty_object = json.dumps(object, indent=2, cls=_CustomEncoder)

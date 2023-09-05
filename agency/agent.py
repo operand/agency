@@ -239,7 +239,8 @@ class Agent():
         if not self._is_processing:
             raise RuntimeError("request() called while agent is not processing incoming messages. Use send() instead.")
 
-        # Add id to the meta field. This prefix identifies it as a request
+        # Add id to the meta field.
+        # This prefix identifies it as coming from the request() method
         request_id = "request--" + str(uuid.uuid4())
         message["meta"] = message.get("meta", {})
         message["meta"]["id"] = request_id
@@ -517,38 +518,44 @@ class Agent():
         raise NotImplementedError(
             f"You must implement {self.__class__.__name__}.request_permission to use ACCESS_REQUESTED")
 
-    def handle_return(self, value, original_message_id: str):
+    def handle_return(self, value):
         """
         Receives a return value from a prior action.
 
         This method receives values returned from actions invoked by the send()
-        method. It is not called when using the request() method, which will
-        return the value directly.
+        method. It is not called when using the request() method, which returns
+        the value directly.
 
-        If the original message defines the meta.id field, it will be provided
-        as the original_message_id argument.
+        To inspect the response message carrying the returned value, use
+        self._current_message().
+
+        To inspect the original sent message, use _original_message().  Note
+        that _original_message() may return None if the original message did not
+        include a meta.id.
 
         Args:
             value: The return value from the action
-            original_message_id: The original message id
         """
         log("warning",
             f"A value was returned from an action. Implement {self.__class__.__name__}.handle_return() to handle it.")
 
-    def handle_error(self, error: str, original_message_id: str):
+    def handle_error(self, error: str):
         """
         Receives an error message from a prior action.
 
         This method receives errors resulting from actions invoked by the send()
-        method. It is not called when using the request() method, which will
-        instead raise the error as an exception.
+        method. It is not called when using the request() method, which raises
+        the error as an exception.
 
-        If the original message defines the meta.id field, it will be provided
-        as the original_message_id argument.
+        To inspect the response message carrying the error, use
+        self._current_message().
+
+        To inspect the original sent message, use _original_message(). Note that
+        _original_message() may return None if the original message did not
+        include a meta.id.
 
         Args:
-            error_message: The error message
-            original_message_id: The original message id
+            error: The error message
         """
         log("warning",
             f"An error occurred in an action. Implement {self.__class__.__name__}.handle_error() to handle it.")
