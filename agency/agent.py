@@ -198,8 +198,6 @@ class Agent():
         self._pending_responses_lock = threading.Lock()
         self.__thread_local_current_message = threading.local()
         self.__thread_local_current_message.value: Message = None
-        self.__thread_local_original_message = threading.local()
-        self.__thread_local_original_message.value: Message = None
 
     def id(self) -> str:
         return self._id
@@ -300,23 +298,22 @@ class Agent():
             else:
                 # This was a response to a send()
                 if "value" in message["action"]["args"]:
-                    method = self.handle_action_value
+                    handler_callback = self.handle_action_value
                     arg = message["action"]["args"]["value"]
                 elif message["action"]["name"] == "error":
-                    method = self.handle_action_error
-                    arg = message["action"]["args"]["error"]
+                    handler_callback = self.handle_action_error
+                    arg = ActionError(message["action"]["args"]["error"])
                 else:
                     raise RuntimeError("We should never get here")
 
                 # Spawn a thread to handle the response
-                def handle_response(arg, current_message, original_message):
+                def handle_response(arg, current_message):
                     self.__thread_local_current_message.value = current_message
-                    self.__thread_local_original_message.value = original_message
-                    method(arg, current_message)
+                    handler_callback(arg)
 
                 threading.Thread(
                     target=handle_response,
-                    args=(arg, ),
+                    args=(arg, message, ),
                     daemon=True,
                 ).start()
 
@@ -328,10 +325,8 @@ class Agent():
                 target=self.__process, args=(message,), daemon=True).start()
 
     def __process(self, message: dict):
-        """
-        Top level method within the action processing thread.
-        """
-        # Set _thread_local_current_message
+        """Top level method within the action processing thread."""
+        # Set __thread_local_current_message
         self.__thread_local_current_message.value = message
         try:
             # Commit the action
@@ -472,7 +467,7 @@ class Agent():
         Returns:
             The original message or None
         """
-        return self.__thread_local_original_message.value
+        raise NotImplementedError
 
 
     @action
