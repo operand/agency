@@ -18,7 +18,6 @@ _LOGLEVEL = _LOGLEVELS[_env_loglevel]
 _LOGFORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 
 # Initialize the logger
-print(f"Logging level set to {_env_loglevel}", flush=True)
 _logger = logging.getLogger("agency")
 _logger.setLevel(_LOGLEVEL)
 _handler = logging.StreamHandler()

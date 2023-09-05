@@ -72,6 +72,7 @@ class _AgentProcess():
                 **agent_kwargs,
             )
             agent.after_add()
+            log("info", f"{agent.id()} added to space")
             agent._is_processing = True
             started.set()
             while not stopping.is_set():
@@ -83,8 +84,9 @@ class _AgentProcess():
                     pass
             agent._is_processing = False
             agent.before_remove()
+            log("info", f"{agent.id()} removed from space")
         except Exception as e:
-            log("error", f"Error starting agent {agent_id}: {e}\n" + traceback.format_exc())
+            log("error", f"{self.agent_id} removed from space with exception", traceback.format_exc())
 
 
 class MultiprocessSpace(Space):
