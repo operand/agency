@@ -333,17 +333,18 @@ class Agent():
         """
         log("debug", f"{self.id()} processing message", message)
         self.__thread_local_current_message.value = message
+        request_id = message.get("meta", {}).get("request_id")
+        response_id = request_id or message.get("meta", {}).get("id")
         try:
             # Commit the action
             return_value = self.__commit(message)
 
             # If the action returned a value or this was a request (which
             # expects a value), return it
-            request_id = message.get("meta", {}).get("request_id")
             if request_id or return_value is not None:
                 self.send({
                     "meta": {
-                        "response_id": request_id or message.get("meta", {}).get("id")
+                        "response_id": response_id
                     },
                     "to": message['from'],
                     "action": {
@@ -361,7 +362,7 @@ class Agent():
             request_id = message.get("meta", {}).get("request_id")
             self.send({
                 "meta": {
-                    "response_id": request_id or message.get("meta", {}).get("id")
+                    "response_id": response_id
                 },
                 "to": message['from'],
                 "from": self.id(),
