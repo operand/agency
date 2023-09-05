@@ -3,7 +3,7 @@ import re
 import threading
 import time
 import uuid
-from typing import Dict, List, Protocol
+from typing import Any, Dict, List, Protocol, Union
 
 from docstring_parser import DocstringStyle, parse
 from agency.logger import log
@@ -198,6 +198,8 @@ class Agent():
         self._pending_responses_lock = threading.Lock()
         self.__thread_local_current_message = threading.local()
         self.__thread_local_current_message.value: Message = None
+        self.__thread_local_original_message = threading.local()
+        self.__thread_local_original_message.value: Message = None
 
     def id(self) -> str:
         return self._id
@@ -273,7 +275,7 @@ class Agent():
         Receives and handles an incoming message.
 
         Args:
-            message: The message
+            message: The incoming message
         """
         # Ignore own broadcasts if _receive_own_broadcasts is false
         if not self._receive_own_broadcasts \
@@ -287,23 +289,36 @@ class Agent():
         with self._message_log_lock:
             self._message_log.append(message)
 
-        # Handle incoming request responses
+        # Handle incoming responses
         response_id = message.get("meta", {}).get("response_id")
-        if message["action"]["name"] == RESPONSE_ACTION_NAME \
-           and response_id in self._pending_responses.keys():
-            # This was a response to a request()
-            self._pending_responses[response_id] = message
-            # From here the request() method will pick up the response
+        if message["action"]["name"] == RESPONSE_ACTION_NAME:
+            if response_id in self._pending_responses.keys():
+                # This was a response to a request()
+                self._pending_responses[response_id] = message
+                # From here the request() method will pick up the response in
+                # the existing thread
+            else:
+                # This was a response to a send()
+                if "value" in message["action"]["args"]:
+                    method = self.handle_action_value
+                    arg = message["action"]["args"]["value"]
+                elif message["action"]["name"] == "error":
+                    method = self.handle_action_error
+                    arg = message["action"]["args"]["error"]
+                else:
+                    raise RuntimeError("We should never get here")
 
-        # else:
-        #     # This was a response to a send()
-        #     if "value" in message["action"]["args"]:
-        #         self.handle_response(
-        #             message["action"]["args"]["value"], response_id)
-        #     # Handle incoming errors
-        #     elif message["action"]["name"] == "error":
-        #         self.handle_error(
-        #             message["action"]["args"]["error"], response_id)
+                # Spawn a thread to handle the response
+                def handle_response(arg, current_message, original_message):
+                    self.__thread_local_current_message.value = current_message
+                    self.__thread_local_original_message.value = original_message
+                    method(arg, current_message)
+
+                threading.Thread(
+                    target=handle_response,
+                    args=(arg, ),
+                    daemon=True,
+                ).start()
 
         # Handle all other messages
         else:
@@ -444,6 +459,22 @@ class Agent():
         """
         return self.__thread_local_current_message.value
 
+    def _original_message(self) -> Message:
+        """
+        Returns the original message that the current message is responding to.
+
+        This method may be called during the handle_action_value() and
+        handle_action_error() callbacks to inspect the original message.
+
+        The original message must define the meta.id field for this method to
+        return it. Otherwise, this method will return None.
+
+        Returns:
+            The original message or None
+        """
+        return self.__thread_local_original_message.value
+
+
     @action
     def help(self, action_name: str = None) -> dict:
         """
@@ -468,27 +499,46 @@ class Agent():
         }
         return help_list
 
-    @action(name=RESPONSE_ACTION_NAME)
-    def response(self, value=None, error: str = None):
+    def handle_action_value(self, value):
         """
-        Receives a return value or error in response to a previous action.
+        Receives a return value from a previous action.
 
-        This method only receives responses from actions invoked by the send()
+        This method receives return values from actions invoked by the send()
         method. It is not called when using the request() method, which returns
-        the value or raises an exception directly.
+        the value directly.
+        
+        To inspect the full response message, use _current_message().
+        
+        To inspect the original message, use _original_message(). Note that the
+        original message must define the meta.id field or _original_message()
+        will return None.
+
+        Args:
+            value:
+                The return value
+        """
+        log("warning",
+            f"A value was returned from an action. Implement {self.__class__.__name__}.handle_action_value() to handle it.")
+
+    def handle_action_error(self, error: ActionError):
+        """
+        Receives an error from a previous action.
+
+        This method receives errors from actions invoked by the send() method.
+        It is not called when using the request() method, which raises an error
+        directly.
 
         To inspect the full response message, use _current_message().
 
-        To inspect the original message, use _original_message(). Note that
-        _original_message() will only return the message if it defined a meta.id
-        value.
+        To inspect the original message, use _original_message(). Note that the
+        original message must define the meta.id field or _original_message()
+        will return None.
 
         Args:
-            value: The return value from the action
-            error: The error from the action if any
+            error: The error
         """
         log("warning",
-            f"A value was returned from an action. Implement {self.__class__.__name__}.handle_return() to handle it.")
+            f"An error was raised from an action. Implement {self.__class__.__name__}.handle_action_error() to handle it.")
 
     def after_add(self):
         """

@@ -19,6 +19,15 @@ class SayResponseMethods():
             },
         })
 
+        # # This was a response to a send()
+        # if "value" in message["action"]["args"]:
+        #     self.handle_response(
+        #         message["action"]["args"]["value"], response_id)
+        # # Handle incoming errors
+        # elif message["action"]["name"] == "error":
+        #     self.handle_error(
+        #         message["action"]["args"]["error"], response_id)
+
     def handle_error(self, error: str, original_message_id: dict):
         self._receive({
             **self._current_message(),
