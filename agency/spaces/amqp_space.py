@@ -1,4 +1,5 @@
 import json
+from math import log
 import multiprocessing
 import os
 import queue
@@ -132,6 +133,7 @@ class _AgentAMQPProcess():
 
             # Start loop
             agent.after_add()
+            log("info", f"{agent.id()} added to space")
             agent._is_processing = True
             started.set()
             while not stopping.is_set():
@@ -143,6 +145,7 @@ class _AgentAMQPProcess():
                     pass
             agent._is_processing = False
             agent.before_remove()
+            log("info", f"{agent.id()} removed from space")
 
         except amqp.exceptions.ResourceLocked:
             error_queue.put(
