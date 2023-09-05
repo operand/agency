@@ -37,21 +37,21 @@ class HelpMethods():
         })
         self.send({
             "meta": {
-                "request_id": "help_request",
+                "response_id": "help_request",
             },
             "to": "*",
             "action": {
                 "name": "response",
                 "args": {
-                    "data": self.help(),
+                    "value": self.help(),
                 }
             }
         })
 
     def handle_action_value(self, value):
-        original_message = self._original_message()
-        if original_message and original_message["meta"]["id"] == "help_request":
-            self._available_actions[self._current_message['from']] = value
+        current_message = self._current_message()
+        if current_message["meta"]["response_id"] == "help_request":
+            self._available_actions[current_message['from']] = value
         else:
             # this was in response to something else, call the original
             super().handle_action_value(value)

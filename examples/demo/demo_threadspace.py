@@ -11,7 +11,7 @@ from examples.demo.apps.gradio_app import GradioApp
 space = ThreadSpace()
 
 # Add a Host agent to the space, exposing access to the host system
-# space.add(Host, "Host")
+space.add(Host, "Host")
 
 # Add an OpenAI function API agent to the space
 print("openai_api_key", os.getenv("OPENAI_API_KEY"))

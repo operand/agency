@@ -309,7 +309,7 @@ class Agent():
                     handler_callback = self.handle_action_error
                     arg = ActionError(message["action"]["args"]["error"])
                 else:
-                    raise RuntimeError("We should never get here")
+                    raise RuntimeError("Unknown action response")
 
                 # Spawn a thread to handle the response
                 def __process_response(arg, current_message):
