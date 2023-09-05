@@ -91,7 +91,7 @@ class Host(HelpMethods, Agent):
 
             # return re.search(r"^y(es)?$", response)
 
-    def handle_return(self, data, original_message_id: str):
+    def response(self, data, original_message_id: str):
         if original_message_id == "request_permission":
             # handle a permission response and execute the command
             pass

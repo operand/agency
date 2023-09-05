@@ -191,12 +191,13 @@ class Agent():
         self._id: str = id
         self._outbound_queue: QueueProtocol = outbound_queue
         self._receive_own_broadcasts: bool = receive_own_broadcasts
-        self._is_processing: bool = False # set by the Space
+        self._is_processing: bool = False  # set by the Space
         self._message_log: List[Message] = []
         self._message_log_lock = threading.Lock()
         self._pending_responses: Dict[str, Message] = {}
         self._pending_responses_lock = threading.Lock()
-        self._thread_local_current_message = threading.local()
+        self.__thread_local_current_message = threading.local()
+        self.__thread_local_current_message.value: Message = None
 
     def id(self) -> str:
         return self._id
@@ -237,30 +238,32 @@ class Agent():
             ActionError: If the action raised an exception
         """
         if not self._is_processing:
-            raise RuntimeError("request() called while agent is not processing incoming messages. Use send() instead.")
+            raise RuntimeError(
+                "request() called while agent is not processing incoming messages. Use send() instead.")
 
-        # Add id to the meta field.
-        # This prefix identifies it as coming from the request() method
-        request_id = "request--" + str(uuid.uuid4())
+        # Set the message id
+        # It's a bit hacky, but the message id prefix "request--" identifies it
+        # as coming from the request() method
+        message_id = "request--" + str(uuid.uuid4())
         message["meta"] = message.get("meta", {})
-        message["meta"]["id"] = request_id
+        message["meta"]["id"] = message_id
 
         # Send and mark the request as pending
         self.send(message)
         pending = object()
         with self._pending_responses_lock:
-            self._pending_responses[request_id] = pending
+            self._pending_responses[message_id] = pending
 
         # Wait for response
         start_time = time.time()
-        while self._pending_responses[request_id] == pending:
+        while self._pending_responses[message_id] == pending:
             time.sleep(0.001)
             if time.time() - start_time > timeout:
                 raise TimeoutError
 
         # Raise error or return value from response
         with self._pending_responses_lock:
-            response_message = self._pending_responses.pop(request_id)
+            response_message = self._pending_responses.pop(message_id)
         if "error" in response_message["action"]["args"]:
             raise ActionError(response_message["action"]["args"]["error"])
         return response_message["action"]["args"]["value"]
@@ -284,22 +287,23 @@ class Agent():
         with self._message_log_lock:
             self._message_log.append(message)
 
-        # Handle incoming responses
-        if message["action"]["name"] == RESPONSE_ACTION_NAME:
-            response_id = message.get("meta", {}).get("response_id")
-            if response_id in self._pending_responses.keys():
-                # This was a response to a request()
-                self._pending_responses[response_id] = message
-                # From here the request() method will pick up the response
-            else:
-                # This was a response to a send()
-                if "value" in message["action"]["args"]:
-                    self.handle_return(
-                        message["action"]["args"]["value"], response_id)
-                # Handle incoming errors
-                elif message["action"]["name"] == "error":
-                    self.handle_error(
-                        message["action"]["args"]["error"], response_id)
+        # Handle incoming request responses
+        response_id = message.get("meta", {}).get("response_id")
+        if message["action"]["name"] == RESPONSE_ACTION_NAME \
+           and response_id in self._pending_responses.keys():
+            # This was a response to a request()
+            self._pending_responses[response_id] = message
+            # From here the request() method will pick up the response
+
+        # else:
+        #     # This was a response to a send()
+        #     if "value" in message["action"]["args"]:
+        #         self.handle_response(
+        #             message["action"]["args"]["value"], response_id)
+        #     # Handle incoming errors
+        #     elif message["action"]["name"] == "error":
+        #         self.handle_error(
+        #             message["action"]["args"]["error"], response_id)
 
         # Handle all other messages
         else:
@@ -308,31 +312,39 @@ class Agent():
             threading.Thread(
                 target=self.__process, args=(message,), daemon=True).start()
 
-    def _current_message(self) -> Message:
-        """
-        Returns the full message which invoked the current action.
-
-        This method may be called within an action to retrieve the current
-        message, for example to determine the sender or inspect other details.
-
-        Outside of an action this method will return None.
-
-        Returns:
-            The current message
-        """
-        return self._thread_local_current_message.value
-
     def __process(self, message: dict):
         """
         Top level method within the action processing thread.
         """
+        # Set _thread_local_current_message
+        self.__thread_local_current_message.value = message
         try:
-            self.__commit(message)
+            # Commit the action
+            return_value = self.__commit(message)
+
+            # If the action returned a value, or this was a request (which
+            # expects a value), send the value back
+            message_id = message.get("meta", {}).get("id")
+            is_request = message_id and re.match(r"^request--", message_id)
+            if is_request or return_value is not None:
+                self.send({
+                    "meta": {
+                        "response_id": message_id
+                    },
+                    "to": message['from'],
+                    "action": {
+                        "name": RESPONSE_ACTION_NAME,
+                        "args": {
+                            "value": return_value,
+                        }
+                    }
+                })
         except Exception as e:
-            # Handle exceptions that occur while committing an action, including
-            # PermissionError's from access denial, by reporting the error back
-            # to the sender.
-            log("debug", f"{self.id()} exception while committing action {message['action']['name']}", e)
+            # Handle exceptions that occur while committing an action by
+            # reporting the error back to the sender. PermissionError's are also
+            # handled here.
+            log("debug",
+                f"{self.id()} exception while committing action {message['action']['name']}", e)
             self.send({
                 "meta": {
                     "response_id": message.get("meta", {}).get("id")
@@ -349,12 +361,13 @@ class Agent():
 
     def __commit(self, message: dict):
         """
-        Invokes the action if permitted
+        Invokes the action method
 
         Args:
-            message: The message
+            message: The incoming message specifying the action
 
         Raises:
+            AttributeError: If the action method is not found
             PermissionError: If the action is not permitted
         """
         try:
@@ -368,45 +381,24 @@ class Agent():
                 raise AttributeError(
                     f"\"{message['action']['name']}\" not found on \"{self.id()}\"")
 
+        # Check if the action is permitted
+        if not self.__permitted(message):
+            raise PermissionError(
+                f"\"{self.id()}.{message['action']['name']}\" not permitted")
+
         self.before_action(message)
 
         return_value = None
         error = None
         try:
-            # Check if the action is permitted
-            if self.__permitted(message):
-
-                # Invoke the action method
-                # (set _thread_local_current_message so that it can be used by the action)
-                self._thread_local_current_message.value = message
-                return_value = action_method(**message['action'].get('args', {}))
-
-                # If the action returned a value, or this was a request (which
-                # expects a value), send the value back
-                message_id = message.get("meta", {}).get("id")
-                is_request = message_id and re.match(r"^request--", message_id)
-                if is_request or return_value is not None:
-                    response = {
-                        "meta": {
-                            "response_id": message_id
-                        },
-                        "to": message['from'],
-                        "action": {
-                            "name": RESPONSE_ACTION_NAME,
-                            "args": {
-                                "value": return_value,
-                            }
-                        }
-                    }
-                    self.send(response)
-            else:
-                raise PermissionError(
-                  f"\"{self.id()}.{message['action']['name']}\" not permitted")
+            # Invoke the action method
+            return_value = action_method(**message['action'].get('args', {}))
         except Exception as e:
-            error = e  # save the error for after_action
+            error = e
             raise
         finally:
             self.after_action(message, return_value, error)
+        return return_value
 
     def __permitted(self, message: dict) -> bool:
         """
@@ -440,6 +432,18 @@ class Agent():
         action_methods = self.__action_methods()
         return action_methods[action_name]
 
+    def _current_message(self) -> Message:
+        """
+        Returns the full message which invoked the current action.
+
+        This method may be called within an action to retrieve the current
+        message, for example to determine the sender or inspect other details.
+
+        Returns:
+            The current message
+        """
+        return self.__thread_local_current_message.value
+
     @action
     def help(self, action_name: str = None) -> dict:
         """
@@ -454,7 +458,7 @@ class Agent():
         Returns:
             A dictionary of actions
         """
-        special_actions = ["help"]
+        special_actions = ["help", RESPONSE_ACTION_NAME]
         help_list = {
             method.action_properties["name"]: method.action_properties["help"]
             for method in self.__action_methods().values()
@@ -463,6 +467,28 @@ class Agent():
             or method.action_properties["name"] == action_name
         }
         return help_list
+
+    @action(name=RESPONSE_ACTION_NAME)
+    def response(self, value=None, error: str = None):
+        """
+        Receives a return value or error in response to a previous action.
+
+        This method only receives responses from actions invoked by the send()
+        method. It is not called when using the request() method, which returns
+        the value or raises an exception directly.
+
+        To inspect the full response message, use _current_message().
+
+        To inspect the original message, use _original_message(). Note that
+        _original_message() will only return the message if it defined a meta.id
+        value.
+
+        Args:
+            value: The return value from the action
+            error: The error from the action if any
+        """
+        log("warning",
+            f"A value was returned from an action. Implement {self.__class__.__name__}.handle_return() to handle it.")
 
     def after_add(self):
         """
@@ -494,12 +520,12 @@ class Agent():
             message: The received message that contains the action
         """
 
-    def after_action(self, original_message: dict, return_value: str, error: str):
+    def after_action(self, message: dict, return_value: str, error: str):
         """
         Called after every action, regardless of whether an error occurred.
 
         Args:
-            original_message: The original message
+            message: The message which invoked the action
             return_value: The return value from the action
             error: The error from the action if any
         """
@@ -516,46 +542,4 @@ class Agent():
             True if access should be permitted
         """
         raise NotImplementedError(
-            f"You must implement {self.__class__.__name__}.request_permission to use ACCESS_REQUESTED")
-
-    def handle_return(self, value):
-        """
-        Receives a return value from a prior action.
-
-        This method receives values returned from actions invoked by the send()
-        method. It is not called when using the request() method, which returns
-        the value directly.
-
-        To inspect the response message carrying the returned value, use
-        self._current_message().
-
-        To inspect the original sent message, use _original_message().  Note
-        that _original_message() may return None if the original message did not
-        include a meta.id.
-
-        Args:
-            value: The return value from the action
-        """
-        log("warning",
-            f"A value was returned from an action. Implement {self.__class__.__name__}.handle_return() to handle it.")
-
-    def handle_error(self, error: str):
-        """
-        Receives an error message from a prior action.
-
-        This method receives errors resulting from actions invoked by the send()
-        method. It is not called when using the request() method, which raises
-        the error as an exception.
-
-        To inspect the response message carrying the error, use
-        self._current_message().
-
-        To inspect the original sent message, use _original_message(). Note that
-        _original_message() may return None if the original message did not
-        include a meta.id.
-
-        Args:
-            error: The error message
-        """
-        log("warning",
-            f"An error occurred in an action. Implement {self.__class__.__name__}.handle_error() to handle it.")
+            f"You must implement {self.__class__.__name__}.request_permission() to use ACCESS_REQUESTED")

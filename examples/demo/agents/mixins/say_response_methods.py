@@ -3,8 +3,7 @@ from agency.agent import action
 
 class SayResponseMethods():
     """
-    A mixin for converting incoming `response` and `error` actions to `say`
-    actions
+    A mixin for converting incoming responses to `say` actions
 
     NOTE The _message_log will contain both messages
     """
