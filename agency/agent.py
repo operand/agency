@@ -167,13 +167,16 @@ class Agent():
 
     def __init__(self,
                  id: str,
-                 outbound_queue: QueueProtocol = None,
+                 *, # Keyword arguments follow
+                 outbound_queue: QueueProtocol,
                  receive_own_broadcasts: bool = True):
         """
         Initializes an Agent.
 
         This constructor is not meant to be called directly. It is invoked by
         the Space class when adding an agent.
+
+        Subclasses should call super().__init__() in their constructor.
 
         Args:
             id: The id of the agent

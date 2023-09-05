@@ -12,7 +12,7 @@ if __name__ == "__main__":
     space = ThreadSpace()
 
     # Add a Host agent to the space, exposing access to the host system
-    space.add(Host, "Host")
+    # space.add(Host, "Host")
 
     # Add an OpenAI function API agent to the space
     space.add(OpenAIFunctionAgent,

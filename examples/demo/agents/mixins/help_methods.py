@@ -28,7 +28,7 @@ class HelpMethods():
         self._available_actions: Dict[str, Dict[str, dict]] = {}
         self.send({
             "meta": {
-                "id": "request--help",
+                "id": "help_request",
             },
             "to": "*",
             "action": {
@@ -37,7 +37,7 @@ class HelpMethods():
         })
         self.send({
             "meta": {
-                "request_id": "request--help",
+                "request_id": "help_request",
             },
             "to": "*",
             "action": {

@@ -2,6 +2,7 @@ import json
 import textwrap
 
 import openai
+from agency.logger import log
 from agents.mixins.help_methods import HelpMethods
 from agents.mixins.say_response_methods import SayResponseMethods
 
@@ -13,10 +14,11 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
     An agent which uses OpenAI's function calling API
     """
 
-    def __init__(self, id, outbound_queue, model, openai_api_key, user_id):
+    def __init__(self, id, outbound_queue, receive_own_broadcasts, model, openai_api_key, user_id):
         super().__init__(id, outbound_queue, receive_own_broadcasts=False)
         self.__model = model
         self.__user_id = user_id
+        log("debug", "openai_api_key", openai_api_key)
         openai.api_key = openai_api_key
 
     def __system_prompt(self):
@@ -48,8 +50,8 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
         # NOTE: the chat api limits to only four predefined roles so we do our
         # best to translate to them here.
         for message in self._message_log:
-            # "return" and "error" are converted by default to "say" so ignore
-            if message['action']['name'] not in ["response", "error"]:
+            # ignore response messages
+            if message['action']['name'] != "[RESPONSE]":
                 # "say" actions are converted to messages using the content arg
                 if message['action']['name'] == "say":
                     # assistant
@@ -84,9 +86,10 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
                     # is important information to infer from and it's currently
                     # not clear whether the language model has access to it
                     # during inference.
+                    log("debug", f"{self.id()} received function call", message)
                     open_ai_messages.append({
                         "role": "system",
-                        "content": f"""{message['from']} called function "{message['action']['name']}" with args {message['action']['args']}""",
+                        "content": f"""{message['from']} called function "{message['action']['name']}" with args {message['action'].get('args', {})}""",
                     })
 
         return open_ai_messages
