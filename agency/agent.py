@@ -15,7 +15,7 @@ ACCESS_DENIED = "ACCESS_DENIED"
 ACCESS_REQUESTED = "ACCESS_REQUESTED"
 
 # Special action name to indicate a response
-RESPONSE_ACTION_NAME = "[RESPONSE]"
+_RESPONSE_ACTION_NAME = "[RESPONSE]"
 
 
 def _python_to_json_type_name(python_type_name: str) -> str:
@@ -117,7 +117,7 @@ def action(*args, **kwargs):
     """
     def decorator(method):
         action_name = kwargs.get("name", method.__name__)
-        if action_name == RESPONSE_ACTION_NAME:
+        if action_name == _RESPONSE_ACTION_NAME:
             raise ValueError(f"action name '{action_name}' is reserved")
         method.action_properties = {
             "name": method.__name__,
@@ -290,7 +290,7 @@ class Agent():
 
         # Handle incoming responses
         response_id = message.get("meta", {}).get("response_id")
-        if message["action"]["name"] == RESPONSE_ACTION_NAME:
+        if message["action"]["name"] == _RESPONSE_ACTION_NAME:
             if response_id in self._pending_responses.keys():
                 # This was a response to a request()
                 self._pending_responses[response_id] = message
@@ -327,14 +327,13 @@ class Agent():
 
     def __process(self, message: dict):
         """Top level method within the action processing thread."""
-        # Set __thread_local_current_message
         self.__thread_local_current_message.value = message
         try:
             # Commit the action
             return_value = self.__commit(message)
 
             # If the action returned a value, or this was a request (which
-            # expects a value), send the value back
+            # expects a value), return it
             message_id = message.get("meta", {}).get("id")
             is_request = message_id and re.match(r"^request--", message_id)
             if is_request or return_value is not None:
@@ -344,7 +343,7 @@ class Agent():
                     },
                     "to": message['from'],
                     "action": {
-                        "name": RESPONSE_ACTION_NAME,
+                        "name": _RESPONSE_ACTION_NAME,
                         "args": {
                             "value": return_value,
                         }
@@ -363,7 +362,7 @@ class Agent():
                 "to": message['from'],
                 "from": self.id(),
                 "action": {
-                    "name": RESPONSE_ACTION_NAME,
+                    "name": _RESPONSE_ACTION_NAME,
                     "args": {
                         "error": f"{e}",
                     }
@@ -485,7 +484,7 @@ class Agent():
         Returns:
             A dictionary of actions
         """
-        special_actions = ["help", RESPONSE_ACTION_NAME]
+        special_actions = ["help", _RESPONSE_ACTION_NAME]
         help_list = {
             method.action_properties["name"]: method.action_properties["help"]
             for method in self.__action_methods().values()
