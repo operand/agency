@@ -84,7 +84,7 @@ def test_receive_and_return(any_space):
         "to": "Sender",
         "from": "Receiver",
         "action": {
-            "name": "[RESPONSE]",
+            "name": "response",
             "args": {
                 "value": ["Hello!"],
             }
@@ -118,7 +118,7 @@ def test_send_and_error(any_space):
         "to": "Sender",
         "from": "Receiver",
         "action": {
-            "name": "[RESPONSE]",
+            "name": "response",
             "args": {
                 "error": "AttributeError: \"some non existent action\" not found on \"Receiver\"",
             }
@@ -175,7 +175,7 @@ def test_request_and_return(any_space):
             "from": "Responder",
             "to": "Requester",
             "action": {
-                "name": "[RESPONSE]",
+                "name": "response",
                 "args": {
                     "value": ["Hello!"],
                 }
@@ -236,7 +236,7 @@ def test_request_and_error(any_space):
         "from": "Responder",
         "to": "Requester",
         "action": {
-            "name": "[RESPONSE]",
+            "name": "response",
             "args": {
                 "error": "AttributeError: \"some non existent action\" not found on \"Responder\"",
             }
@@ -380,7 +380,7 @@ def test_send_undefined_action(any_space):
             "from": "Receiver",
             "to": "Sender",
             "action": {
-                "name": "[RESPONSE]",
+                "name": "response",
                 "args": {
                     "error": "AttributeError: \"undefined_action\" not found on \"Receiver\"",
                 },

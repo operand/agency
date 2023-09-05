@@ -18,7 +18,6 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
         super().__init__(id, outbound_queue, receive_own_broadcasts)
         self.__model = model
         self.__user_id = user_id
-        log("debug", "openai_api_key", openai_api_key)
         openai.api_key = openai_api_key
 
     def __system_prompt(self):
@@ -86,7 +85,6 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
                     # is important information to infer from and it's currently
                     # not clear whether the language model has access to it
                     # during inference.
-                    log("debug", f"{self.id()} received function call", message)
                     open_ai_messages.append({
                         "role": "system",
                         "content": f"""{message['from']} called function "{message['action']['name']}" with args {message['action'].get('args', {})}""",
@@ -99,7 +97,6 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
         Returns a list of functions converted from space._get_help__sync() to be
         sent to OpenAI as the functions arg
         """
-        log("debug", "self._available_actions", self._available_actions)
         functions = [
             {
                 # note that we send a fully qualified name for the action and

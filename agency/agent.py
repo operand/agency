@@ -2,21 +2,20 @@ import inspect
 import re
 import threading
 import time
-import traceback
 import uuid
-from typing import Any, Dict, List, Protocol, Union
+from typing import Dict, List, Protocol
 
 from docstring_parser import DocstringStyle, parse
-from agency.logger import log
 
+from agency.logger import log
 from agency.schema import Message
 
 ACCESS_PERMITTED = "ACCESS_PERMITTED"
 ACCESS_DENIED = "ACCESS_DENIED"
 ACCESS_REQUESTED = "ACCESS_REQUESTED"
 
-# Special action name to indicate a response
-RESPONSE_ACTION_NAME = "[RESPONSE]"
+# Special action name for responses
+RESPONSE_ACTION_NAME = "response"
 
 
 def _python_to_json_type_name(python_type_name: str) -> str:

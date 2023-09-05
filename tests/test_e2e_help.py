@@ -50,7 +50,7 @@ def test_help_action(any_space):
         "to": "Sender",
         "from": "Receiver",
         "action": {
-            "name": "[RESPONSE]",
+            "name": "response",
             "args": {
                 "value": {
                     "action_with_docstring": {
@@ -118,7 +118,7 @@ def test_help_specific_action(any_space):
             "to": "Sender",
             "from": "Receiver",
             "action": {
-                "name": "[RESPONSE]",
+                "name": "response",
                 "args": {
                     "value": {
                         "action_i_will_request_help_on": {
