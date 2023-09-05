@@ -4,6 +4,7 @@ import time
 from typing import Dict, Type
 
 from agency.agent import Agent, QueueProtocol
+from agency.logger import log
 from agency.schema import Message, validate_message
 from agency.space import Space
 
@@ -33,6 +34,7 @@ class _AgentThread():
                     **self.agent_kwargs,
                 )
                 agent.after_add()
+                log("info", f"{agent.id()} started")
                 agent._is_processing = True
                 self.__started.set()
                 while not self.__stopping.is_set():

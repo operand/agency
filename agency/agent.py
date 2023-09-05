@@ -208,7 +208,7 @@ class Agent():
         Args:
             message: The message
         """
-        log("info", f"[{self.id()}] Sending message", message)
+        log("info", f"{self.id()} sending message", message)
         message["from"] = self.id()
         with self._message_log_lock:
             self._message_log.append(message)
@@ -276,6 +276,8 @@ class Agent():
            and message['from'] == self.id() \
            and message['to'] == '*':
             return
+
+        log("info", f"{self.id()} received message", message)
 
         # Record the received message before handling
         with self._message_log_lock:
