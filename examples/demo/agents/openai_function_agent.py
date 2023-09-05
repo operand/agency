@@ -2,11 +2,11 @@ import json
 import textwrap
 
 import openai
-from agency.logger import log
 from agents.mixins.help_methods import HelpMethods
 from agents.mixins.say_response_methods import SayResponseMethods
 
-from agency.agent import Agent, action
+from agency.agent import RESPONSE_ACTION_NAME, Agent, action
+from agency.logger import log
 
 
 class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
@@ -14,8 +14,8 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
     An agent which uses OpenAI's function calling API
     """
 
-    def __init__(self, id, outbound_queue, receive_own_broadcasts, model, openai_api_key, user_id):
-        super().__init__(id, outbound_queue, receive_own_broadcasts=False)
+    def __init__(self, id, *, outbound_queue, receive_own_broadcasts=False, model, openai_api_key, user_id):
+        super().__init__(id, outbound_queue, receive_own_broadcasts)
         self.__model = model
         self.__user_id = user_id
         log("debug", "openai_api_key", openai_api_key)
@@ -51,7 +51,7 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
         # best to translate to them here.
         for message in self._message_log:
             # ignore response messages
-            if message['action']['name'] != "[RESPONSE]":
+            if message['action']['name'] != RESPONSE_ACTION_NAME:
                 # "say" actions are converted to messages using the content arg
                 if message['action']['name'] == "say":
                     # assistant

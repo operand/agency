@@ -16,7 +16,7 @@ ACCESS_DENIED = "ACCESS_DENIED"
 ACCESS_REQUESTED = "ACCESS_REQUESTED"
 
 # Special action name to indicate a response
-_RESPONSE_ACTION_NAME = "[RESPONSE]"
+RESPONSE_ACTION_NAME = "[RESPONSE]"
 
 
 def _python_to_json_type_name(python_type_name: str) -> str:
@@ -118,7 +118,7 @@ def action(*args, **kwargs):
     """
     def decorator(method):
         action_name = kwargs.get("name", method.__name__)
-        if action_name == _RESPONSE_ACTION_NAME:
+        if action_name == RESPONSE_ACTION_NAME:
             raise ValueError(f"action name '{action_name}' is reserved")
         method.action_properties = {
             "name": method.__name__,
@@ -167,7 +167,6 @@ class Agent():
 
     def __init__(self,
                  id: str,
-                 *, # Keyword arguments follow
                  outbound_queue: QueueProtocol,
                  receive_own_broadcasts: bool = True):
         """
@@ -294,7 +293,7 @@ class Agent():
 
         # Handle incoming responses
         response_id = message.get("meta", {}).get("response_id")
-        if message["action"]["name"] == _RESPONSE_ACTION_NAME:
+        if message["action"]["name"] == RESPONSE_ACTION_NAME:
             if response_id in self._pending_responses.keys():
                 # This was a response to a request()
                 self._pending_responses[response_id] = message
@@ -348,7 +347,7 @@ class Agent():
                     },
                     "to": message['from'],
                     "action": {
-                        "name": _RESPONSE_ACTION_NAME,
+                        "name": RESPONSE_ACTION_NAME,
                         "args": {
                             "value": return_value,
                         }
@@ -367,7 +366,7 @@ class Agent():
                 "to": message['from'],
                 "from": self.id(),
                 "action": {
-                    "name": _RESPONSE_ACTION_NAME,
+                    "name": RESPONSE_ACTION_NAME,
                     "args": {
                         "error": f"{e.__class__.__name__}: {e}"
                     }
@@ -496,7 +495,7 @@ class Agent():
         Returns:
             A dictionary of actions
         """
-        special_actions = ["help", _RESPONSE_ACTION_NAME]
+        special_actions = ["help", RESPONSE_ACTION_NAME]
         help_list = {
             method.action_properties["name"]: method.action_properties["help"]
             for method in self.__action_methods().values()

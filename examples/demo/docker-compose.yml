@@ -13,7 +13,7 @@ x-demo-base:
     # mounts source into container for development
     - ../..:/agency
   environment:
-    LOGLEVEL: # pass through
+    # LOGLEVEL: # pass through
     TRANSFORMERS_CACHE: /models/transformers_cache
 
 
@@ -31,7 +31,7 @@ services:
       bash -ce "
         socat TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:7860 &
         echo \"Launching gradio app at http://localhost:$WEB_APP_PORT\. Please wait...\"
-        poetry run python demo_threadspace.py | grep -v \"Launching.*127.0.0.1:7860\"
+        poetry run gradio demo_threadspace.py | grep -v \"Launching.*127.0.0.1:7860\"
       "
     tty: true
     stdin_open: true
@@ -48,7 +48,7 @@ services:
       bash -ce "
         socat TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:7860 &
         echo \"Launching gradio app at http://localhost:$WEB_APP_PORT\. Please wait...\"
-        poetry run python demo_multiprocess.py | grep -v \"Launching.*127.0.0.1:7860\"
+        poetry run gradio demo_multiprocess.py | grep -v \"Launching.*127.0.0.1:7860\"
       "
     tty: true
     stdin_open: true
@@ -69,7 +69,7 @@ services:
       bash -ce "
         socat TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:7860 &
         echo \"Launching gradio app at http://localhost:$WEB_APP_PORT\. Please wait...\"
-        poetry run python demo_amqp_1.py | grep -v \"Launching.*127.0.0.1:7860\"
+        poetry run gradio demo_amqp_1.py | grep -v \"Launching.*127.0.0.1:7860\"
       "
     tty: true
     stdin_open: true
