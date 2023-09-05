@@ -27,6 +27,7 @@ To install and run the website locally:
 - Install Ruby (see [.ruby-version](./.ruby-version) for the necessary version).
 - Run:
   ```bash
+  cd site # this directory
   gem install bundler
   bundle install
   bundle exec jekyll serve --livereload # livereload allows you to see changes
