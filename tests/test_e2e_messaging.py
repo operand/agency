@@ -120,7 +120,7 @@ def test_send_and_error(any_space):
         "action": {
             "name": "[RESPONSE]",
             "args": {
-                "error": "\"some non existent action\" not found on \"Receiver\"",
+                "error": "AttributeError: \"some non existent action\" not found on \"Receiver\"",
             }
         }
     }])
@@ -238,13 +238,13 @@ def test_request_and_error(any_space):
         "action": {
             "name": "[RESPONSE]",
             "args": {
-                "error": "\"some non existent action\" not found on \"Responder\"",
+                "error": "AttributeError: \"some non existent action\" not found on \"Responder\"",
             }
         }
     }
     assert type(requesters_log[3]) == ActionError
     assert requesters_log[3].__str__(
-    ) == "\"some non existent action\" not found on \"Responder\""
+    ) == "AttributeError: \"some non existent action\" not found on \"Responder\""
 
 
 class _RequestAndTimeoutAgent(ObservableAgent):
@@ -382,7 +382,7 @@ def test_send_undefined_action(any_space):
             "action": {
                 "name": "[RESPONSE]",
                 "args": {
-                    "error": "\"undefined_action\" not found on \"Receiver\"",
+                    "error": "AttributeError: \"undefined_action\" not found on \"Receiver\"",
                 },
             }
         },
