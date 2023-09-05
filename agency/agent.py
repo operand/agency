@@ -245,28 +245,27 @@ class Agent():
                 "request() called while agent is not processing incoming messages. Use send() instead.")
 
         # Set the message id
-        # It's a bit hacky, but the message id prefix "request--" identifies it
-        # as coming from the request() method
-        message_id = "request--" + str(uuid.uuid4())
+        # Having a meta.request_id identifies it as a request
+        request_id = f"request--{uuid.uuid4()}"
         message["meta"] = message.get("meta", {})
-        message["meta"]["id"] = message_id
+        message["meta"]["request_id"] = request_id
 
         # Send and mark the request as pending
         self.send(message)
         pending = object()
         with self._pending_responses_lock:
-            self._pending_responses[message_id] = pending
+            self._pending_responses[request_id] = pending
 
         # Wait for response
         start_time = time.time()
-        while self._pending_responses[message_id] == pending:
+        while self._pending_responses[request_id] == pending:
             time.sleep(0.001)
             if time.time() - start_time > timeout:
                 raise TimeoutError
 
         # Raise error or return value from response
         with self._pending_responses_lock:
-            response_message = self._pending_responses.pop(message_id)
+            response_message = self._pending_responses.pop(request_id)
         if "error" in response_message["action"]["args"]:
             raise ActionError(response_message["action"]["args"]["error"])
         return response_message["action"]["args"]["value"]
@@ -284,7 +283,7 @@ class Agent():
            and message['to'] == '*':
             return
 
-        log("info", f"{self.id()} received message", message)
+        log("debug", f"{self.id()} received message", message)
 
         # Record the received message before handling
         with self._message_log_lock:
@@ -300,7 +299,6 @@ class Agent():
                 # the existing thread
             else:
                 # This was a response to a send()
-                log("debug", f"{self.id()} handling response", message)
                 if "value" in message["action"]["args"]:
                     handler_callback = self.handle_action_value
                     arg = message["action"]["args"]["value"]
@@ -312,6 +310,7 @@ class Agent():
 
                 # Spawn a thread to handle the response
                 def __process_response(arg, current_message):
+                    log("debug", f"{self.id()} processing response", message)
                     self.__thread_local_current_message.value = current_message
                     handler_callback(arg)
 
@@ -329,20 +328,22 @@ class Agent():
                 target=self.__process, args=(message,), daemon=True).start()
 
     def __process(self, message: dict):
-        """Top level method within the action processing thread."""
+        """
+        Top level method within the action processing thread.
+        """
+        log("debug", f"{self.id()} processing message", message)
         self.__thread_local_current_message.value = message
         try:
             # Commit the action
             return_value = self.__commit(message)
 
-            # If the action returned a value, or this was a request (which
+            # If the action returned a value or this was a request (which
             # expects a value), return it
-            message_id = message.get("meta", {}).get("id")
-            is_request = message_id and re.match(r"^request--", message_id)
-            if is_request or return_value is not None:
+            request_id = message.get("meta", {}).get("request_id")
+            if request_id or return_value is not None:
                 self.send({
                     "meta": {
-                        "response_id": message_id
+                        "response_id": request_id or message.get("meta", {}).get("id")
                     },
                     "to": message['from'],
                     "action": {
@@ -353,14 +354,14 @@ class Agent():
                     }
                 })
         except Exception as e:
-            # Handle exceptions that occur while committing an action by
-            # reporting the error back to the sender. PermissionError's are also
-            # handled here.
+            # Handle errors (including PermissionError) that occur while
+            # committing an action by reporting back to the sender.
             log("debug",
                 f"{self.id()} exception while committing action {message['action']['name']}", e)
+            request_id = message.get("meta", {}).get("request_id")
             self.send({
                 "meta": {
-                    "response_id": message.get("meta", {}).get("id")
+                    "response_id": request_id or message.get("meta", {}).get("id")
                 },
                 "to": message['from'],
                 "from": self.id(),

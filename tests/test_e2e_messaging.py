@@ -156,7 +156,7 @@ def test_request_and_return(any_space):
     wait_for_length(requesters_log, 4)
     requesters_log = list(requesters_log)
     # first remove dynamic meta fields and assert they are correct
-    request_id = requesters_log[1]["meta"].pop("id")
+    request_id = requesters_log[1]["meta"].pop("request_id")
     response_id = requesters_log[2]["meta"].pop("response_id")
     assert re.match(r"^request--.+$", request_id)
     assert response_id == request_id
@@ -217,7 +217,7 @@ def test_request_and_error(any_space):
     wait_for_length(requesters_log, 4)
     requesters_log = list(requesters_log)
     # first remove dynamic meta fields and assert their pattern
-    request_id = requesters_log[1]["meta"].pop("id")
+    request_id = requesters_log[1]["meta"].pop("request_id")
     response_id = requesters_log[2]["meta"].pop("response_id")
     assert re.match(r"^request--.+$", request_id)
     assert response_id == request_id
@@ -279,7 +279,7 @@ def test_request_and_timeout(any_space):
     wait_for_length(requesters_log, 3, max_seconds=5)
     requesters_log = list(requesters_log)
     # first remove dynamic meta fields and assert their pattern
-    assert re.match(r"^request--.+$", requesters_log[1]["meta"].pop("id"))
+    assert re.match(r"^request--.+$", requesters_log[1]["meta"].pop("request_id"))
     # assert each message one by one
     assert requesters_log[0] == first_message
     assert requesters_log[1] == {
