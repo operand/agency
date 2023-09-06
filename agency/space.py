@@ -5,11 +5,9 @@ from agency.agent import Agent
 
 class Space(ABC, metaclass=ABCMeta):
     """
-    A Space is where Agents may meet and interact.
-
-    Space implementations are responsible for:
-        - Managing the lifecycle of agent instances
-        - Ensuring communication between agents
+    Space implementations are responsible for
+    - Managing the lifecycle of agent instances (add/remove)
+    - Ensuring communication between agents
     """
 
     @abstractmethod
