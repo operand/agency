@@ -39,7 +39,7 @@ included for running the demo using the different space types. To run the demo:
 
       To run the single-container `ThreadSpace` application:
       ```sh
-      ./demo run threadspace
+      ./demo run threaded
       ```
 
       To run the multi-container `AMQPSpace` application:

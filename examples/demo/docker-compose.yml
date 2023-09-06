@@ -21,9 +21,9 @@ x-demo-base:
 services:
 
   # This container runs the demo in a single ThreadSpace
-  threadspace:
+  threaded:
     <<: *demo-base
-    profiles: [threadspace]
+    profiles: [threaded]
     ports:
       - '$WEB_APP_PORT:8080'
     # socat is used to redirect from the hardcoded ip:port in gradio's dev mode
@@ -32,7 +32,7 @@ services:
       bash -ce "
         socat TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:7860 &
         echo \"Launching gradio app at http://localhost:$WEB_APP_PORT\. Please wait...\"
-        poetry run python demo_threadspace.py | grep -v \"Launching.*127.0.0.1:7860\"
+        poetry run python demo_threaded.py | grep -v \"Launching.*127.0.0.1:7860\"
       "
     tty: true
     stdin_open: true
