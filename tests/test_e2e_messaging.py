@@ -20,7 +20,7 @@ class _MessagingTestAgent(ObservableAgent):
     @action
     def action_with_send(self):
         self.send({
-            "to": "Sender",
+            "to": self._current_message()['from'],
             "action": {
                 "name": "null_action",
                 "args": {
@@ -38,8 +38,8 @@ class _MessagingTestAgent(ObservableAgent):
         raise ValueError("Something went wrong")
 
 
-def test_send_and_receive(any_space):
-    """Tests sending/receiving a send()"""
+def test_send_and_reply(any_space):
+    """Tests sending/receiving a basic send()"""
     senders_log = add_agent(any_space, _MessagingTestAgent, "Sender")
     receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
@@ -66,7 +66,7 @@ def test_send_and_receive(any_space):
     ])
 
 
-def test_receive_and_return(any_space):
+def test_send_and_return(any_space):
     senders_log = add_agent(any_space, ObservableAgent, "Sender")
     receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
