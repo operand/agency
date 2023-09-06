@@ -95,7 +95,7 @@ class CalculatorAgent(Agent):
     def before_action(self, message: dict):
         """Called before an action is attempted"""
 
-    def after_action(self, original_message: dict, return_value: str, error: str):
+    def after_action(self, message: dict, return_value: str, error: str):
         """Called after an action is attempted"""
 
     def after_add(self):
@@ -116,11 +116,11 @@ There are three included `Space` implementations to choose from:
 * `AMQPSpace` - which distributes agents across a network using an AMQP
   server like RabbitMQ.
 
-Finally, here is a simple example of creating a `ThreadSpace` and adding two
+Finally, here is a simple example of creating a `MultiprocessSpace` and adding two
 agents to it.
 
 ```python
-space = ThreadSpace()
+space = MultiprocessSpace()
 space.add(CalculatorAgent, "CalcAgent")
 space.add(MyAgent, "MyAgent")
 # The agents above can now communicate
