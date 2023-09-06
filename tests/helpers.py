@@ -1,6 +1,5 @@
 import json
 import multiprocessing
-from multiprocessing.managers import ListProxy
 import time
 from typing import List
 

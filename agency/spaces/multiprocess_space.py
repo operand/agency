@@ -2,16 +2,14 @@ import multiprocessing
 import queue
 import threading
 import time
-from multiprocessing import Event, Process
 import traceback
+from multiprocessing import Event, Process
 from typing import Dict, Type
 
 from agency.agent import Agent, _QueueProtocol
 from agency.logger import log
 from agency.schema import Message, validate_message
 from agency.space import Space
-
-multiprocessing.set_start_method('spawn', force=True)
 
 
 class _AgentProcess():
@@ -86,7 +84,8 @@ class _AgentProcess():
             agent.before_remove()
             log("info", f"{agent.id()} removed from space")
         except Exception as e:
-            log("error", f"{self.agent_id} removed from space with exception", traceback.format_exc())
+            log("error", f"{self.agent_id} removed from space with exception",
+                traceback.format_exc())
 
 
 class MultiprocessSpace(Space):

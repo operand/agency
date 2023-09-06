@@ -17,8 +17,6 @@ from agency.logger import log
 from agency.schema import Message, validate_message
 from agency.space import Space
 
-multiprocessing.set_start_method('spawn', force=True)
-
 
 class _AgentAMQPProcess():
     def __init__(
