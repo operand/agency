@@ -5,7 +5,7 @@ from typing import List
 
 import gradio as gr
 
-from agency.agent import Agent, QueueProtocol, action
+from agency.agent import Agent, _QueueProtocol, action
 from agency.schema import Message
 
 
@@ -16,7 +16,7 @@ class GradioUser(Agent):
 
     def __init__(self,
                  id: str,
-                 outbound_queue: QueueProtocol,
+                 outbound_queue: _QueueProtocol,
                  _message_log: List[Message] = None,
                  ):
         super().__init__(id,

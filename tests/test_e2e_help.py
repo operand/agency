@@ -1,4 +1,4 @@
-from agency.agent import RESPONSE_ACTION_NAME, action
+from agency.agent import _RESPONSE_ACTION_NAME, action
 from tests.helpers import ObservableAgent, add_agent, assert_message_log
 
 

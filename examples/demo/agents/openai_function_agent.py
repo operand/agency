@@ -5,7 +5,7 @@ import openai
 from agents.mixins.help_methods import HelpMethods
 from agents.mixins.say_response_methods import SayResponseMethods
 
-from agency.agent import RESPONSE_ACTION_NAME, Agent, action
+from agency.agent import _RESPONSE_ACTION_NAME, Agent, action
 from agency.logger import log
 
 
@@ -50,7 +50,7 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
         # best to translate to them here.
         for message in self._message_log:
             # ignore response messages
-            if message['action']['name'] != RESPONSE_ACTION_NAME:
+            if message['action']['name'] != _RESPONSE_ACTION_NAME:
                 # "say" actions are converted to messages using the content arg
                 if message['action']['name'] == "say":
                     # assistant

@@ -10,13 +10,6 @@ from docstring_parser import DocstringStyle, parse
 from agency.logger import log
 from agency.schema import Message
 
-ACCESS_PERMITTED = "ACCESS_PERMITTED"
-ACCESS_DENIED = "ACCESS_DENIED"
-ACCESS_REQUESTED = "ACCESS_REQUESTED"
-
-# Special action name for responses
-RESPONSE_ACTION_NAME = "[response]"
-
 
 def _python_to_json_type_name(python_type_name: str) -> str:
     return {
@@ -106,6 +99,16 @@ def _generate_help(method: callable) -> dict:
     return help_object
 
 
+# Special action name for responses
+_RESPONSE_ACTION_NAME = "[response]"
+
+
+# Access policies
+ACCESS_PERMITTED = "ACCESS_PERMITTED"
+ACCESS_DENIED = "ACCESS_DENIED"
+ACCESS_REQUESTED = "ACCESS_REQUESTED"
+
+
 def action(*args, **kwargs):
     """
     Declares instance methods as actions making them accessible to other agents.
@@ -117,7 +120,7 @@ def action(*args, **kwargs):
     """
     def decorator(method):
         action_name = kwargs.get("name", method.__name__)
-        if action_name == RESPONSE_ACTION_NAME:
+        if action_name == _RESPONSE_ACTION_NAME:
             raise ValueError(f"action name '{action_name}' is reserved")
         method.action_properties = {
             "name": method.__name__,
@@ -132,7 +135,7 @@ def action(*args, **kwargs):
         return decorator  # The decorator was used with parentheses
 
 
-class QueueProtocol(Protocol):
+class _QueueProtocol(Protocol):
     """A protocol for providing an outbound queue for an Agent"""
 
     def put(self, message: Message):
@@ -166,7 +169,7 @@ class Agent():
 
     def __init__(self,
                  id: str,
-                 outbound_queue: QueueProtocol,
+                 outbound_queue: _QueueProtocol,
                  receive_own_broadcasts: bool = True):
         """
         Initializes an Agent.
@@ -192,7 +195,7 @@ class Agent():
         if outbound_queue is None:
             raise ValueError("outbound_queue must be provided")
         self._id: str = id
-        self._outbound_queue: QueueProtocol = outbound_queue
+        self._outbound_queue: _QueueProtocol = outbound_queue
         self._receive_own_broadcasts: bool = receive_own_broadcasts
         self._is_processing: bool = False  # set by the Space
         self._message_log: List[Message] = []
@@ -291,7 +294,7 @@ class Agent():
 
         # Handle incoming responses
         response_id = message.get("meta", {}).get("response_id")
-        if message["action"]["name"] == RESPONSE_ACTION_NAME:
+        if message["action"]["name"] == _RESPONSE_ACTION_NAME:
             if response_id in self._pending_responses.keys():
                 # This was a response to a request()
                 self._pending_responses[response_id] = message
@@ -348,7 +351,7 @@ class Agent():
                     },
                     "to": message['from'],
                     "action": {
-                        "name": RESPONSE_ACTION_NAME,
+                        "name": _RESPONSE_ACTION_NAME,
                         "args": {
                             "value": return_value,
                         }
@@ -367,7 +370,7 @@ class Agent():
                 "to": message['from'],
                 "from": self.id(),
                 "action": {
-                    "name": RESPONSE_ACTION_NAME,
+                    "name": _RESPONSE_ACTION_NAME,
                     "args": {
                         "error": f"{e.__class__.__name__}: {e}"
                     }
@@ -496,7 +499,7 @@ class Agent():
         Returns:
             A dictionary of actions
         """
-        special_actions = ["help", RESPONSE_ACTION_NAME]
+        special_actions = ["help", _RESPONSE_ACTION_NAME]
         help_list = {
             method.action_properties["name"]: method.action_properties["help"]
             for method in self.__action_methods().values()

@@ -4,7 +4,7 @@ from multiprocessing.managers import ListProxy
 import time
 from typing import List
 
-from agency.agent import Agent, QueueProtocol
+from agency.agent import Agent, _QueueProtocol
 from agency.schema import Message
 from agency.space import Space
 
@@ -24,7 +24,7 @@ class ObservableAgent(Agent):
 
     def __init__(self,
                  id: str,
-                 outbound_queue: QueueProtocol,
+                 outbound_queue: _QueueProtocol,
                  receive_own_broadcasts: bool = False,
                  _message_log: List[Message] = []):
         super().__init__(id, outbound_queue=outbound_queue,

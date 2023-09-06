@@ -3,7 +3,7 @@ from typing import List
 
 import pytest
 
-from agency.agent import Agent, QueueProtocol, action
+from agency.agent import Agent, _QueueProtocol, action
 from agency.schema import Message
 from agency.space import Space
 from agency.spaces.amqp_space import AMQPOptions, AMQPSpace
@@ -118,7 +118,7 @@ class _AfterAddAndBeforeRemoveAgent(ObservableAgent):
 
     def __init__(self,
                  id: str,
-                 outbound_queue: QueueProtocol,
+                 outbound_queue: _QueueProtocol,
                  receive_own_broadcasts: bool = False,
                  _message_log: List[Message] = None):
         super().__init__(id,

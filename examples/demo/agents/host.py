@@ -7,7 +7,7 @@ from typing import Dict
 from agents.mixins.help_methods import HelpMethods
 from colorama import Fore, Style
 
-from agency.agent import ACCESS_REQUESTED, Agent, QueueProtocol, action
+from agency.agent import ACCESS_REQUESTED, Agent, _QueueProtocol, action
 
 
 class Host(HelpMethods, Agent):
@@ -16,7 +16,7 @@ class Host(HelpMethods, Agent):
     """
 
     def __init__(self, id: str,
-                 outbound_queue: QueueProtocol = None,
+                 outbound_queue: _QueueProtocol = None,
                  receive_own_broadcasts: bool = True,
                  admin_id: str = None):
         super().__init__(id, outbound_queue, receive_own_broadcasts=False)
