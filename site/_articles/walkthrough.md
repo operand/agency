@@ -20,10 +20,10 @@ The following snippet, adapted from the [demo
 application](https://github.com/operand/agency/tree/main/examples/demo/), shows
 how to instantiate a space and add several agents to it.
 
-The application includes `OpenAIFunctionAgent` which uses an OpenAI API, a local
-LLM chat agent named `ChattyAI`, operating system access via the `Host` agent,
-and a Gradio based chat application which adds its user to the space as an agent
-as well.
+The application includes `OpenAIFunctionAgent` which uses the OpenAI API, a
+local LLM chat agent named `ChattyAI`, operating system access via the `Host`
+agent, and a Gradio based chat application which adds its user to the space as
+an agent as well.
 
 ```python
 # Create the space instance
@@ -120,8 +120,7 @@ an action to inspect the entire message which invoked the current action.
 ## The Gradio UI
 
 The Gradio UI is a [`Chatbot`](https://www.gradio.app/docs/chatbot) based
-application used for development and demonstration that allows human users to
-connect to a space and chat with the connected agents.
+application used for development and demonstration.
 
 It is defined in
 [examples/demo/apps/gradio_app.py](https://github.com/operand/agency/tree/main/examples/demo/apps/gradio_app.py)
@@ -162,7 +161,7 @@ actions other than `say`, you can use the following format:
 /agent_id.action_name arg1:"value 1" arg2:"value 2"
 ```
 
-A broadcast to all agents in the space is also supported using the "*" wildcard.
+A broadcast to all agents in the space is also supported using the `*` wildcard.
 For example, the following will broadcast the `say` action to all other agents,
 similar to how it would work without the slash syntax:
 
@@ -205,18 +204,18 @@ To add the [`OpenAIFunctionAgent`](https://github.com/operand/agency/tree/main/a
 environment:
 
 ```python
-space.add(
-    OpenAIFunctionAgent("FunctionAI",
-        model="gpt-3.5-turbo-16k",
-        openai_api_key=os.getenv("OPENAI_API_KEY"),
-        # user_id determines the "user" role in the chat API
-        user_id="User"))
+space.add(OpenAIFunctionAgent,
+          "FunctionAI",
+          model="gpt-3.5-turbo-16k",
+          openai_api_key=os.getenv("OPENAI_API_KEY"),
+          # user_id determines the "user" role in the chat API
+          user_id="User")
 ```
 
 If you inspect the implementation, you'll see that this agent uses the
 `after_add` callback to request help information from the other agents in the
 space, and later uses that information to provide a list of functions to the
-OpenAI API.
+OpenAI function calling API.
 
 ## Wrapping up
 

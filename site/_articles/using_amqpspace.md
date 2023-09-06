@@ -19,7 +19,7 @@ if __name__ == '__main__':
     space = AMQPSpace()
 
     # Add a host agent to the space
-    space.add(Host("Host"))
+    space.add(Host, "Host")
 
     # keep alive
     while True:
@@ -35,9 +35,8 @@ if __name__ == '__main__':
     space = AMQPSpace()
 
     # Add a simple HF based chat agent to the space
-    space.add(
-        ChattyAI("Chatty",
-                 model="EleutherAI/gpt-neo-125m"))
+    space.add(ChattyAI, "Chatty",
+              model="EleutherAI/gpt-neo-125m")
 
     # keep alive
     while True:
