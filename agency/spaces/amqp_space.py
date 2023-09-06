@@ -101,7 +101,7 @@ class _AgentAMQPProcess():
             broadcast_queue = Queue(
                 f"{agent_id}-broadcast",
                 exchange=exchange_name,
-                routing_key=AMQPSpace.BROADCAST_KEY,
+                routing_key=AMQPSpace._BROADCAST_KEY,
                 exclusive=True,
             )
             broadcast_queue(connection.channel()).declare()
@@ -178,7 +178,7 @@ class AMQPSpace(Space):
     added to the same instance.
     """
 
-    BROADCAST_KEY = "__broadcast__"
+    _BROADCAST_KEY = "__broadcast__"
 
     def __init__(self, amqp_options: AMQPOptions = None, exchange_name: str = "agency"):
         if amqp_options is None:
@@ -219,7 +219,7 @@ class AMQPSpace(Space):
 
         if message['to'] == '*':
             # broadcast
-            routing_key = self.BROADCAST_KEY
+            routing_key = self._BROADCAST_KEY
         else:
             # point to point
             routing_key = message['to']
