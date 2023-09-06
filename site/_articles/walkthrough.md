@@ -216,10 +216,10 @@ space.add(
 If you inspect the implementation, you'll see that this agent uses the
 `after_add` callback to request help information from the other agents in the
 space, and later uses that information to provide a list of functions to the
-OpenAI function calling API.
+OpenAI API.
 
 ## Wrapping up
 
 This concludes the demo walkthrough. To try the demo, please jump to the
-[examples/demo/](https://github.com/operand/agency/tree/main/examples/demo/)
+[examples/demo](https://github.com/operand/agency/tree/main/examples/demo/)
 directory.

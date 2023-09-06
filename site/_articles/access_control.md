@@ -1,6 +1,10 @@
+---
+title: Access Control
+---
+
 # Access Control
 
-> Access control is currently experimental. Please share your feedback.
+> Access control is experimental. Please share your feedback.
 
 Access policies may be used to control when actions can be invoked by agents.
 All actions may declare an access policy like the following example:
