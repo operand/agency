@@ -11,9 +11,21 @@ Feel free to update or add new articles as needed.
 ## Updating API Documentation
 
 API documentation is generated automatically using [pdoc](https://pdoc.dev/).
+
 Any docstrings that are defined in the codebase will be included in the API
 documentation. You should follow the [Google Style
 Guide](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings).
+
+To regenerate the API documentation locally, run:
+
+```bash
+rm -rf _api_docs/
+poetry run pdoc ../agency \
+  --template-directory ./pdoc_templates \
+  --docformat google \
+  --output-dir _api_docs
+```
+
 
 ## Updating the Website
 
@@ -27,7 +39,6 @@ To install and run the website locally:
 - Install Ruby (see [.ruby-version](./.ruby-version) for the necessary version).
 - Run:
   ```bash
-  cd site # this directory
   gem install bundler
   bundle install
   bundle exec jekyll serve --livereload # livereload allows you to see changes
