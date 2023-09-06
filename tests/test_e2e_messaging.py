@@ -33,9 +33,13 @@ class _MessagingTestAgent(ObservableAgent):
     def action_with_return(self):
         return ["Hello!"]
 
+    @action
+    def action_with_error(self):
+        raise ValueError("Something went wrong")
 
-def test_receive_and_send(any_space):
-    """Tests receiving a message and responding using send()"""
+
+def test_send_and_receive(any_space):
+    """Tests sending/receiving a send()"""
     senders_log = add_agent(any_space, _MessagingTestAgent, "Sender")
     receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
@@ -94,7 +98,7 @@ def test_receive_and_return(any_space):
 
 def test_send_and_error(any_space):
     senders_log = add_agent(any_space, ObservableAgent, "Sender")
-    receivers_log = add_agent(any_space, ObservableAgent, "Receiver")
+    receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
     # this message will result in an error
     any_space._route({
@@ -104,23 +108,18 @@ def test_send_and_error(any_space):
         "to": "Receiver",
         "from": "Sender",
         "action": {
-            "name": "some non existent action",
-            "args": {
-                "content": "Hi Receiver!"
-            }
+            "name": "action_with_error",
         }
     })
 
     assert_message_log(senders_log, [{
-        "meta": {
-            "response_id": "456 whatever i feel like here",
-        },
+        "meta": { "response_id": "456 whatever i feel like here" },
         "to": "Sender",
         "from": "Receiver",
         "action": {
             "name": "[response]",
             "args": {
-                "error": "AttributeError: \"some non existent action\" not found on \"Receiver\"",
+                "error": "ValueError: Something went wrong",
             }
         }
     }])
