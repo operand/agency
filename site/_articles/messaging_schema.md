@@ -1,10 +1,8 @@
 ---
-title: Messaging
+title: Messaging Schema
 ---
 
-# Messaging
-
-## Schema
+# Messaging Schema
 
 All messages are validated upon sending and must conform to the message schema.
 
@@ -12,7 +10,6 @@ The full message schema is summarized by this example:
 
 ```python
 {
-    "id": "some optional id",
     "meta": {
         "an": "optional",
         "object": {
@@ -31,14 +28,14 @@ The full message schema is summarized by this example:
 ```
 
 Note that when sending, you may not need to supply this entire structure. The
-`id` and `meta` fields are optional. Additionally, the `from` field is
-automatically populated for you in the `send()` method.
+`meta` field is entirely optional. Additionally, the `from` field is
+automatically populated for you in the `send()` and `request()` methods.
 
-A minimal example of calling `Agent.send()` with only the required fields would
-look like:
+An example of calling `Agent.send()` with only the minimum fields would look
+like:
 
 ```python
-my_agent.send({
+self.send({
     "to": "some_agent",
     "action": {
         "name": "say",
@@ -54,15 +51,32 @@ See
 for the pydantic model definition used for validation.
 
 
-## Using the `id` Field
+## The `meta` Field
 
-The message `id` field may be used to correlate an incoming message with a
-previously sent message, for example to associate response data with the
-request.
+TODO
 
-The `id` field is _not_ populated by default. To use the `id` field, you must
-explicitly specify it in the outgoing message object. You can set it to any
-string identifier you choose.
+
+### Using the `meta.id` Field
+
+The `meta.id` field is used to correlate an incoming responses with a previously
+sent message, for example to associate response data with the request.
+
+The `meta.id` field is _not_ populated by default. To use the `id` field, you
+must specify it in the outgoing message object. You can set it to any string
+identifier you choose.
+
+
+
+
+
+
+
+
+
+---
+
+
+
 
 By default, the `id` field is used by the `response` and `error` actions. If a
 `response` or `error` is received, the `original_message_id` argument will be
@@ -96,7 +110,7 @@ my_agent.send({
     "from": "calculator_agent",
     "to": "my_agent",
     "action": {
-        "name": "response",
+        "name": "[response]",
         "args": {
             "data": 3,
             "original_message_id": "a custom message id"

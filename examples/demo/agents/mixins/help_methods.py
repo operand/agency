@@ -41,7 +41,7 @@ class HelpMethods():
             },
             "to": "*",
             "action": {
-                "name": "response",
+                "name": "[response]",
                 "args": {
                     "value": self.help(),
                 }

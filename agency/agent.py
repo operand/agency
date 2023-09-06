@@ -15,7 +15,7 @@ ACCESS_DENIED = "ACCESS_DENIED"
 ACCESS_REQUESTED = "ACCESS_REQUESTED"
 
 # Special action name for responses
-RESPONSE_ACTION_NAME = "response"
+RESPONSE_ACTION_NAME = "[response]"
 
 
 def _python_to_json_type_name(python_type_name: str) -> str:
