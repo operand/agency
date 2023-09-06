@@ -1,11 +1,14 @@
 import json
 import multiprocessing
+from multiprocessing.managers import ListProxy
 import time
 from typing import List
 
 from agency.agent import Agent, QueueProtocol
 from agency.schema import Message
 from agency.space import Space
+
+multiprocessing.set_start_method('spawn', force=True)
 
 
 # The following class and helper methods can be used together to provide
