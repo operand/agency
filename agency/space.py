@@ -6,7 +6,7 @@ from agency.agent import Agent
 class Space(ABC, metaclass=ABCMeta):
     """
     Space implementations are responsible for
-    - Managing the lifecycle of agent instances (add/remove)
+    - Managing the lifecycle of agent instances
     - Ensuring communication between agents
     """
 
