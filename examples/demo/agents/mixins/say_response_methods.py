@@ -10,7 +10,7 @@ class SayResponseMethods():
 
     def handle_action_value(self, value):
         self._receive({
-            **self._current_message(),
+            **self.current_message(),
             "action": {
                 "name": "say",
                 "args": {
@@ -21,7 +21,7 @@ class SayResponseMethods():
 
     def handle_action_error(self, error: ActionError):
         self._receive({
-            **self._current_message(),
+            **self.current_message(),
             "action": {
                 "name": "say",
                 "args": {

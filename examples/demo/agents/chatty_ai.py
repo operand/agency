@@ -61,7 +61,7 @@ class ChattyAI(PromptMethods, Agent):
         )
         response_content = response_text.split('\n###')[0]
         self.send({
-          "to": self._current_message['from'],
+          "to": self.current_message['from'],
           "action": {
             "name": "say",
             "args": {

@@ -20,11 +20,11 @@ class _MessagingTestAgent(ObservableAgent):
     @action
     def action_with_send(self):
         self.send({
-            "to": self._current_message()['from'],
+            "to": self.current_message()['from'],
             "action": {
                 "name": "null_action",
                 "args": {
-                    "content": f"Hello, {self._current_message()['from']}!",
+                    "content": f"Hello, {self.current_message()['from']}!",
                 }
             }
         })

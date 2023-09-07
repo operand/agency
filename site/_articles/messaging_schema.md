@@ -87,7 +87,7 @@ These are just a couple ideas to illustrate the use of the `meta` field.
 
 ### Using the `meta.id` Field
 
-The `meta.id` field is used by the `_original_message()` method during the
+The `meta.id` field is used by the `original_message()` method during the
 `handle_action_value()` and `handle_action_error()` callbacks to return the
 original message that the value or error corresponds to.
 

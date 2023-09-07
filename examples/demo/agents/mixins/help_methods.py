@@ -49,7 +49,7 @@ class HelpMethods():
         })
 
     def handle_action_value(self, value):
-        current_message = self._current_message()
+        current_message = self.current_message()
         if current_message["meta"]["response_id"] == "help_request":
             self._available_actions[current_message['from']] = value
         else:

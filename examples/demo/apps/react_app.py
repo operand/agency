@@ -116,12 +116,12 @@ class ReactAppUser(Agent):
         Sends a message to the user
         """
         self.app.socketio.server.emit(
-            'message', self._current_message(), room=self.sid)
+            'message', self.current_message(), room=self.sid)
 
     def handle_action_value(self, value):
         self.app.socketio.server.emit(
-            'message', self._current_message(), room=self.sid)
+            'message', self.current_message(), room=self.sid)
 
     def handle_action_error(self, error: ActionError):
         self.app.socketio.server.emit(
-            'message', self._current_message(), room=self.sid)
+            'message', self.current_message(), room=self.sid)

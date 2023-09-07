@@ -93,7 +93,7 @@ An example of invoking an action can be seen here, taken from the
 ```python
 ...
 self.send({
-    "to": self._current_message()['from'], # reply to the sender
+    "to": self.current_message()['from'], # reply to the sender
     "action": {
         "name": "say",
         "args": {
@@ -113,7 +113,7 @@ So here, Chatty is invoking the `say` action on the sender of the original
 message, passing the response as the `content` argument. This way, the original
 sender and Chatty can have a conversation.
 
-Note the use of the `_current_message()` method. That method may be used during
+Note the use of the `current_message()` method. That method may be used during
 an action to inspect the entire message which invoked the current action.
 
 

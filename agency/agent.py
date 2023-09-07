@@ -450,7 +450,7 @@ class Agent():
         action_methods = self.__action_methods()
         return action_methods[action_name]
 
-    def _current_message(self) -> Message:
+    def current_message(self) -> Message:
         """
         Returns the full message which invoked the current action.
 
@@ -462,7 +462,7 @@ class Agent():
         """
         return self.__thread_local_current_message.value
 
-    def _original_message(self) -> Message:
+    def original_message(self) -> Message:
         """
         Returns the original message that the current message is responding to.
 
@@ -517,10 +517,10 @@ class Agent():
         method. It is not called when using the request() method, which returns
         the value directly.
 
-        To inspect the full response message, use _current_message().
+        To inspect the full response message, use current_message().
 
-        To inspect the original message, use _original_message(). Note that the
-        original message must define the meta.id field or _original_message()
+        To inspect the original message, use original_message(). Note that the
+        original message must define the meta.id field or original_message()
         will return None.
 
         Args:
@@ -538,10 +538,10 @@ class Agent():
         It is not called when using the request() method, which raises an error
         directly.
 
-        To inspect the full response message, use _current_message().
+        To inspect the full response message, use current_message().
 
-        To inspect the original message, use _original_message(). Note that the
-        original message must define the meta.id field or _original_message()
+        To inspect the original message, use original_message(). Note that the
+        original message must define the meta.id field or original_message()
         will return None.
 
         Args:
