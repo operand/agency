@@ -87,6 +87,8 @@ class _AgentProcess():
                     agent._receive(message)
                 except queue.Empty:
                     pass
+        except KeyboardInterrupt:
+            pass
         except Exception as e:
             error_queue.put(e)
         finally:
