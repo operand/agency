@@ -30,4 +30,4 @@ Note that `request()` may not be called during the `after_add()` and
 `before_remove()` callbacks, but may be used within actions or other callbacks.
 
 Also notice the timeout value. The default is 3 seconds. Make sure to increase
-this appropriately for longer running actions like model inference.
+this appropriately for longer running actions.

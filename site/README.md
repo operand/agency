@@ -41,6 +41,6 @@ To install and run the website locally:
   ```bash
   gem install bundler
   bundle install
-  bundle exec jekyll serve --livereload # livereload allows you to see changes
+  ./devserver # regenerates and runs the website
   ```
 - Open [http://localhost:4000](http://localhost:4000) in your browser.
