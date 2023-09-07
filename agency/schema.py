@@ -3,30 +3,29 @@ from typing import Dict, Optional
 
 
 class Action(BaseModel):
-    """
-    Schema for an action
-    """
+    """Schema for an action"""
+
+    class Config:
+        extra = "forbid"
+        validate_assignment = True
 
     name: str = Field(
         ...,
         description="The name of the action."
     )
 
-    args: Dict = Field(
-        ...,
+    args: Optional[Dict] = Field(
+        None,
         description="The arguments for the action."
     )
 
 
 class Message(BaseModel):
-    """
-    Schema for a message
-    """
+    """Schema for a message"""
 
-    id: Optional[str] = Field(
-        None,
-        description="An optional id referenced as `original_message_id` in `response` or `error` messages."
-    )
+    class Config:
+        extra = "forbid"
+        validate_assignment = True
 
     meta: Optional[Dict] = Field(
         None,
@@ -45,3 +44,22 @@ class Message(BaseModel):
     )
 
     action: Action
+
+
+def validate_message(message: Message) -> Message:
+    """
+    Validate and return a message
+
+    Args:
+        message: The message
+
+    Returns:
+        The validated message
+
+    Raises:
+        ValueError: If the message is invalid
+    """
+    try:
+        return Message(**message).dict(by_alias=True, exclude_unset=True)
+    except TypeError as e:
+        raise ValueError(str(e))

@@ -7,7 +7,8 @@ tracemalloc.start()
 import pytest
 
 from agency.spaces.amqp_space import AMQPSpace
-from agency.spaces.native_space import NativeSpace
+from agency.spaces.multiprocess_space import MultiprocessSpace
+from agency.spaces.thread_space import ThreadSpace
 
 RABBITMQ_OUT = subprocess.DEVNULL  # use subprocess.PIPE for output
 
@@ -62,27 +63,40 @@ def wait_for_rabbitmq():
 
 
 @pytest.fixture
-def native_space():
-    return NativeSpace()
+def thread_space():
+    try:
+        space = ThreadSpace()
+        yield space
+    finally:
+        space.remove_all()
+
+
+@pytest.fixture
+def multiprocess_space():
+    try:
+        space = MultiprocessSpace()
+        yield space
+    finally:
+        space.remove_all()
 
 
 @pytest.fixture
 def amqp_space():
-    return AMQPSpace(exchange="agency-test")
-
-
-@pytest.fixture(params=['native_space', 'amqp_space'])
-def either_space(request, native_space, amqp_space):
-    """
-    Used for tests that should be run for both NativeSpace and AMQPSpace.
-    """
-    space = None
-    if request.param == 'native_space':
-        space = native_space
-    elif request.param == 'amqp_space':
-        space = amqp_space
-
     try:
+        space = AMQPSpace(exchange_name="agency-test")
         yield space
     finally:
         space.remove_all()
+
+
+@pytest.fixture(params=['thread_space', 'multiprocess_space', 'amqp_space'])
+def any_space(request, thread_space, multiprocess_space, amqp_space):
+    """
+    Used for testing all space types
+    """
+    if request.param == 'thread_space':
+        return thread_space
+    elif request.param == 'multiprocess_space':
+        return multiprocess_space
+    elif request.param == 'amqp_space':
+        return amqp_space

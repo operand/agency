@@ -1,11 +1,19 @@
 import time
-from unittest.mock import MagicMock
+from typing import List
 
 import pytest
 
-from agency.agent import Agent, action
+from agency.agent import Agent, _QueueProtocol, action
+from agency.schema import Message
+from agency.space import Space
 from agency.spaces.amqp_space import AMQPOptions, AMQPSpace
-from tests.helpers import Webster, wait_for_messages
+from tests.helpers import ObservableAgent, add_agent, assert_message_log
+
+
+class _Harford(ObservableAgent):
+    @action
+    def say(self, content: str):
+        pass
 
 
 def test_amqp_heartbeat():
@@ -14,80 +22,123 @@ def test_amqp_heartbeat():
     ensuring the connection remains open.
     """
     amqp_space_with_short_heartbeat = AMQPSpace(
-        amqp_options=AMQPOptions(heartbeat=2),
-        exchange="agency-test",
-    )
+        amqp_options=AMQPOptions(heartbeat=2), exchange_name="agency-test")
 
-    class Harford(Agent):
-        @action
-        def say(self, content: str):
-            pass
+    try:
+        hartfords_message_log = add_agent(
+            amqp_space_with_short_heartbeat, _Harford, "Hartford")
 
-    hartford = Harford("Hartford")
-    amqp_space_with_short_heartbeat.add(hartford)
+        # wait enough time for connection to drop if no heartbeat is sent
+        time.sleep(6)  # 3 x heartbeat
 
-    # wait enough time for connection to drop if no heartbeat is sent
-    time.sleep(6)  # 3 x heartbeat
+        # send yourself a message
+        message = {
+            "from": "Hartford",
+            "to": "Hartford",
+            "action": {
+                "name": "say",
+                "args": {
+                    "content": "Hello",
+                }
+            },
+        }
+        amqp_space_with_short_heartbeat._route(message)
+        assert_message_log(hartfords_message_log, [message])
 
-    # send yourself a message
-    message = {
-        "from": hartford.id(),
-        "to": hartford.id(),
-        "action": {
-            "name": "say",
-            "args": {
-                "content": "Hello",
-            }
-        },
-    }
-    hartford.send(message)
-    wait_for_messages(hartford, count=2, max_seconds=5)
-
-    # should receive the outgoing and incoming messages
-    assert len(hartford._message_log) == 2
-    assert hartford._message_log == [message, message]
-
-    # cleanup
-    amqp_space_with_short_heartbeat.remove(hartford)
+    finally:
+        # cleanup
+        amqp_space_with_short_heartbeat.remove_all()
 
 
-def test_unique_ids_native(native_space):
+def test_thread_space_unique_ids(thread_space):
     """
-    Asserts that two agents may NOT have the same id in a native space
+    Asserts that two agents may not have the same id in a ThreadSpace
     """
-    native_space.add(Webster("Webster"))
+    thread_space.add(Agent, "Sender")
     with pytest.raises(ValueError):
-        native_space.add(Webster("Webster"))
+        thread_space.add(Agent, "Sender")
 
 
-def test_unique_ids_amqp():
+def test_multiprocess_space_unique_ids(multiprocess_space):
     """
-    Asserts that two agents may NOT have the same id in an AMQP space
+    Asserts that two agents may not have the same id in a ThreadSpace
+    """
+    multiprocess_space.add(Agent, "Sender")
+    with pytest.raises(ValueError):
+        multiprocess_space.add(Agent, "Sender")
+
+
+def test_amqp_space_unique_ids():
+    """
+    Asserts that two agents may not have the same id in an AMQP space.
     """
     # For the amqp test, we create two AMQPSpace instances
-    amqp_space1 = AMQPSpace(exchange="agency-test")
-    amqp_space2 = AMQPSpace(exchange="agency-test")
-    webster1 = Webster("Webster")
-    webster2 = Webster("Webster")
+    amqp_space1 = AMQPSpace(exchange_name="agency-test")
+    amqp_space2 = AMQPSpace(exchange_name="agency-test")
     try:
-        amqp_space1.add(webster1)
+        amqp_space1.add(Agent, "Sender")
         with pytest.raises(ValueError):
-            amqp_space2.add(webster2)
+            amqp_space2.add(Agent, "Sender")
     finally:
         amqp_space1.remove_all()
         amqp_space2.remove_all()
 
 
-def test_after_add_and_before_remove(either_space):
+def test_invalid_message(any_space):
     """
-    Tests that the after_add and before_remove methods are called when an agent
-    is added to and removed from a space.
-    """
-    agent = Webster("Webster")
-    agent.after_add = MagicMock()
-    either_space.add(agent)
-    agent.after_add.assert_called_once()
+    Asserts that an invalid message raises a ValueError
 
-    agent.before_remove = MagicMock()
-    either_space.remove(agent)
-    agent.before_remove.assert_called_once()
+    This isn't the greatest test since it relies on the internal Router of each
+    space but it's okay for now.
+    """
+    with pytest.raises(ValueError):
+        any_space._route("blah")
+
+    with pytest.raises(ValueError):
+        any_space._route({})
+
+    with pytest.raises(ValueError):
+        any_space._route({
+            'asldfasdfasdf': '123 whatever i feel like here',
+            'to': 'Receiver',
+            'from': 'Sender',
+            'action': {
+                'name': 'say',
+                'args': {
+                    'content': 'Hi Receiver!'
+                }
+            }
+        })
+
+
+class _AfterAddAndBeforeRemoveAgent(ObservableAgent):
+    """
+    Writes to the _message_log after adding and before removing.
+    """
+
+    def __init__(self,
+                 id: str,
+                 outbound_queue: _QueueProtocol,
+                 receive_own_broadcasts: bool = False,
+                 _message_log: List[Message] = None):
+        super().__init__(id,
+                         outbound_queue=outbound_queue,
+                         receive_own_broadcasts=receive_own_broadcasts,
+                         _message_log=_message_log)
+
+    def after_add(self):
+        self._message_log.append("added")
+
+    def before_remove(self):
+        self._message_log.append("removed")
+
+
+def test_after_add_and_before_remove(any_space: Space):
+    """
+    Tests that the after_add and before_remove methods are called.
+    """
+    # This first line calls space.add itself and returns the message log
+    log = add_agent(any_space, _AfterAddAndBeforeRemoveAgent, "Sender")
+    any_space.remove("Sender")
+
+    assert list(log) == ["added", "removed"]

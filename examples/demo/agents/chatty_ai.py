@@ -1,10 +1,10 @@
-from agency.agent import ACCESS_PERMITTED, Agent, action
-from agents.mixins.prompt_methods import PromptMethods
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import agency.util as util
 import os
 import textwrap
 
+from agents.mixins.prompt_methods import PromptMethods
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+from agency.agent import Agent, action
 
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 
@@ -38,7 +38,7 @@ class ChattyAI(PromptMethods, Agent):
         else:
             return ""
 
-    def _pre_prompt(self, agent_id: str, timestamp=util.to_timestamp()) -> str:
+    def _pre_prompt(self, agent_id: str, timestamp=None) -> str:
         return f"\n### {agent_id.split('.')[0]}: "
 
     @action
@@ -61,7 +61,7 @@ class ChattyAI(PromptMethods, Agent):
         )
         response_content = response_text.split('\n###')[0]
         self.send({
-          "to": self._current_message['from'],
+          "to": self.current_message['from'],
           "action": {
             "name": "say",
             "args": {

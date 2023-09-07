@@ -1,5 +1,4 @@
 from typing import Dict
-from agency.agent import action
 
 
 class HelpMethods():
@@ -28,28 +27,31 @@ class HelpMethods():
         """
         self._available_actions: Dict[str, Dict[str, dict]] = {}
         self.send({
-            "id": "help_request",
+            "meta": {
+                "id": "help_request",
+            },
             "to": "*",
             "action": {
                 "name": "help",
-                "args": {},
             }
         })
         self.send({
+            "meta": {
+                "response_id": "help_request",
+            },
             "to": "*",
             "action": {
-                "name": "response",
+                "name": "[response]",
                 "args": {
-                    "data": self.help(),
-                    "original_message_id": "help_request",
+                    "value": self.help(),
                 }
             }
         })
 
-    @action
-    def response(self, data, original_message_id: str):
-        if original_message_id == "help_request":
-            self._available_actions[self._current_message['from']] = data
+    def handle_action_value(self, value):
+        current_message = self.current_message()
+        if current_message["meta"]["response_id"] == "help_request":
+            self._available_actions[current_message['from']] = value
         else:
             # this was in response to something else, call the original
-            super().response(data, original_message_id)
+            super().handle_action_value(value)

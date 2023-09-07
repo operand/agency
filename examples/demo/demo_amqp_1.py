@@ -1,19 +1,16 @@
-from agency.spaces.amqp_space import AMQPSpace
 from agents.host import Host
-from apps.gradio_app import demo, gradio_user
 
+from agency.spaces.amqp_space import AMQPSpace
+from examples.demo.apps.gradio_app import GradioApp
 
-# Create the space instance
-space = AMQPSpace()
+if __name__ == "__main__":
 
-# Add a host agent to the space, exposing access to the host system
-space.add(Host("Host"))
+    # Create the space instance
+    space = AMQPSpace()
 
-# Connect the Gradio app user to the space
-space.add(gradio_user)
+    # Add a host agent to the space, exposing access to the host system
+    space.add(Host, "Host")
 
-
-if __name__ == '__main__':
-    # Importing and launching the Gradio demo from this file allows us to use
-    # the `gradio` command line for live reloading
+    # GradioApp adds its own user to the space in its constructor
+    demo = GradioApp(space).demo()
     demo.launch()

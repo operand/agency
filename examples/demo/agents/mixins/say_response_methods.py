@@ -1,30 +1,27 @@
-from agency.agent import action
+from agency.agent import ActionError
 
 
 class SayResponseMethods():
     """
-    A mixin for converting incoming `response` and `error` actions to `say`
-    actions
+    A mixin for converting incoming responses to `say` actions
 
     NOTE The _message_log will contain both messages
     """
 
-    @action
-    def response(self, data, original_message_id: str):
+    def handle_action_value(self, value):
         self._receive({
-            **self._current_message,
+            **self.current_message(),
             "action": {
                 "name": "say",
                 "args": {
-                    "content": str(data),
+                    "content": str(value),
                 }
             },
         })
 
-    @action
-    def error(self, error: str, original_message_id: dict):
+    def handle_action_error(self, error: ActionError):
         self._receive({
-            **self._current_message,
+            **self.current_message(),
             "action": {
                 "name": "say",
                 "args": {

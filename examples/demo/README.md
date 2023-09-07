@@ -17,6 +17,9 @@ More agent examples are located under the [./agents](./agents/) directory.
 
 ## Running the demo
 
+The demo application uses docker-compose for orchestration. Configuration is
+included for running the demo using the different space types. To run the demo:
+
 1. Ensure you have Docker installed on your system.
 
 1. Run:
@@ -29,9 +32,14 @@ More agent examples are located under the [./agents](./agents/) directory.
 
 1. Start the application.
 
-      To run the single-container `NativeSpace` application:
+      To run the single-container `MultiprocessSpace` application:
       ```sh
-      ./demo run native
+      ./demo run multiprocess
+      ```
+
+      To run the single-container `ThreadSpace` application:
+      ```sh
+      ./demo run threaded
       ```
 
       To run the multi-container `AMQPSpace` application:

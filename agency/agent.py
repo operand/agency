@@ -1,19 +1,28 @@
 import inspect
 import re
-from typing import List
+import threading
+import time
+import uuid
+from typing import Dict, List, Protocol
+
 from docstring_parser import DocstringStyle, parse
-from agency import util
+
+from agency.logger import log
 from agency.schema import Message
-from agency.util import print_warning
 
 
-# access keys
-ACCESS_PERMITTED = "permitted"
-ACCESS_DENIED = "denied"
-ACCESS_REQUESTED = "requested"
+def _python_to_json_type_name(python_type_name: str) -> str:
+    return {
+        'str': 'string',
+        'int': 'number',
+        'float': 'number',
+        'bool': 'boolean',
+        'list': 'array',
+        'dict': 'object'
+    }[python_type_name]
 
 
-def __generate_help(method: callable) -> dict:
+def _generate_help(method: callable) -> dict:
     """
     Generates a help object from a method's docstring and signature
 
@@ -59,10 +68,10 @@ def __generate_help(method: callable) -> dict:
         # type
         sig_annotation = signature.parameters[arg_name].annotation
         if sig_annotation is not None and sig_annotation.__name__ != "_empty":
-            arg_object["type"] = util.python_to_json_type_name(
+            arg_object["type"] = _python_to_json_type_name(
                 signature.parameters[arg_name].annotation.__name__)
         elif arg_name in docstring_args and docstring_args[arg_name].type_name is not None:
-            arg_object["type"] = util.python_to_json_type_name(
+            arg_object["type"] = _python_to_json_type_name(
                 docstring_args[arg_name].type_name)
 
         # description
@@ -77,10 +86,10 @@ def __generate_help(method: callable) -> dict:
 
         # type
         if signature.return_annotation is not None:
-            help_object["returns"]["type"] = util.python_to_json_type_name(
+            help_object["returns"]["type"] = _python_to_json_type_name(
                 signature.return_annotation.__name__)
         elif parsed_docstring.returns.type_name is not None:
-            help_object["returns"]["type"] = util.python_to_json_type_name(
+            help_object["returns"]["type"] = _python_to_json_type_name(
                 parsed_docstring.returns.type_name)
 
         # description
@@ -90,14 +99,34 @@ def __generate_help(method: callable) -> dict:
     return help_object
 
 
+# Special action name for responses
+_RESPONSE_ACTION_NAME = "[response]"
+
+
+# Access policies
+ACCESS_PERMITTED = "ACCESS_PERMITTED"
+ACCESS_DENIED = "ACCESS_DENIED"
+ACCESS_REQUESTED = "ACCESS_REQUESTED"
+
+
 def action(*args, **kwargs):
+    """
+    Declares instance methods as actions making them accessible to other agents.
+
+    Keyword arguments:
+        name: The name of the action. Defaults to the name of the method.
+        help: The help object. Defaults to a generated object.
+        access_policy: The access policy. Defaults to ACCESS_PERMITTED.
+    """
     def decorator(method):
+        action_name = kwargs.get("name", method.__name__)
+        if action_name == _RESPONSE_ACTION_NAME:
+            raise ValueError(f"action name '{action_name}' is reserved")
         method.action_properties = {
             "name": method.__name__,
+            "help": _generate_help(method),
             "access_policy": ACCESS_PERMITTED,
-            "help": __generate_help(method),
-            **kwargs,
-        }
+            **kwargs}
         return method
 
     if len(args) == 1 and callable(args[0]) and not kwargs:
@@ -106,123 +135,292 @@ def action(*args, **kwargs):
         return decorator  # The decorator was used with parentheses
 
 
+class _QueueProtocol(Protocol):
+    """A protocol for providing an outbound queue for an Agent"""
+
+    def put(self, message: Message):
+        """
+        Put a message onto the queue for sending
+
+        Args:
+            message: The message
+        """
+
+    def get(self) -> Message:
+        """
+        Get the next message from the queue
+
+        Returns:
+            The next message
+
+        Raises:
+            queue.Empty: If there are no messages
+        """
+
+
+class ActionError(Exception):
+    """Raised from the request() method if the action responds with an error"""
+
+
 class Agent():
     """
     An Actor that may represent an AI agent, computing system, or human user
     """
 
-    def __init__(self, id: str, receive_own_broadcasts: bool = True) -> None:
+    def __init__(self,
+                 id: str,
+                 outbound_queue: _QueueProtocol,
+                 receive_own_broadcasts: bool = True):
+        """
+        Initializes an Agent.
+
+        This constructor is not meant to be called directly. It is invoked by
+        the Space class when adding an agent.
+
+        Subclasses should call super().__init__() in their constructor.
+
+        Args:
+            id: The id of the agent
+            outbound_queue: The outgoing queue for sending messages
+            receive_own_broadcasts:
+                Whether the agent will receive its own broadcasts. Defaults to
+                True
+        """
         if len(id) < 1 or len(id) > 255:
             raise ValueError("id must be between 1 and 255 characters")
         if re.match(r"^amq\.", id):
             raise ValueError("id cannot start with \"amq.\"")
         if id == "*":
             raise ValueError("id cannot be \"*\"")
-        self.__id: str = id
-        self.__receive_own_broadcasts = receive_own_broadcasts
-        self._space = None  # set by Space when added
-        self._message_log: List[Message] = []  # stores all messages
+        if outbound_queue is None:
+            raise ValueError("outbound_queue must be provided")
+        self._id: str = id
+        self._outbound_queue: _QueueProtocol = outbound_queue
+        self._receive_own_broadcasts: bool = receive_own_broadcasts
+        self._is_processing: bool = False  # set by the Space
+        self._message_log: List[Message] = []
+        self._message_log_lock = threading.Lock()
+        self._pending_responses: Dict[str, Message] = {}
+        self._pending_responses_lock = threading.Lock()
+        self.__thread_local_current_message = threading.local()
+        self.__thread_local_current_message.value: Message = None
 
     def id(self) -> str:
-        """
-        Returns the id of this agent
-        """
-        return self.__id
+        return self._id
 
     def send(self, message: dict):
         """
-        Sends (out) a message
+        Sends (out) a message from this agent.
+
+        Args:
+            message: The message
         """
+        log("info", f"{self.id()} sending message", message)
         message["from"] = self.id()
-        self._message_log.append(message)
-        self._space._route(message)
+        with self._message_log_lock:
+            self._message_log.append(message)
+        self._outbound_queue.put(message)
+
+    def request(self, message: dict, timeout: float = 3) -> object:
+        """
+        Synchronously sends a message then waits for and returns the return
+        value of the invoked action.
+
+        This method allows you to call an action synchronously like a function
+        and receive its return value in python. If the action raises an
+        exception an ActionError will be raised containing the error message.
+
+        Args:
+            message: The message to send
+            timeout:
+                The timeout in seconds to wait for the returned value.
+                Defaults to 3 seconds.
+
+        Returns:
+            object: The return value of the action.
+
+        Raises:
+            TimeoutError: If the timeout is reached
+            ActionError: If the action raised an exception
+        """
+        if not self._is_processing:
+            raise RuntimeError(
+                "request() called while agent is not processing incoming messages. Use send() instead.")
+
+        # Set the message id
+        # Having a meta.request_id identifies it as a request
+        request_id = f"request--{uuid.uuid4()}"
+        message["meta"] = message.get("meta", {})
+        message["meta"]["request_id"] = request_id
+
+        # Send and mark the request as pending
+        self.send(message)
+        pending = object()
+        with self._pending_responses_lock:
+            self._pending_responses[request_id] = pending
+
+        # Wait for response
+        start_time = time.time()
+        while self._pending_responses[request_id] == pending:
+            time.sleep(0.001)
+            if time.time() - start_time > timeout:
+                raise TimeoutError
+
+        # Raise error or return value from response
+        with self._pending_responses_lock:
+            response_message = self._pending_responses.pop(request_id)
+        if "error" in response_message["action"]["args"]:
+            raise ActionError(response_message["action"]["args"]["error"])
+        return response_message["action"]["args"]["value"]
 
     def _receive(self, message: dict):
         """
-        Receives and processes an incoming message
+        Receives and handles an incoming message.
+
+        Args:
+            message: The incoming message
         """
-        if not self.__receive_own_broadcasts \
+        # Ignore own broadcasts if _receive_own_broadcasts is false
+        if not self._receive_own_broadcasts \
            and message['from'] == self.id() \
            and message['to'] == '*':
             return
 
-        try:
-            # Record message and commit action
+        log("debug", f"{self.id()} received message", message)
+
+        # Record the received message before handling
+        with self._message_log_lock:
             self._message_log.append(message)
-            self.__commit(message)
+
+        # Handle incoming responses
+        response_id = message.get("meta", {}).get("response_id")
+        if message["action"]["name"] == _RESPONSE_ACTION_NAME:
+            if response_id in self._pending_responses.keys():
+                # This was a response to a request()
+                self._pending_responses[response_id] = message
+                # From here the request() method will pick up the response in
+                # the existing thread
+            else:
+                # This was a response to a send()
+                if "value" in message["action"]["args"]:
+                    handler_callback = self.handle_action_value
+                    arg = message["action"]["args"]["value"]
+                elif "error" in message["action"]["args"]:
+                    handler_callback = self.handle_action_error
+                    arg = ActionError(message["action"]["args"]["error"])
+                else:
+                    raise RuntimeError("Unknown action response")
+
+                # Spawn a thread to handle the response
+                def __process_response(arg, current_message):
+                    log("debug", f"{self.id()} processing response", message)
+                    self.__thread_local_current_message.value = current_message
+                    handler_callback(arg)
+
+                threading.Thread(
+                    target=__process_response,
+                    args=(arg, message, ),
+                    daemon=True,
+                ).start()
+
+        # Handle all other messages
+        else:
+            # Spawn a thread to process the message. This means that messages
+            # are processed concurrently, but may be processed out of order.
+            threading.Thread(
+                target=self.__process, args=(message,), daemon=True).start()
+
+    def __process(self, message: dict):
+        """
+        Top level method within the action processing thread.
+        """
+        log("debug", f"{self.id()} processing message", message)
+        self.__thread_local_current_message.value = message
+        request_id = message.get("meta", {}).get("request_id")
+        response_id = request_id or message.get("meta", {}).get("id")
+        try:
+            # Commit the action
+            return_value = self.__commit(message)
+
+            # If the action returned a value or this was a request (which
+            # expects a value), return it
+            if request_id or return_value is not None:
+                self.send({
+                    "meta": {
+                        "response_id": response_id
+                    },
+                    "to": message['from'],
+                    "action": {
+                        "name": _RESPONSE_ACTION_NAME,
+                        "args": {
+                            "value": return_value,
+                        }
+                    }
+                })
         except Exception as e:
-            # Here we handle exceptions that occur while committing an action,
-            # including PermissionError's from access denial, by reporting the
-            # error back to the sender.
+            # Handle errors (including PermissionError) that occur while
+            # committing an action by reporting back to the sender.
+            log("debug",
+                f"{self.id()} exception while committing action {message['action']['name']}", e)
+            request_id = message.get("meta", {}).get("request_id")
             self.send({
+                "meta": {
+                    "response_id": response_id
+                },
                 "to": message['from'],
                 "from": self.id(),
                 "action": {
-                    "name": "error",
+                    "name": _RESPONSE_ACTION_NAME,
                     "args": {
-                        "error": f"{e}",
-                        "original_message_id": message.get('id'),
+                        "error": f"{e.__class__.__name__}: {e}"
                     }
                 }
             })
 
     def __commit(self, message: dict):
         """
-        Invokes action if permitted otherwise raises PermissionError
+        Invokes the action method
+
+        Args:
+            message: The incoming message specifying the action
+
+        Raises:
+            AttributeError: If the action method is not found
+            PermissionError: If the action is not permitted
         """
-        # Check if the action method exists
         try:
+            # Check if the action method exists
             action_method = self.__action_method(message["action"]["name"])
         except KeyError:
             # the action was not found
-            if message['to'] == self.id():
-                # if it was point to point, raise an error
+            if message['to'] == '*':
+                return  # broadcasts will not raise an error in this situation
+            else:
                 raise AttributeError(
                     f"\"{message['action']['name']}\" not found on \"{self.id()}\"")
-            else:
-                # broadcasts will not raise an error
-                return
+
+        # Check if the action is permitted
+        if not self.__permitted(message):
+            raise PermissionError(
+                f"\"{self.id()}.{message['action']['name']}\" not permitted")
 
         self.before_action(message)
 
         return_value = None
         error = None
         try:
-
-            # Check if the action is permitted
-            if self.__permitted(message):
-
-                # Invoke the action method
-                # (set _current_message so that it can be used by the action)
-                self._current_message = message
-                return_value = action_method(**message['action']['args'])
-                self._current_message = None
-
-                # The return value if any, from an action method is sent back to
-                # the sender as a "response" action.
-                if return_value is not None:
-                    self.send({
-                        "to": message['from'],
-                        "action": {
-                            "name": "response",
-                            "args": {
-                                "data": return_value,
-                                "original_message_id": message.get('id'),
-                            },
-                        }
-                    })
-            else:
-                raise PermissionError(
-                  f"\"{self.id()}.{message['action']['name']}\" not permitted")
+            # Invoke the action method
+            return_value = action_method(**message['action'].get('args', {}))
         except Exception as e:
-            error = e  # save the error for after_action
+            error = e
             raise
         finally:
             self.after_action(message, return_value, error)
+        return return_value
 
     def __permitted(self, message: dict) -> bool:
         """
-        Checks whether the action represented by the message is allowed
+        Checks whether the message's action is allowed
         """
         action_method = self.__action_method(message['action']['name'])
         policy = action_method.action_properties["access_policy"]
@@ -252,6 +450,41 @@ class Agent():
         action_methods = self.__action_methods()
         return action_methods[action_name]
 
+    def current_message(self) -> Message:
+        """
+        Returns the full message which invoked the current action.
+
+        This method may be called within an action to retrieve the current
+        message, for example to determine the sender or inspect other details.
+
+        Returns:
+            The current message
+        """
+        return self.__thread_local_current_message.value
+
+    def original_message(self) -> Message:
+        """
+        Returns the original message that the current message is responding to.
+
+        This method may be called during the handle_action_value() and
+        handle_action_error() callbacks to inspect the original message.
+
+        The original message must define the meta.id field for this method to
+        return it. Otherwise, this method will return None.
+
+        Returns:
+            The original message or None
+        """
+        current_message = self.__thread_local_current_message.value
+        original_message_id = current_message.get("meta", {}).get("id")
+        if original_message_id:
+            original_message = None
+            for message in self._message_log:
+                if message["meta"]["id"] == original_message_id:
+                    original_message = message
+                    break
+            return original_message
+
     @action
     def help(self, action_name: str = None) -> dict:
         """
@@ -264,9 +497,9 @@ class Agent():
             action_name: (Optional) The name of an action to request help for
 
         Returns:
-            A list of actions
+            A dictionary of actions
         """
-        special_actions = ["help", "response", "error"]
+        special_actions = ["help", _RESPONSE_ACTION_NAME]
         help_list = {
             method.action_properties["name"]: method.action_properties["help"]
             for method in self.__action_methods().values()
@@ -276,59 +509,97 @@ class Agent():
         }
         return help_list
 
-    @action
-    def response(self, data, original_message_id: str = None):
+    def handle_action_value(self, value):
         """
-        Receives a return value from a prior action.
+        Receives a return value from a previous action.
+
+        This method receives return values from actions invoked by the send()
+        method. It is not called when using the request() method, which returns
+        the value directly.
+
+        To inspect the full response message, use current_message().
+
+        To inspect the original message, use original_message(). Note that the
+        original message must define the meta.id field or original_message()
+        will return None.
 
         Args:
-            data: The returned value from the action.
-            original_message_id: The id field of the original message
+            value:
+                The return value
         """
-        print_warning(
-            f"Data was returned from an action. Implement a `response` action to handle it.")
+        log("warning",
+            f"A value was returned from an action. Implement {self.__class__.__name__}.handle_action_value() to handle it.")
 
-    @action
-    def error(self, error: str, original_message_id: str = None):
+    def handle_action_error(self, error: ActionError):
         """
-        Receives errors from a prior action.
+        Receives an error from a previous action.
+
+        This method receives errors from actions invoked by the send() method.
+        It is not called when using the request() method, which raises an error
+        directly.
+
+        To inspect the full response message, use current_message().
+
+        To inspect the original message, use original_message(). Note that the
+        original message must define the meta.id field or original_message()
+        will return None.
 
         Args:
-            error: The error message
-            original_message_id: The id field of the original message
+            error: The error
         """
-        print_warning(
-            f"An error occurred in an action. Implement an `error` action to handle it.")
+        log("warning",
+            f"An error was raised from an action. Implement {self.__class__.__name__}.handle_action_error() to handle it.")
 
     def after_add(self):
         """
-        Called after the agent is added to a space. Override this method to
-        perform any additional setup.
+        Called after the agent is added to a space, but before it begins
+        processing incoming messages.
+
+        The agent may send messages during this callback using the send()
+        method, but may not use the request() method since it relies on
+        processing incoming messages.
         """
 
     def before_remove(self):
         """
-        Called before the agent is removed from a space. Override this method to
-        perform any cleanup.
+        Called before the agent is removed from a space, after it has finished
+        processing incoming messages.
+
+        The agent may send final messages during this callback using the send()
+        method, but may not use the request() method since it relies on
+        processing incoming messages.
         """
 
     def before_action(self, message: dict):
         """
-        Called before every action. Override this method for logging or other
-        situations where you may want to process all actions.
+        Called before every action.
+
+        This method will only be called if the action exists and is permitted.
+
+        Args:
+            message: The received message that contains the action
         """
 
-    def after_action(self, original_message: dict, return_value: str, error: str):
+    def after_action(self, message: dict, return_value: str, error: str):
         """
-        Called after every action. Override this method for logging or other
-        situations where you may want to pass through all actions.
+        Called after every action, regardless of whether an error occurred.
+
+        Args:
+            message: The message which invoked the action
+            return_value: The return value from the action
+            error: The error from the action if any
         """
 
     def request_permission(self, proposed_message: dict) -> bool:
         """
-        Implement this method to receive a proposed action message and present
-        it to the agent for review. Return true or false to indicate whether
-        access should be permitted.
+        Receives a proposed action message and presents it to the agent for
+        review.
+
+        Args:
+            proposed_message: The proposed action message
+
+        Returns:
+            True if access should be permitted
         """
         raise NotImplementedError(
-            f"You must implement {self.__class__.__name__}.request_permission to use ACCESS_REQUESTED")
+            f"You must implement {self.__class__.__name__}.request_permission() to use ACCESS_REQUESTED")

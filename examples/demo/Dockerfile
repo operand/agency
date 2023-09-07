@@ -42,4 +42,4 @@ COPY . .
 
 # Go
 WORKDIR /agency/examples/demo
-CMD ["python", "native_demo.py"]
+CMD ["python", "demo_threaded.py"]

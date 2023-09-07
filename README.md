@@ -23,9 +23,8 @@ you're looking to build a custom agent system, Agency might be for you.
 * Access policies and permission callbacks for access control
 
 ### Performance and Scalability
-* Multithreaded (though python's GIL is a bottleneck for single process apps)
-* AMQP support for multiprocess and networked systems (avoids GIL)
-* [_Python multiprocess support coming soon_](https://github.com/operand/agency/issues/33)
+* Multiprocess and multithreading support for single host systems
+* AMQP support for networked systems
 
 ### Multimodal/Multimedia support
 * [_In progress_](https://github.com/operand/agency/issues/26)
@@ -93,10 +92,10 @@ Agents may also define callbacks for various purposes:
 ```python
 class CalculatorAgent(Agent):
     ...
-    def before_action(self, original_message: dict):
+    def before_action(self, message: dict):
         """Called before an action is attempted"""
 
-    def after_action(self, original_message: dict, return_value: str, error: str):
+    def after_action(self, message: dict, return_value: str, error: str):
         """Called after an action is attempted"""
 
     def after_add(self):
@@ -109,17 +108,21 @@ class CalculatorAgent(Agent):
 A `Space` is how you connect your agents together. An agent cannot communicate
 with others until it is added to a common `Space`.
 
-There are two included `Space` implementations to choose from:
-* `NativeSpace` - which connects agents within the same python process
-* `AMQPSpace` - which connects agents across processes and systems using an AMQP
+There are three included `Space` implementations to choose from:
+* `ThreadSpace` - which distributes and connects agents using
+  multithreading, suitable for simple applications and testing.
+* `MultiprocessSpace` - which distributes agents using the
+  multiprocessing module, for better parallelism on single hosts.
+* `AMQPSpace` - which distributes agents across a network using an AMQP
   server like RabbitMQ.
 
-Finally, here is how to create a `NativeSpace` and add two agents to it.
+Finally, here is a simple example of creating a `MultiprocessSpace` and adding two
+agents to it.
 
 ```python
-space = NativeSpace()
-space.add(CalculatorAgent("CalcAgent"))
-space.add(AIAgent("AIAgent"))
+space = MultiprocessSpace()
+space.add(CalculatorAgent, "CalcAgent")
+space.add(MyAgent, "MyAgent")
 # The agents above can now communicate
 ```
 

@@ -5,8 +5,8 @@ import openai
 from agents.mixins.help_methods import HelpMethods
 from agents.mixins.say_response_methods import SayResponseMethods
 
-from agency.agent import Agent, action
-from agency.util import debug
+from agency.agent import _RESPONSE_ACTION_NAME, Agent, action
+from agency.logger import log
 
 
 class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
@@ -14,10 +14,10 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
     An agent which uses OpenAI's function calling API
     """
 
-    def __init__(self, id, model, openai_api_key, **kwargs):
-        super().__init__(id)
+    def __init__(self, id, *, outbound_queue, receive_own_broadcasts=False, model, openai_api_key, user_id):
+        super().__init__(id, outbound_queue, receive_own_broadcasts)
         self.__model = model
-        self.__kwargs = kwargs
+        self.__user_id = user_id
         openai.api_key = openai_api_key
 
     def __system_prompt(self):
@@ -49,8 +49,8 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
         # NOTE: the chat api limits to only four predefined roles so we do our
         # best to translate to them here.
         for message in self._message_log:
-            # "return" and "error" are converted by default to "say" so ignore
-            if message['action']['name'] not in ["response", "error"]:
+            # ignore response messages
+            if message['action']['name'] != _RESPONSE_ACTION_NAME:
                 # "say" actions are converted to messages using the content arg
                 if message['action']['name'] == "say":
                     # assistant
@@ -60,7 +60,7 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
                             "content": message["action"]["args"]["content"],
                         })
                     # user
-                    elif message['from'] == self.__kwargs['user_id']:
+                    elif message['from'] == self.__user_id:
                         open_ai_messages.append({
                             "role": "user",
                             "content": message["action"]["args"]["content"],
@@ -87,7 +87,7 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
                     # during inference.
                     open_ai_messages.append({
                         "role": "system",
-                        "content": f"""{message['from']} called function "{message['action']['name']}" with args {message['action']['args']}""",
+                        "content": f"""{message['from']} called function "{message['action']['name']}" with args {message['action'].get('args', {})}""",
                     })
 
         return open_ai_messages
@@ -115,7 +115,7 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
             }
             for agent_id, actions in self._available_actions.items()
             for action_name, action_help in actions.items()
-            if not (agent_id == self.__kwargs['user_id'] and action_name == "say")
+            if not (agent_id == self.__user_id and action_name == "say")
             # the openai chat api handles a chat message differently than a
             # function, so we don't list the user's "say" action as a function
         ]
@@ -136,7 +136,7 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
 
         # parse the output
         message = {
-            "to": self.__kwargs['user_id'],
+            "to": self.__user_id,
             "action": {}
         }
         response_message = completion['choices'][0]['message']

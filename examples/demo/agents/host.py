@@ -1,10 +1,7 @@
-import json
 import os
-import re
 import subprocess
 
 from agents.mixins.help_methods import HelpMethods
-from colorama import Fore, Style
 
 from agency.agent import ACCESS_REQUESTED, Agent, action
 
@@ -57,11 +54,6 @@ class Host(HelpMethods, Agent):
 
     def request_permission(self, proposed_message: dict) -> bool:
         """Asks for permission on the command line"""
-        text = \
-            f"{Fore.RED}***** Permission requested to execute: *****{Style.RESET_ALL}\n" + \
-            json.dumps(proposed_message, indent=2) + \
-            f"\n{Fore.RED}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{Style.RESET_ALL}\n" + \
-            "Allow? (y/n) "
-        print(text, flush=True)
-        permission_response = input()
-        return re.search(r"^y(es)?$", permission_response)
+        # TODO: This functionality is temporarily disabled in the demo. All
+        # actions are allowed for now.
+        return True

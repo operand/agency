@@ -1,10 +1,8 @@
 ---
-title: Messaging
+title: Messaging Schema
 ---
 
-# Messaging
-
-## Schema
+# Messaging Schema
 
 All messages are validated upon sending and must conform to the message schema.
 
@@ -12,7 +10,6 @@ The full message schema is summarized by this example:
 
 ```python
 {
-    "id": "some optional id",
     "meta": {
         "an": "optional",
         "object": {
@@ -31,14 +28,14 @@ The full message schema is summarized by this example:
 ```
 
 Note that when sending, you may not need to supply this entire structure. The
-`id` and `meta` fields are optional. Additionally, the `from` field is
-automatically populated for you in the `send()` method.
+`meta` field is entirely optional. Additionally, the `from` field is
+automatically populated for you in the `send()` and `request()` methods.
 
-A minimal example of calling `Agent.send()` with only the required fields would
-look like:
+An example of calling `Agent.send()` with only the minimum fields would look
+like:
 
 ```python
-my_agent.send({
+self.send({
     "to": "some_agent",
     "action": {
         "name": "say",
@@ -54,62 +51,7 @@ See
 for the pydantic model definition used for validation.
 
 
-## Using the `id` Field
-
-The message `id` field may be used to correlate an incoming message with a
-previously sent message, for example to associate response data with the
-request.
-
-The `id` field is _not_ populated by default. To use the `id` field, you must
-explicitly specify it in the outgoing message object. You can set it to any
-string identifier you choose.
-
-By default, the `id` field is used by the `response` and `error` actions. If a
-`response` or `error` is received, the `original_message_id` argument will be
-populated with the `id` of the original message.
-
-For example, say we have an `add` action which returns the sum of its arguments.
-```python
-@action
-def add(self, a: int, b: int) -> int:
-    return a + b
-```
-
-Sending the following message:
-```python
-my_agent.send({
-    "id": "a custom message id",
-    "to": "calculator_agent",
-    "action": {
-        "name": "add",
-        "args": {
-            "a": 1,
-            "b": 2
-        }
-    }
-})
-```
-
-... would result in a subsequent `response` message like the following:
-```json
-{
-    "from": "calculator_agent",
-    "to": "my_agent",
-    "action": {
-        "name": "response",
-        "args": {
-            "data": 3,
-            "original_message_id": "a custom message id"
-        }
-    }
-}
-```
-
-Notice the `original_message_id` argument populated with the `id` of the
-original message.
-
-
-## Using the `meta` Field
+## The `meta` Field
 
 The `meta` field may be used to store arbitrary key-value metadata about the
 message. It is entirely optional. Possible uses of the `meta` field include:
@@ -143,6 +85,15 @@ message. It is entirely optional. Possible uses of the `meta` field include:
 
 These are just a couple ideas to illustrate the use of the `meta` field.  
 
+### Using the `meta.id` Field
+
+The `meta.id` field is used by the `original_message()` method during the
+`handle_action_value()` and `handle_action_error()` callbacks to return the
+original message that the value or error corresponds to.
+
+If you make use of the `handle_action_value` and `handle_action_error`
+callbacks, you should populate the `meta.id` field to allow this correlation.
+
 
 ## Broadcast vs Point-to-Point
 
@@ -166,5 +117,4 @@ If you send a message to a non-existent agent, it will silently fail.
 If you send a message to an existent agent, but specify a non-existent action,
 you will receive an `error` message in response.
 
-Broadcasts which specify a non-existent action are silently ignored, so that
-broadcasts do not result in many error messages.
+Broadcasts which specify a non-existent action are silently ignored.

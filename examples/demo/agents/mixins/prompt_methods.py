@@ -1,6 +1,8 @@
+import json
 from abc import ABC, ABCMeta, abstractmethod
 from datetime import datetime
 from typing import List
+
 from agency import util
 from agency.schema import Message
 
@@ -42,3 +44,25 @@ class PromptMethods(ABC, metaclass=ABCMeta):
         """
         Returns a single line for a prompt that represents a previous message
         """
+
+    DEFAULT_TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+    def to_timestamp(dt=datetime.now(), date_format=DEFAULT_TIMESTAMP_FORMAT):
+        """Convert a datetime to a timestamp"""
+        return dt.strftime(date_format)
+
+    def extract_json(input: str, stopping_strings: list = []):
+        """Util method to extract JSON from a string"""
+        stopping_string = next((s for s in stopping_strings if s in input), '')
+        split_string = input.split(stopping_string, 1)[
+            0] if stopping_string else input
+        start_position = split_string.find('{')
+        end_position = split_string.rfind('}') + 1
+
+        if start_position == -1 or end_position == -1 or start_position > end_position:
+            raise ValueError(f"Couldn't find valid JSON in \"{input}\"")
+
+        try:
+            return json.loads(split_string[start_position:end_position])
+        except json.JSONDecodeError:
+            raise ValueError(f"Couldn't parse JSON in \"{input}\"")

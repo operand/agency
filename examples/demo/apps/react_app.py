@@ -1,24 +1,17 @@
 import logging
+
 import eventlet
 from eventlet import wsgi
 from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
-from agency.agent import Agent, action
+
+from agency.agent import ActionError, Agent, action
 from agency.schema import Message
 from agency.space import Space
 
-
-# Usage:
-#
-#   space = NativeSpace()
-#   react_app = ReactApp(space,
-#                        port=os.getenv("WEB_APP_PORT"),
-#                        # NOTE We're hardcoding a single demo user for simplicity
-#                        demo_username="User")
-#   react_app.start()
-#
-# The app will add/remove a single user to the space as they connect
+# IMPORTANT! This example react application is out of date  and untested, but is
+# left here for reference. It will be updated or replaced in the future.
 
 
 class ReactApp():
@@ -123,14 +116,12 @@ class ReactAppUser(Agent):
         Sends a message to the user
         """
         self.app.socketio.server.emit(
-            'message', self._current_message, room=self.sid)
+            'message', self.current_message(), room=self.sid)
 
-    @action
-    def response(self, data, original_message_id: str):
+    def handle_action_value(self, value):
         self.app.socketio.server.emit(
-            'message', self._current_message, room=self.sid)
+            'message', self.current_message(), room=self.sid)
 
-    @action
-    def error(self, error: str, original_message: dict):
+    def handle_action_error(self, error: ActionError):
         self.app.socketio.server.emit(
-            'message', self._current_message, room=self.sid)
+            'message', self.current_message(), room=self.sid)
