@@ -28,11 +28,11 @@ class _AgentAMQPProcess():
             exchange_name: str,
             outbound_queue: multiprocessing.Queue,
         ):
-        self.__agent_type: Type[Agent] = agent_type
-        self.__agent_id: str = agent_id
-        self.__agent_kwargs: Dict = agent_kwargs
-        self.__kombu_connection_options: Dict = kombu_connection_options
-        self.__exchange_name: str = exchange_name
+        self.agent_type: Type[Agent] = agent_type
+        self.agent_id: str = agent_id
+        self.agent_kwargs: Dict = agent_kwargs
+        self.kombu_connection_options: Dict = kombu_connection_options
+        self.exchange_name: str = exchange_name
         self.outbound_queue: multiprocessing.Queue = outbound_queue
 
     def start(self):
@@ -42,11 +42,11 @@ class _AgentAMQPProcess():
         self.__process = Process(
             target=self._process,
             args=(
-                self.__agent_type,
-                self.__agent_id,
-                self.__agent_kwargs,
-                self.__kombu_connection_options,
-                self.__exchange_name,
+                self.agent_type,
+                self.agent_id,
+                self.agent_kwargs,
+                self.kombu_connection_options,
+                self.exchange_name,
                 self.outbound_queue,
                 self.__started,
                 self.__stopping,
@@ -141,16 +141,15 @@ class _AgentAMQPProcess():
                     connection.drain_events(timeout=0.001)
                 except socket.timeout:
                     pass
-            agent._is_processing = False
-            agent.before_remove()
-            log("info", f"{agent.id()} removed from space")
-
         except amqp.exceptions.ResourceLocked:
             error_queue.put(
                 ValueError(f"Agent id already exists: '{agent_id}'"))
         except Exception as e:
             error_queue.put(e)
         finally:
+            agent._is_processing = False
+            agent.before_remove()
+            log("info", f"{agent.id()} removed from space")
             connection.release()
 
 

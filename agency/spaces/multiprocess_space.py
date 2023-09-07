@@ -29,6 +29,7 @@ class _AgentProcess():
     def start(self):
         self.started = Event()
         self.stopping = Event()
+        error_queue = multiprocessing.Queue()
         self.process = Process(
             target=self._process,
             args=(
@@ -39,6 +40,7 @@ class _AgentProcess():
                 self.outbound_queue,
                 self.started,
                 self.stopping,
+                error_queue,
             )
         )
         self.process.start()
@@ -46,7 +48,11 @@ class _AgentProcess():
         if not self.started.wait(timeout=10):
             # it couldn't start, force stop the process and raise an exception
             self.stop()
-            raise Exception("Process could not be started.")
+            try:
+                error = error_queue.get(block=False)
+                raise error
+            except queue.Empty:
+                raise Exception("Process could not be started.")
 
     def stop(self):
         self.stopping.set()
@@ -62,7 +68,8 @@ class _AgentProcess():
                  inbound_queue,
                  outbound_queue,
                  started,
-                 stopping):
+                 stopping,
+                 error_queue):
         try:
             agent: Agent = agent_type(
                 agent_id,
@@ -80,12 +87,12 @@ class _AgentProcess():
                     agent._receive(message)
                 except queue.Empty:
                     pass
+        except Exception as e:
+            error_queue.put(e)
+        finally:
             agent._is_processing = False
             agent.before_remove()
             log("info", f"{agent.id()} removed from space")
-        except Exception as e:
-            log("error", f"{self.agent_id} removed from space with exception",
-                traceback.format_exc())
 
 
 class MultiprocessSpace(Space):
@@ -141,7 +148,6 @@ class MultiprocessSpace(Space):
                 outbound_queue=multiprocessing.Queue(),
             )
             self.__agent_processes[agent_id].start()
-
         except:
             # clean up if an error occurs
             self.remove(agent_id)
