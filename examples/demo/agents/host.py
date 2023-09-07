@@ -11,14 +11,6 @@ class Host(HelpMethods, Agent):
     Represents the host system of the running application
     """
 
-    def __init__(self, id: str,
-                 outbound_queue: _QueueProtocol = None,
-                 receive_own_broadcasts: bool = True,
-                 admin_id: str = None):
-        super().__init__(id, outbound_queue, receive_own_broadcasts=False)
-        # the id of the admin to ask for permission
-        self.admin_id = admin_id
-
     @action(access_policy=ACCESS_REQUESTED)
     def shell_command(self, command: str) -> str:
         """Execute a shell command"""
