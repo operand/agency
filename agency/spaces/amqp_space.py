@@ -144,13 +144,15 @@ class _AgentAMQPProcess():
         except amqp.exceptions.ResourceLocked:
             error_queue.put(
                 ValueError(f"Agent id already exists: '{agent_id}'"))
+        except KeyboardInterrupt:
+            pass
         except Exception as e:
             error_queue.put(e)
         finally:
             agent._is_processing = False
             agent.before_remove()
-            log("info", f"{agent.id()} removed from space")
             connection.release()
+            log("info", f"{agent.id()} removed from space")
 
 
 @dataclass

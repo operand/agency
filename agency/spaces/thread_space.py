@@ -45,12 +45,15 @@ class _AgentThread():
                         agent._receive(message)
                     except queue.Empty:
                         pass
+            except KeyboardInterrupt:
+                pass
+            except Exception as e:
+                log("error", f"{self.agent_id} process failed with exception", traceback.format_exc())
+                exception_info["exception"] = e
+            finally:
                 agent._is_processing = False
                 agent.before_remove()
                 log("info", f"{agent.id()} removed from space")
-            except Exception as e:
-                log("error", f"{self.agent_id} removed from space with exception", traceback.format_exc())
-                exception_info["exception"] = e
 
         exception_info = {"exception": None}
         self.__thread = threading.Thread(
