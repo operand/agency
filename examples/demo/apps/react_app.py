@@ -10,8 +10,8 @@ from agency.agent import ActionError, Agent, action
 from agency.schema import Message
 from agency.space import Space
 
-# IMPORTANT! This example react application is out of date and not working, but
-# is left here for reference. It will likely be updated or replaced.
+# IMPORTANT! This example react application is out of date untested, but is left
+# here for reference. It will be updated or replaced in the future.
 
 
 class ReactApp():

@@ -1,14 +1,14 @@
 import os
 import sys
 import time
-from agency.processors.amqp_processor import AMQPProcessor
+from agency.spaces.amqp_space import AMQPSpace
 
 sys.path.append("../demo")
 from apps.gradio_app import demo, gradio_user
 from agents.openai_function_agent import OpenAIFunctionAgent
 
 if __name__ == "__main__":
-    space = AMQPProcessor()
+    space = AMQPSpace()
 
     space.add(gradio_user)
 
