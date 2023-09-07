@@ -6,7 +6,7 @@ from flask import Flask, render_template, request
 from flask.logging import default_handler
 from flask_socketio import SocketIO
 
-from agency.agent import Agent, action
+from agency.agent import ActionError, Agent, action
 from agency.schema import Message
 from agency.space import Space
 
@@ -116,14 +116,12 @@ class ReactAppUser(Agent):
         Sends a message to the user
         """
         self.app.socketio.server.emit(
-            'message', self._current_message, room=self.sid)
+            'message', self._current_message(), room=self.sid)
 
-    @action
-    def return_value(self, data, original_message_id: str):
+    def handle_action_value(self, value):
         self.app.socketio.server.emit(
-            'message', self._current_message, room=self.sid)
+            'message', self._current_message(), room=self.sid)
 
-    @action
-    def error(self, error: str, original_message: dict):
+    def handle_action_error(self, error: ActionError):
         self.app.socketio.server.emit(
-            'message', self._current_message, room=self.sid)
+            'message', self._current_message(), room=self.sid)

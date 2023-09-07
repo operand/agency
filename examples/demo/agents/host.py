@@ -3,7 +3,7 @@ import subprocess
 
 from agents.mixins.help_methods import HelpMethods
 
-from agency.agent import ACCESS_REQUESTED, Agent, _QueueProtocol, action
+from agency.agent import ACCESS_REQUESTED, Agent, action
 
 
 class Host(HelpMethods, Agent):

@@ -1,4 +1,4 @@
-from agency.agent import ActionError, action
+from agency.agent import ActionError
 
 
 class SayResponseMethods():

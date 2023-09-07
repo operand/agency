@@ -1,7 +1,8 @@
+import json
 from abc import ABC, ABCMeta, abstractmethod
 from datetime import datetime
-import json
 from typing import List
+
 from agency import util
 from agency.schema import Message
 
@@ -45,6 +46,7 @@ class PromptMethods(ABC, metaclass=ABCMeta):
         """
 
     DEFAULT_TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
+
     def to_timestamp(dt=datetime.now(), date_format=DEFAULT_TIMESTAMP_FORMAT):
         """Convert a datetime to a timestamp"""
         return dt.strftime(date_format)
