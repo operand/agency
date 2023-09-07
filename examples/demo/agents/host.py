@@ -1,11 +1,7 @@
-import json
 import os
 import subprocess
-import uuid
-from typing import Dict
 
 from agents.mixins.help_methods import HelpMethods
-from colorama import Fore, Style
 
 from agency.agent import ACCESS_REQUESTED, Agent, _QueueProtocol, action
 
@@ -22,8 +18,6 @@ class Host(HelpMethods, Agent):
         super().__init__(id, outbound_queue, receive_own_broadcasts=False)
         # the id of the admin to ask for permission
         self.admin_id = admin_id
-        # used by the request_permission method to asynchronously ask for permission
-        self.pending_permissions: Dict[str, bool] = {}
 
     @action(access_policy=ACCESS_REQUESTED)
     def shell_command(self, command: str) -> str:
@@ -68,27 +62,6 @@ class Host(HelpMethods, Agent):
 
     def request_permission(self, proposed_message: dict) -> bool:
         """Asks for permission on the command line"""
-        return True # TEMP
-
-        if proposed_message["from"] == self.admin_id:
-            return True
-
-        else:
-            # send a message to the admin for permission
-            text = \
-                f"{Fore.RED}***** Permission requested to execute: *****{Style.RESET_ALL}\n" + \
-                json.dumps(proposed_message, indent=2) + \
-                f"\n{Fore.RED}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^{Style.RESET_ALL}\n" + \
-                "Allow? (y/n) "
-
-            response = self.send_and_await_reply({
-                "id": f"request_permission-{uuid.uuid4()}",
-                "to": self.admin_id,
-                "action": {
-                    "name": "say",
-                    "content": text,
-                }
-            })
-
-            # return re.search(r"^y(es)?$", response)
-            raise NotImplementedError
+        # TODO: This functionality is temporarily disabled in the demo. All
+        # actions are allowed for now.
+        return True

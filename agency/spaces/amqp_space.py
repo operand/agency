@@ -7,6 +7,7 @@ import threading
 import time
 from dataclasses import dataclass
 from multiprocessing import Event, Process
+import traceback
 from typing import Dict, Type
 
 import amqp
@@ -147,6 +148,7 @@ class _AgentAMQPProcess():
         except KeyboardInterrupt:
             pass
         except Exception as e:
+            log("error", f"{agent_id} process failed with exception", traceback.format_exc())
             error_queue.put(e)
         finally:
             agent._is_processing = False
@@ -200,10 +202,7 @@ class AMQPSpace(Space):
         router_thread.start()
 
     def __router_thread(self):
-        """
-        A thread that processes outbound messages for all agents, routing them
-        to other agents.
-        """
+        """Processes and routes outbound messages for all agents"""
         while True:
             time.sleep(0.001)
             for agent_process in list(self.__agent_processes.values()):

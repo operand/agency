@@ -48,7 +48,7 @@ class _AgentThread():
             except KeyboardInterrupt:
                 pass
             except Exception as e:
-                log("error", f"{self.agent_id} process failed with exception", traceback.format_exc())
+                log("error", f"{self.agent_id} thread failed with exception", traceback.format_exc())
                 exception_info["exception"] = e
             finally:
                 agent._is_processing = False

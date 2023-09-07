@@ -90,6 +90,7 @@ class _AgentProcess():
         except KeyboardInterrupt:
             pass
         except Exception as e:
+            log("error", f"{agent.id()} process failed with exception", traceback.format_exc())
             error_queue.put(e)
         finally:
             agent._is_processing = False
@@ -113,8 +114,7 @@ class MultiprocessSpace(Space):
 
     def __router_thread(self):
         """
-        A thread that processes outbound messages for all agents, routing them
-        to other agents.
+        Processes and routes outbound messages for all agents
         """
         while True:
             time.sleep(0.001)
