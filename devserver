@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -e
+
+echo "Running dev server ..."
+
+rm -rf _site/ _api_docs/
+poetry run pdoc ../agency \
+  --template-directory ./pdoc_templates \
+  --docformat google \
+  --output-dir _api_docs
+
+bundle exec jekyll serve --livereload
