@@ -21,16 +21,21 @@ you're looking to build a custom agent system, Agency might be for you.
 ### Observability and Control
 * Action and lifecycle callbacks for observability or other needs
 * Access policies and permission callbacks for access control
+* Logging support
 
 ### Performance and Scalability
-* Multiprocess and multithreading support for single host systems
+* Multiprocess and multithreading support for concurrency
 * AMQP support for networked systems
 
+### Multi-language Support
+* _Javascript support in progress_
+* _Cross-language code execution (code-interpreter) in progress_
+
 ### Multimodal/Multimedia support
-* [_Planned_](https://github.com/operand/agency/issues/26)
+* [_In progress_](https://github.com/operand/agency/issues/26)
 
 ### Demo application available at [`examples/demo`](./examples/demo/)
-* Includes Gradio UI (React UI example also available)
+* Includes Gradio UI (_A React UI is in progress_)
 * Multiple agent examples for experimentation
   * Two OpenAI agent examples
   * HuggingFace transformers agent example
