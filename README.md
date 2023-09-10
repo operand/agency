@@ -27,13 +27,13 @@ Agency's goal is to enable developers to create custom agent-based solutions by 
 
 ### Multi-language Support
 * [_Javascript support in progress_](https://github.com/operand/agency/issues/136)
-* [_Cross-language code execution (code-interpreter) in progress_](https://github.com/operand/agency/issues/137)
+* [_First class code evaluation support (interpreter) in progress_](https://github.com/operand/agency/issues/137)
 
 ### Multimodal/Multimedia support
 * [_In progress_](https://github.com/operand/agency/issues/26)
 
 ### Demo application available at [`examples/demo`](./examples/demo/)
-* Includes Gradio UI (_A React UI is in progress. See above._)
+* Includes Gradio UI (_An updated React UI is in progress. See above._)
 * Multiple agent examples for experimentation
   * Two OpenAI agent examples
   * HuggingFace transformers agent example
