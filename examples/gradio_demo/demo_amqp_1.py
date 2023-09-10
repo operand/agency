@@ -1,7 +1,7 @@
 from agents.host import Host
+from app.gradio_app import GradioApp
 
 from agency.spaces.amqp_space import AMQPSpace
-from examples.demo.app.gradio_app import GradioApp
 
 if __name__ == "__main__":
 

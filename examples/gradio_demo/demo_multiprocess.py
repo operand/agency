@@ -2,9 +2,9 @@ import os
 
 from agents.host import Host
 from agents.openai_function_agent import OpenAIFunctionAgent
+from app.gradio_app import GradioApp
 
 from agency.spaces.multiprocess_space import MultiprocessSpace
-from examples.demo.app.gradio_app import GradioApp
 
 if __name__ == "__main__":
 

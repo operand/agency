@@ -1,5 +1,9 @@
 # Summary
 
+> ❗️Please note, this application is no longer actively supported but is kept
+here for reference. The following directions may be outdated and no longer work.
+If you have any questions, please reach out.
+
 This directory showcases an example Gradio application integrated with Agency.
 
 The app uses the [`Chatbot`](https://www.gradio.app/docs/chatbot) gradio
@@ -57,7 +61,7 @@ The Gradio UI is a [`Chatbot`](https://www.gradio.app/docs/chatbot) based
 application used for development and demonstration.
 
 It is defined in
-[examples/demo/apps/gradio_app.py](https://github.com/operand/agency/tree/main/examples/demo/apps/gradio_app.py)
+[examples/gradio_demo/app/gradio_app.py](https://github.com/operand/agency/tree/main/examples/gradio_demo/app/gradio_app.py)
 and simply needs to be imported and used like so:
 
 ```python
