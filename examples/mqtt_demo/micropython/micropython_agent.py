@@ -7,6 +7,9 @@ ACCESS_PERMITTED = "permitted"
 ACCESS_DENIED = "denied"
 ACCESS_REQUESTED = "requested"
 
+# Special action name for responses
+_RESPONSE_ACTION_NAME = "[response]"
+
 
 _function_access_policies = {}  # work with action decorator
 
@@ -26,6 +29,9 @@ def action(*args, **kwargs):
         return decorator(args[0])  # The decorator was used without parentheses
     else:
         return decorator  # The decorator was used with parentheses
+
+class ActionError(Exception):
+    """Raised from the request() method if the action responds with an error"""
 
 
 class UAgent:
@@ -70,27 +76,42 @@ class UAgent:
         ):
             return
 
-        try:
-            # Record message and commit action
-            self._message_log.append(message)
-            self.__commit(message)
-        except Exception as e:
-            # Here we handle exceptions that occur while committing an action,
-            # including PermissionError's from access denial, by reporting the
-            # error back to the sender.
-            self.send(
-                {
-                    "to": message["from"],
+        # Record message and commit action
+        self._message_log.append(message)
+
+        if message["action"]["name"] == _RESPONSE_ACTION_NAME:
+            if "value" in message["action"]["args"]:
+                handler_callback = self.handle_action_value
+                arg = message["action"]["args"]["value"]
+            elif "error" in message["action"]["args"]:
+                handler_callback = self.handle_action_error
+                arg = ActionError(message["action"]["args"]["error"])
+            else:
+                raise RuntimeError("Unknown action response")
+            handler_callback(arg)
+        else:
+            try:
+                self.__commit(message)
+            except Exception as e:
+                # Here we handle exceptions that occur while committing an action,
+                # including PermissionError's from access denial, by reporting the
+                # error back to the sender.
+                request_id = message.get("meta", {}).get("request_id")
+                response_id = request_id or message.get("meta", {}).get("id")
+                self.send({
+                    "meta": {
+                        "response_id": response_id
+                    },
+                    "to": message['from'],
                     "from": self.id(),
                     "action": {
-                        "name": "error",
+                        "name": _RESPONSE_ACTION_NAME,
                         "args": {
-                            "error": f"{e}",
-                            "original_message_id": message.get("id"),
-                        },
-                    },
-                }
-            )
+                            "error": f"{e.__class__.__name__}: {e}"
+                            # "error": f"{e}"
+                        }
+                    }
+                })
 
     def __commit(self, message: dict):
         """
@@ -130,19 +151,21 @@ class UAgent:
 
                 # The return value if any, from an action method is sent back to
                 # the sender as a "response" action.
-                if return_value is not None:
-                    self.send(
-                        {
-                            "to": message["from"],
-                            "action": {
-                                "name": "response",
-                                "args": {
-                                    "data": return_value,
-                                    "original_message_id": message.get("id"),
-                                },
-                            },
+                request_id = message.get("meta", {}).get("request_id")
+                response_id = request_id or message.get("meta", {}).get("id")
+                if request_id or return_value is not None:
+                    self.send({
+                        "meta": {
+                            "response_id": response_id
+                        },
+                        "to": message['from'],
+                        "action": {
+                            "name": _RESPONSE_ACTION_NAME,
+                            "args": {
+                                "value": return_value,
+                            }
                         }
-                    )
+                    })
             else:
                 raise PermissionError(
                     f"\"{self.id()}.{message['action']['name']}\" not permitted"
@@ -187,62 +210,93 @@ class UAgent:
         """
         return self._help(action_name)
 
-    @action
-    def response(self, data, original_message_id: str = None):
-        """
-        Receives a return value from a prior action.
-
-        Args:
-            data: The returned value from the action.
-            original_message_id: The id field of the original message
-        """
-        print(
-            f"Data was returned from an action. Implement a `response` action to handle it."
-        )
-
-    @action
-    def error(self, error: str, original_message_id: str = None):
-        """
-        Receives errors from a prior action.
-
-        Args:
-            error: The error message
-            original_message_id: The id field of the original message
-        """
-        print(
-            f"An error occurred in an action. Implement an `error` action to handle it."
-        )
-
     def after_add(self):
         """
-        Called after the agent is added to a space. Override this method to
-        perform any additional setup.
+        Called after the agent is added to a space, but before it begins
+        processing incoming messages.
+
+        The agent may send messages during this callback using the send()
+        method, but may not use the request() method since it relies on
+        processing incoming messages.
         """
 
     def before_remove(self):
         """
-        Called before the agent is removed from a space. Override this method to
-        perform any cleanup.
+        Called before the agent is removed from a space, after it has finished
+        processing incoming messages.
+
+        The agent may send final messages during this callback using the send()
+        method, but may not use the request() method since it relies on
+        processing incoming messages.
         """
 
     def before_action(self, message: dict):
         """
-        Called before every action. Override this method for logging or other
-        situations where you may want to process all actions.
+        Called before every action.
+
+        This method will only be called if the action exists and is permitted.
+
+        Args:
+            message: The received message that contains the action
         """
 
-    def after_action(self, original_message: dict, return_value: str, error: str):
+    def after_action(self, message: dict, return_value: str, error: str):
         """
-        Called after every action. Override this method for logging or other
-        situations where you may want to pass through all actions.
+        Called after every action, regardless of whether an error occurred.
+
+        Args:
+            message: The message which invoked the action
+            return_value: The return value from the action
+            error: The error from the action if any
         """
 
     def request_permission(self, proposed_message: dict) -> bool:
         """
-        Implement this method to receive a proposed action message and present
-        it to the agent for review. Return true or false to indicate whether
-        access should be permitted.
+        Receives a proposed action message and presents it to the agent for
+        review.
+
+        Args:
+            proposed_message: The proposed action message
+
+        Returns:
+            True if access should be permitted
         """
         raise NotImplementedError(
-            f"You must implement {self.__class__.__name__}.request_permission to use ACCESS_REQUESTED"
-        )
+            f"You must implement {self.__class__.__name__}.request_permission() to use ACCESS_REQUESTED")
+
+    def handle_action_value(self, value):
+        """
+        Receives a return value from a previous action.
+
+        This method receives return values from actions invoked by the send()
+        method. It is not called when using the request() method, which returns
+        the value directly.
+
+        To inspect the full response message, use current_message().
+
+        To inspect the original message, use original_message(). Note that the
+        original message must define the meta.id field or original_message()
+        will return None.
+
+        Args:
+            value:
+                The return value
+        """
+
+    def handle_action_error(self, error: ActionError):
+        """
+        Receives an error from a previous action.
+
+        This method receives errors from actions invoked by the send() method.
+        It is not called when using the request() method, which raises an error
+        directly.
+
+        To inspect the full response message, use current_message().
+
+        To inspect the original message, use original_message(). Note that the
+        original message must define the meta.id field or original_message()
+        will return None.
+
+        Args:
+            error: The error
+        """
