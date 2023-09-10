@@ -26,10 +26,10 @@ FROM base as demo_deps
 COPY --from=agency_deps /venv /venv
 
 # Install demo dependencies without full agency source
-COPY examples/demo/pyproject.toml examples/demo/poetry.lock ./examples/demo/
+COPY demo/pyproject.toml demo/poetry.lock ./demo/
 COPY pyproject.toml poetry.lock README.md ./
 COPY agency/__init__.py ./agency/__init__.py
-RUN cd examples/demo && poetry install
+RUN cd demo && poetry install
 
 # Build demo image
 FROM base
@@ -41,5 +41,5 @@ COPY --from=demo_deps /venv /venv
 COPY . .
 
 # Go
-WORKDIR /agency/examples/demo
-CMD ["python", "demo_threaded.py"]
+WORKDIR /agency/demo
+CMD ["python", "main.py"]

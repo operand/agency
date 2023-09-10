@@ -25,7 +25,7 @@ included for running the demo using the different space types. To run the demo:
 1. Run:
 
         git clone git@github.com:operand/agency.git
-        cd agency/examples/demo
+        cd agency/demo
         cp .env.example .env
 
 1. Open and populate the `.env` file with appropriate values.
