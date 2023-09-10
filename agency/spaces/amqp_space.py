@@ -9,6 +9,7 @@ import traceback
 from dataclasses import dataclass
 from multiprocessing import Event, Process
 from typing import Dict, Type
+from amqp import ResourceLocked
 
 from kombu import Connection, Exchange, Queue
 
@@ -146,7 +147,7 @@ class _AgentAMQPProcess():
                     connection.drain_events(timeout=0.001)
                 except socket.timeout:
                     pass
-        except amqp.exceptions.ResourceLocked:
+        except ResourceLocked:
             error_queue.put(
                 ValueError(f"Agent id already exists: '{agent_id}'"))
         except KeyboardInterrupt:
