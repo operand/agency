@@ -40,18 +40,18 @@ class SmartHomeAgent(UAgent):
             return help
 
     def after_add(self):
-        self.send(
-            {
-                "to": "*",
-                "action": {
-                    "name": "response",
-                    "args": {
-                        "data": self._help(),
-                        "original_message_id": "help_request",
-                    },
-                },
+        self.send({
+            "meta": {
+                "response_id": "help_request",
+            },
+            "to": "*",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": self._help(),
+                }
             }
-        )
+        })
 
     @action
     def set(self, device: str, state: str):
@@ -63,6 +63,9 @@ class SmartHomeAgent(UAgent):
             self.light.value(map_[state])
         return "ok"
 
+    @action
+    def say(self, content: str):
+        pass
 
 class RobotAgent(UAgent):
     def __init__(self, id: str) -> None:
@@ -84,18 +87,18 @@ class RobotAgent(UAgent):
             return help
 
     def after_add(self):
-        self.send(
-            {
-                "to": "*",
-                "action": {
-                    "name": "response",
-                    "args": {
-                        "data": self._help(),
-                        "original_message_id": "help_request",
-                    },
-                },
+        self.send({
+            "meta": {
+                "response_id": "help_request",
+            },
+            "to": "*",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": self._help(),
+                }
             }
-        )
+        })
 
     @action
     def say(self, content: str):
