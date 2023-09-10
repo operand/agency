@@ -1,13 +1,11 @@
 # Summary
 
-This demo application is maintained as an experimental development environment
-and a showcase for library features. You are encouraged to use the source as a
-reference but beware that the quality is intended to be proof-of-concept only.
+This demo application showcases using a Gradio app with multiple `Space` types.
 
 
 ## Example Classes
 
-By default the demo includes the following two `Agent` classes:
+By default this demo includes the following two example `Agent` classes:
 
 * `OpenAIFunctionAgent` - An LLM agent that uses the OpenAI function calling API
 * `Host` - An agent that exposes operating system access to the host system
@@ -15,17 +13,17 @@ By default the demo includes the following two `Agent` classes:
 More agent examples are located under the [./agents](./agents/) directory.
 
 
-## Running the demo
+## Running the Gradio example
 
-The demo application uses docker-compose for orchestration. Configuration is
-included for running the demo using the different space types. To run the demo:
+The application uses docker-compose for orchestration. Configuration is included
+for running the app using the different space types. To run the app:
 
 1. Ensure you have Docker installed on your system.
 
 1. Run:
 
         git clone git@github.com:operand/agency.git
-        cd agency/examples/demo
+        cd agency/examples/gradio
         cp .env.example .env
 
 1. Open and populate the `.env` file with appropriate values.
