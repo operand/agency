@@ -117,82 +117,57 @@ Note the use of the `current_message()` method. That method may be used during
 an action to inspect the entire message which invoked the current action.
 
 
-## The Gradio UI
-
-The Gradio UI is a [`Chatbot`](https://www.gradio.app/docs/chatbot) based
-application used for development and demonstration.
-
-It is defined in
-[examples/demo/apps/gradio_app.py](https://github.com/operand/agency/tree/main/examples/demo/apps/gradio_app.py)
-and simply needs to be imported and used like so:
-
-```python
-from examples.demo.apps.gradio_app import GradioApp
-...
-demo = GradioApp(space).demo()
-demo.launch()
-```
-
-The Gradio application automatically adds its user to the space as an agent,
-allowing you (as that agent) to chat with the other agents.
-
-The application is designed to convert plain text input into a `say` action
-which is broadcast to the other agents in the space. For example, simply
-writing:
-
-```
-Hello, world!
-```
-
-will invoke the `say` action on all other agents in the space, passing the
-`content` argument as `Hello, world!`. Any agents which implement a `say` action
-will receive and process this message.
-
-
-### Gradio App - Command Syntax
-
-The Gradio application also supports a command syntax for more control over
-invoking actions on other agents.
-
-For example, to send a point-to-point message to a specific agent, or to call
-actions other than `say`, you can use the following format:
-
-```
-/agent_id.action_name arg1:"value 1" arg2:"value 2"
-```
-
-A broadcast to all agents in the space is also supported using the `*` wildcard.
-For example, the following will broadcast the `say` action to all other agents,
-similar to how it would work without the slash syntax:
-
-```
-/*.say content:"Hello, world!"
-```
-
 ## Discovering Actions
 
 At this point, we can demonstrate how action discovery works from the
-perspective of a human user of the web application.
+perspective of an agent.
 
-Each agent in the space has a `help` action, which returns a dictionary of their
-available actions.
+Each agent in the space exposes a `help` action, which returns a dictionary of
+their available actions.
 
-To discover available actions across all agents, simply type:
-```
-/*.help
+To discover available actions across all agents, an agent can send the following
+message:
+```py
+self.send({
+    "to": "*",
+    "action": {
+        "name": "help",
+    }
+})
 ```
 
-Each agent will respond with a dictionary of their available actions.
+This will broadcast a `help` message to all other connected agents. Each agent
+will respond with a dictionary of their available actions.
 
-To request help on a specific agent, you can use the following syntax:
-```
-/Host.help
+To request help on a specific agent, an agent can use the following syntax:
+
+```py
+self.send({
+    "to": "Host",
+    "action": {
+        "name": "help",
+    }
+})
 ```
 
-To request help on a specific action, you can specify the action name:
+This would send a `help` request to only the `Host` agent.
+
+To request help on a specific action, you can specify the action name. For
+example:
+```py
+self.send({
+    "to": "Host",
+    "action": {
+        "name": "help",
+        "args": {
+            "action_name": "shell_command",
+        }
+    }
+})
 ```
-/Host.help action_name:"say"
-```
+
+This message would return help information for the `Host` agetn's
+`shell_command` action.
 
 
 ## Adding an Intelligent Agent
