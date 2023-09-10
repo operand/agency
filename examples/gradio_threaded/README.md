@@ -1,10 +1,7 @@
 # Summary
 
-> ❗️Please note, this application is no longer actively supported but is kept
-here for reference. The following directions may be outdated and no longer work.
-If you have any questions or need assistance please reach out.
-
-This directory showcases an example Gradio application integrated with Agency.
+This directory showcases an example Gradio application integrated with Agency
+using the `ThreadSpace` class.
 
 The app uses the [`Chatbot`](https://www.gradio.app/docs/chatbot) gradio
 component, and allows chatting and sending commands to any connected agent.
@@ -12,7 +9,7 @@ component, and allows chatting and sending commands to any connected agent.
 
 ## Example Classes
 
-The demo includes the following two `Agent` classes by default:
+The example includes the following two `Agent` classes by default:
 
 * `OpenAIFunctionAgent` - An LLM agent that uses the OpenAI function calling API
 * `Host` - An agent that exposes operating system access to the host system
@@ -20,7 +17,7 @@ The demo includes the following two `Agent` classes by default:
 See more agent examples are located under the [./agents](./agents/) directory.
 
 
-## Running the Gradio Demo
+## Running the Example
 
 This demo uses docker-compose for orchestration. Configuration is included for
 running the app using the different space types. To run the app:
