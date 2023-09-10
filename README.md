@@ -7,9 +7,7 @@ The library provides an easy to use API that enables you to connect intelligent
 agents with software systems of all kinds, making it simple to develop the
 architecture you need.
 
-Agency's goal is to enable others to create custom agent solutions by providing
-a minimal and scalable foundation to both experiment and build upon. So if
-you're looking to build a custom agent system, Agency might be for you.
+Agency's goal is to enable developers to create custom agent-based solutions by providing a minimal and scalable foundation to both experiment and build upon. So if you're looking to build a custom agent system of your own, Agency might be for you.
 
 
 ## Features
