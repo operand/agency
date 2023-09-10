@@ -6,7 +6,7 @@ x-demo-base:
   &demo-base
   build:
     context: ../.. # root of the repo
-    dockerfile: examples/gradio_demo/Dockerfile
+    dockerfile: examples/demo/Dockerfile
   volumes:
     # mounts models dir into container for reuse
     - $MODELS_PATH:/models
