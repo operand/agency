@@ -2,7 +2,7 @@
 
 > ❗️Please note, this application is no longer actively supported but is kept
 here for reference. The following directions may be outdated and no longer work.
-If you have any questions, please reach out.
+If you have any questions or need assistance please reach out.
 
 This directory showcases an example Gradio application integrated with Agency.
 
@@ -58,7 +58,7 @@ running the app using the different space types. To run the app:
 ## The Gradio UI
 
 The Gradio UI is a [`Chatbot`](https://www.gradio.app/docs/chatbot) based
-application used for development and demonstration.
+application.
 
 It is defined in
 [examples/gradio_demo/app/gradio_app.py](https://github.com/operand/agency/tree/main/examples/gradio_demo/app/gradio_app.py)
