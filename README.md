@@ -26,8 +26,8 @@ Agency's goal is to enable developers to create custom agent-based solutions by 
 * AMQP support for networked systems
 
 ### Multi-language Support
-* [_Javascript support in progress_](https://github.com/operand/agency/issues/136)
-* [_First class code evaluation support (interpreter) in progress_](https://github.com/operand/agency/issues/137)
+* [_Javascript client in progress_](https://github.com/operand/agency/issues/136)
+* [_Multi-language code evaluation (interpreter) planned_](https://github.com/operand/agency/issues/137)
 
 ### Multimodal/Multimedia support
 * [_In progress_](https://github.com/operand/agency/issues/26)
