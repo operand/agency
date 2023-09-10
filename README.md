@@ -27,7 +27,6 @@ Agency's goal is to enable developers to create custom agent-based solutions by 
 
 ### Multi-language Support
 * [_Javascript client in progress_](https://github.com/operand/agency/issues/136)
-* [_Multi-language code evaluation (interpreter) planned_](https://github.com/operand/agency/issues/137)
 
 ### Multimodal/Multimedia support
 * [_In progress_](https://github.com/operand/agency/issues/26)
