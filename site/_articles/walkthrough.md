@@ -6,8 +6,7 @@ nav_order: 0
 # Demo Application Walkthrough
 
 The following walkthrough will guide you through the basic concepts of Agency's
-API, and how to use it to build a simple agent system, using the main demo
-application as an example.
+API, and how to use it to build a simple agent system.
 
 In this walkthrough, we'll be using the `MultiprocessSpace` class for connecting
 agents. Usage is exactly the same as with any other space type, such as
@@ -44,6 +43,8 @@ space.add(OpenAIFunctionAgent,
           openai_api_key=os.getenv("OPENAI_API_KEY"),
           # user_id determines the "user" role in the OpenAI chat API
           user_id="User")
+
+# TODO: update the following line for ReactApp
 
 # GradioApp adds its user as an agent named "User" to the space
 GradioApp(space).demo().launch()

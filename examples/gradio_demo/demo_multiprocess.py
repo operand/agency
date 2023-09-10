@@ -4,7 +4,7 @@ from agents.host import Host
 from agents.openai_function_agent import OpenAIFunctionAgent
 
 from agency.spaces.multiprocess_space import MultiprocessSpace
-from examples.demo.apps.gradio_app import GradioApp
+from examples.demo.app.gradio_app import GradioApp
 
 if __name__ == "__main__":
 

@@ -68,11 +68,10 @@ demo.launch()
 ```
 
 The Gradio application automatically adds its user to the space as an agent,
-allowing you (as that agent) to chat with the other agents.
+allowing you (as that agent) to chat with other agents.
 
-The application is designed to convert plain text input into a `say` action
-which is broadcast to the other agents in the space. For example, simply
-writing:
+The application converts plain text input into a `say` action which is broadcast
+to the other agents in the space. For example, simply writing:
 
 ```
 Hello, world!
