@@ -9,8 +9,8 @@ import traceback
 from dataclasses import dataclass
 from multiprocessing import Event, Process
 from typing import Dict, Type
-from amqp import ResourceLocked
 
+from amqp import ResourceLocked
 from kombu import Connection, Exchange, Queue
 
 from agency.agent import Agent
