@@ -5,13 +5,13 @@ import queue
 import socket
 import threading
 import time
+import traceback
 from dataclasses import dataclass
 from multiprocessing import Event, Process
-import traceback
 from typing import Dict, Type
 
-import amqp
-from kombu import Connection, Queue
+from amqp import ResourceLocked
+from kombu import Connection, Exchange, Queue
 
 from agency.agent import Agent
 from agency.logger import log
@@ -21,14 +21,14 @@ from agency.space import Space
 
 class _AgentAMQPProcess():
     def __init__(
-            self,
-            agent_type: Type[Agent],
-            agent_id: str,
-            agent_kwargs: Dict,
-            kombu_connection_options: Dict,
-            exchange_name: str,
-            outbound_queue: multiprocessing.Queue,
-        ):
+        self,
+        agent_type: Type[Agent],
+        agent_id: str,
+        agent_kwargs: Dict,
+        kombu_connection_options: Dict,
+        exchange_name: str,
+        outbound_queue: multiprocessing.Queue,
+    ):
         self.agent_type: Type[Agent] = agent_type
         self.agent_id: str = agent_id
         self.agent_kwargs: Dict = agent_kwargs
@@ -83,7 +83,12 @@ class _AgentAMQPProcess():
                  error_queue):
 
         try:
-            # Create a connection
+            # Create a connection and Exchange
+            exchange: Exchange = Exchange(
+                exchange_name,
+                type='topic',
+                durable=False,
+            )
             connection = Connection(**kombu_connection_options)
             connection.connect()
             if not connection.connected:
@@ -92,7 +97,7 @@ class _AgentAMQPProcess():
             # Create a queue for direct messages
             direct_queue = Queue(
                 f"{agent_id}-direct",
-                exchange=exchange_name,
+                exchange=exchange,
                 routing_key=agent_id,
                 exclusive=True,
             )
@@ -101,7 +106,7 @@ class _AgentAMQPProcess():
             # Create a separate broadcast queue
             broadcast_queue = Queue(
                 f"{agent_id}-broadcast",
-                exchange=exchange_name,
+                exchange=exchange,
                 routing_key=AMQPSpace._BROADCAST_KEY,
                 exclusive=True,
             )
@@ -142,13 +147,14 @@ class _AgentAMQPProcess():
                     connection.drain_events(timeout=0.001)
                 except socket.timeout:
                     pass
-        except amqp.exceptions.ResourceLocked:
+        except ResourceLocked:
             error_queue.put(
                 ValueError(f"Agent id already exists: '{agent_id}'"))
         except KeyboardInterrupt:
             pass
         except Exception as e:
-            log("error", f"{agent_id} process failed with exception", traceback.format_exc())
+            log("error", f"{agent_id} process failed with exception",
+                traceback.format_exc())
             error_queue.put(e)
         finally:
             agent._is_processing = False
@@ -196,6 +202,11 @@ class AMQPSpace(Space):
             'heartbeat': amqp_options.heartbeat,
         }
         self.__exchange_name: str = exchange_name
+        self.__exchange: Exchange = Exchange(
+            self.__exchange_name,
+            type='topic',
+            durable=False,
+        )
         self.__agent_processes: Dict[str, _AgentAMQPProcess] = {}
         router_thread = threading.Thread(
             target=self.__router_thread, daemon=True)
@@ -228,7 +239,7 @@ class AMQPSpace(Space):
             with connection.Producer(serializer="json") as producer:
                 producer.publish(
                     json.dumps(message),
-                    exchange=self.__exchange_name,
+                    exchange=self.__exchange,
                     routing_key=routing_key)
 
     def add(self, agent_type: Type[Agent], agent_id: str, **agent_kwargs) -> Agent:
