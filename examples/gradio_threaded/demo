@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+# This script mostly passes subcommands to docker-compose but overrides some
+# subcommands to add default options. See below.
+
+
+set -ae
+source .env
+
+
+function dc() {
+  echo "Running (docker-compose $@) ..."
+  eval "docker-compose $@"
+}
+
+
+SUBCOMMAND=$1
+if [ -z "$SUBCOMMAND" ]; then
+  dc --help
+  exit 1
+fi
+shift
+
+
+# add default arguments to these compose commands
+if [[ "$SUBCOMMAND" == "run" ]]; then
+  command="$SUBCOMMAND --build --remove-orphans --rm --service-ports $@"
+elif [[ "$SUBCOMMAND" == "up" ]]; then
+  command="$SUBCOMMAND --build --remove-orphans --force-recreate --always-recreate-deps --abort-on-container-exit $@"
+elif [[ "$SUBCOMMAND" == "down" ]]; then
+  command="$SUBCOMMAND --remove-orphans $@"
+
+
+# otherwise just pass the subcommand through to docker-compose
+else
+  command="$SUBCOMMAND $@"
+fi
+
+
+dc $command
