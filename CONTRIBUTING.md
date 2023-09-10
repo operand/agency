@@ -1,7 +1,7 @@
 # Contributing
 
-Thanks for considering contributing to the Agency library! Here's everything you
-need to know to get started.
+Thank you for considering contributing to the Agency library! Here's everything
+you need to know to get started.
 
 If you have any questions or want to discuss something, please open an
 [issue](https://github.com/operand/agency/issues) or
@@ -19,11 +19,11 @@ poetry install
 
 ## Developing with the Demo Application
 
-See [the demo directory](./demo/) for instructions on how to run the demo.
-
 The demo application is maintained as a basis to support library feature
 development. The application is configured to read the library source when
 running, allowing changes to be tested manually.
+
+See [the demo directory](./demo/) for instructions on how to run the demo.
 
 
 ## Test Suite
