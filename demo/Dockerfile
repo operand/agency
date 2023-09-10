@@ -5,8 +5,7 @@ FROM python:3.9 as base
 # socat needed to use gradio dev mode in a container
 # https://github.com/gradio-app/gradio/issues/3656
 RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y socat
+    apt-get upgrade -y
 
 WORKDIR /agency
 
