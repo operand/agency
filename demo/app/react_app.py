@@ -1,9 +1,8 @@
-import logging
-
-from fastapi import FastAPI, WebSocket
+import os
+import uvicorn
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-import uvicorn
 
 from agency.agent import ActionError, Agent, action
 from agency.schema import Message
@@ -38,11 +37,15 @@ class ReactApp:
 
     def start(self):
         app = FastAPI()
-        templates = Jinja2Templates(directory="templates")
+        templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+        templates = Jinja2Templates(directory=templates_dir)
 
         @app.get("/", response_class=HTMLResponse)
-        async def index():
-            return templates.TemplateResponse("index.html", {"request": None, "username": self.__demo_username})
+        async def index(request: Request):
+            return templates.TemplateResponse("index.html", {
+                "request": request,
+                "username": self.__demo_username
+            })
 
         @app.websocket("/ws")
         async def websocket_endpoint(websocket: WebSocket):
