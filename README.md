@@ -19,7 +19,7 @@ Agency's goal is to enable developers to create custom agent-based solutions by 
 ### Observability and Control
 * Action and lifecycle callbacks for observability or other needs
 * Access policies and permission callbacks for access control
-* Logging support
+* `LOGLEVEL` support for log output granularity
 
 ### Performance and Scalability
 * Multiprocess and multithreading support for concurrency
