@@ -22,5 +22,9 @@ if __name__ == "__main__":
               # user_id determines the "user" role in the OpenAI chat API
               user_id="User")
 
-    demo = ReactApp(space=space).demo()
-    demo.launch()
+    app = ReactApp(
+        space=space,
+        port=int(os.getenv("WEB_APP_PORT")),
+        demo_username=os.getenv("User") 
+    )
+    app.start()

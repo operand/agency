@@ -10,9 +10,6 @@ from agency.agent import ActionError, Agent, action
 from agency.schema import Message
 from agency.space import Space
 
-# IMPORTANT! This example react application is out of date  and untested, but is
-# left here for reference. It will be updated or replaced in the future.
-
 
 class ReactApp():
     """
@@ -83,6 +80,7 @@ class ReactApp():
             raise NotImplementedError()
 
         # Wrap the Flask application with wsgi middleware and start
+        print(f"Starting Flask server on port {self.__port}")
         def run_server():
             wsgi.server(eventlet.listen(('', int(self.__port))),
                         app, log=eventlet_logger)
