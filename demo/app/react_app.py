@@ -32,9 +32,6 @@ class ReactApp:
     async def handle_action(self, action):
         self.__current_user.send(action)
 
-    async def handle_alert_response(self, allowed: bool):
-        raise NotImplementedError()
-
     def start(self):
         app = FastAPI()
         templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")

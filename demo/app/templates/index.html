@@ -38,7 +38,6 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
 </head>
 
@@ -60,7 +59,7 @@
           ],
           input: ''
         };
-        this.socket = io();
+        this.socket = new WebSocket('ws://localhost:8000/ws');
         this.chatbox = React.createRef()
       }
 
@@ -71,7 +70,6 @@
           if (!action_text.startsWith("/")) {
             action = {
               "action": "say",
-              "thoughts": "",
               "args": { "content": action_text }
             }
           } else {
