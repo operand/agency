@@ -3,13 +3,11 @@ import logging
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+import uvicorn
 
 from agency.agent import ActionError, Agent, action
 from agency.schema import Message
 from agency.space import Space
-
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
 
 
 class ReactApp:
@@ -38,26 +36,27 @@ class ReactApp:
     async def handle_alert_response(self, allowed: bool):
         raise NotImplementedError()
 
+    def start(self):
+        app = FastAPI()
+        templates = Jinja2Templates(directory="templates")
 
-@app.get("/", response_class=HTMLResponse)
-async def index():
-    return templates.TemplateResponse("index.html", {
-        "request": None,
-        "username": app.state.react_app.__demo_username
-    })
+        @app.get("/", response_class=HTMLResponse)
+        async def index():
+            return templates.TemplateResponse("index.html", {"request": None, "username": self.__demo_username})
 
+        @app.websocket("/ws")
+        async def websocket_endpoint(websocket: WebSocket):
+            await self.handle_connect(websocket)
+            try:
+                while True:
+                    data = await websocket.receive_text()
+                    await self.handle_action(data)
+            except Exception as e:
+                print(e)
+            finally:
+                await self.handle_disconnect()
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await app.state.react_app.handle_connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            await app.state.react_app.handle_action(data)
-    except Exception as e:
-        print(e)
-    finally:
-        await app.state.react_app.handle_disconnect()
+        uvicorn.run(app, host="0.0.0.0", port=self.__port)
 
 
 class ReactAppUser(Agent):
