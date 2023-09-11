@@ -25,6 +25,6 @@ if __name__ == "__main__":
     app = ReactApp(
         space=space,
         port=int(os.getenv("WEB_APP_PORT")),
-        demo_username=os.getenv("User") 
+        demo_username=os.getenv("User")
     )
     app.start()

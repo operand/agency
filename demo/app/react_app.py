@@ -1,119 +1,81 @@
 import logging
 
+from fastapi import FastAPI, WebSocket
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
 from agency.agent import ActionError, Agent, action
 from agency.schema import Message
 from agency.space import Space
 
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
-class ReactApp():
-    """
-    A simple Flask/React web application which connects human users to a space.
-    """
 
+class ReactApp:
     def __init__(self, space: Space, port: int, demo_username: str):
         self.__space = space
         self.__port = port
         self.__demo_username = demo_username
         self.__current_user = None
 
-    def start(self):
-        """
-        Run Flask server in a separate thread
-        """
-        app = Flask(__name__)
-        app.config['SECRET_KEY'] = 'secret!'
+    async def handle_connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.__current_user = ReactAppUser(
+            name=self.__demo_username,
+            app=self,
+            websocket=websocket
+        )
+        self.__space.add(self.__current_user)
 
-        # six lines to disable logging...
-        app.logger.removeHandler(default_handler)
-        app.logger.setLevel(logging.ERROR)
-        werkzeug_log = logging.getLogger('werkzeug')
-        werkzeug_log.setLevel(logging.ERROR)
-        eventlet_logger = logging.getLogger('eventlet.wsgi.server')
-        eventlet_logger.setLevel(logging.ERROR)
+    async def handle_disconnect(self):
+        self.__space.remove(self.__current_user)
+        self.__current_user = None
 
-        # start socketio server
-        self.socketio = SocketIO(app, async_mode='eventlet',
-                                 logger=False, engineio_logger=False)
+    async def handle_action(self, action):
+        self.__current_user.send(action)
 
-        # Define routes
-        @app.route('/')
-        def index():
-            return render_template(
-                'index.html',
-                username=f"{self.__demo_username}")
+    async def handle_alert_response(self, allowed: bool):
+        raise NotImplementedError()
 
-        @self.socketio.on('connect')
-        def handle_connect():
-            # When a client connects add them to the space
-            # NOTE We're hardcoding a single demo_username for simplicity
-            self.__current_user = ReactAppUser(
-                name=self.__demo_username,
-                app=self,
-                sid=request.sid
-            )
-            self.__space.add(self.__current_user)
 
-        @self.socketio.on('disconnect')
-        def handle_disconnect():
-            # When a client disconnects remove them from the space
-            self.__space.remove(self.__current_user)
-            self.__current_user = None
+@app.get("/", response_class=HTMLResponse)
+async def index():
+    return templates.TemplateResponse("index.html", {
+        "request": None,
+        "username": app.state.react_app.__demo_username
+    })
 
-        @self.socketio.on('message')
-        def handle_action(action):
-            """
-            Handles sending incoming actions from the web interface
-            """
-            self.__current_user.send(action)
 
-        @self.socketio.on('permission_response')
-        def handle_alert_response(allowed: bool):
-            """
-            Handles incoming alert response from the web interface
-            """
-            raise NotImplementedError()
-
-        # Wrap the Flask application with wsgi middleware and start
-        print(f"Starting Flask server on port {self.__port}")
-        def run_server():
-            wsgi.server(eventlet.listen(('', int(self.__port))),
-                        app, log=eventlet_logger)
-        eventlet.spawn(run_server)
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await app.state.react_app.handle_connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await app.state.react_app.handle_action(data)
+    except Exception as e:
+        print(e)
+    finally:
+        await app.state.react_app.handle_disconnect()
 
 
 class ReactAppUser(Agent):
-    """
-    A human user of the web app
-    """
-
-    def __init__(self, name: str, app: ReactApp, sid: str) -> None:
+    def __init__(self, name: str, app: ReactApp, websocket: WebSocket) -> None:
         super().__init__(id=name)
         self.name = name
         self.app = app
-        self.sid = sid
+        self.websocket = websocket
 
-    def request_permission(self, proposed_message: Message) -> bool:
-        """
-        Raises an alert in the users browser and returns true if the user
-        approves the action
-        """
-        self.app.socketio.server.emit(
-            'permission_request', proposed_message)
-
-    # The following methods simply forward incoming messages to the web client
+    async def request_permission(self, proposed_message: Message) -> bool:
+        await self.websocket.send_text('permission_request', proposed_message)
 
     @action
-    def say(self, content: str):
-        """
-        Sends a message to the user
-        """
-        self.app.socketio.server.emit(
-            'message', self.current_message(), room=self.sid)
+    async def say(self, content: str):
+        await self.websocket.send_text('message', self.current_message())
 
-    def handle_action_value(self, value):
-        self.app.socketio.server.emit(
-            'message', self.current_message(), room=self.sid)
+    async def handle_action_value(self, value):
+        await self.websocket.send_text('message', self.current_message())
 
-    def handle_action_error(self, error: ActionError):
-        self.app.socketio.server.emit(
-            'message', self.current_message(), room=self.sid)
+    async def handle_action_error(self, error: ActionError):
+        await self.websocket.send_text('message', self.current_message())
