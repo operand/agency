@@ -63,6 +63,54 @@
         this.chatbox = React.createRef()
       }
 
+      componentDidMount() {
+        this.socket.addEventListener("open", (event) => {
+          console.log("WebSocket connection opened:", event);
+        });
+
+        this.socket.addEventListener("message", (event) => {
+          console.log("WebSocket message received:", event.data);
+          const msg = JSON.parse(event.data);
+          this.setState(state => {
+            const messages = [
+              ...state.messages,
+              msg
+            ];
+            return { messages };
+          });
+        });
+
+        this.socket.addEventListener("close", (event) => {
+          console.log("WebSocket connection closed:", event);
+        });
+
+        this.socket.addEventListener("error", (event) => {
+          console.log("WebSocket error:", event);
+        });
+      }
+
+      componentDidUpdate() {
+        // Scroll to the bottom
+        this.chatbox.current.scrollTop = this.chatbox.current.scrollHeight;
+      }
+
+      handleInputChange = (event) => {
+        this.setState({ input: event.target.value });
+      }
+
+      handleKeyDown = (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault(); // Prevents the addition of a new line in the input field
+          if (event.shiftKey) {
+            // Add a newline character to the input
+            this.setState(state => ({ input: state.input + '\n' }));
+          } else {
+            // Send the message
+            this.sendMessage();
+          }
+        }
+      }
+
       parseSlashSyntaxAction(action_text) {
           action_text = action_text.trim();
           let action = {};
@@ -124,46 +172,6 @@
           return action;
         }
 
-      componentDidMount() {
-        this.socket.on('message', (msg) => {
-          console.log('message: ', msg);
-          this.setState(state => {
-            const messages = [
-              ...state.messages,
-              msg
-            ];
-            return { messages };
-          });
-        });
-
-        this.socket.on('permission_request', (proposedMsg) => {
-          console.log('permission_request: ', proposedMsg);
-          const answer = window.confirm(`Do you permit the following?\n${proposedMsg}`);
-          this.socket.emit('permission_response')
-        });
-      }
-
-      componentDidUpdate() {
-        this.chatbox.current.scrollTop = this.chatbox.current.scrollHeight;
-      }
-
-      handleInputChange = (event) => {
-        this.setState({ input: event.target.value });
-      }
-
-      handleKeyDown = (event) => {
-        if (event.key === 'Enter') {
-          event.preventDefault(); // Prevents the addition of a new line in the input field
-          if (event.shiftKey) {
-            // Add a newline character to the input
-            this.setState(state => ({ input: state.input + '\n' }));
-          } else {
-            // Send the message
-            this.sendMessage();
-          }
-        }
-      }
-
       sendMessage = () => {
         const content = this.state.input;
         if (content.trim() !== '') {
@@ -182,7 +190,7 @@
             input: ''
           }));
           // send action
-          this.socket.emit('message', action);
+          this.socket.send(JSON.stringify(action));
         }
       }
 
