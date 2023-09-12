@@ -164,3 +164,6 @@ class MultiprocessSpace(Space):
         agent_ids = list(self.__agent_processes.keys())
         for agent_id in agent_ids:
             self.remove(agent_id)
+
+    def __del__(self):
+        self.remove_all()
