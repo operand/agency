@@ -1,7 +1,4 @@
 import os
-import signal
-import sys
-import threading
 
 from agents.host import Host
 from agents.openai_function_agent import OpenAIFunctionAgent
@@ -26,6 +23,7 @@ if __name__ == "__main__":
               # user_id determines the "user" role in the OpenAI chat API
               user_id="User")
 
+    # Start the app
     app = ReactApp(
         space=space,
         port=int(os.getenv("WEB_APP_PORT")),

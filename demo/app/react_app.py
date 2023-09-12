@@ -34,7 +34,8 @@ class ReactApp:
 
     def start(self):
         app = FastAPI()
-        templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+        templates_dir = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), "templates")
         templates = Jinja2Templates(directory=templates_dir)
 
         @app.get("/", response_class=HTMLResponse)
