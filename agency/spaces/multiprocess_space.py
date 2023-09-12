@@ -6,7 +6,7 @@ import traceback
 from multiprocessing import Event, Process
 from typing import Dict, Type
 
-from agency.agent import Agent, _QueueProtocol
+from agency.agent import Agent, QueueProtocol
 from agency.logger import log
 from agency.schema import Message, validate_message
 from agency.space import Space
@@ -18,13 +18,13 @@ class _AgentProcess():
             agent_type: Type[Agent],
             agent_id: str,
             agent_kwargs: Dict,
-            inbound_queue: _QueueProtocol,
-            outbound_queue: _QueueProtocol):
+            inbound_queue: QueueProtocol,
+            outbound_queue: QueueProtocol):
         self.agent_type: Type[Agent] = agent_type
         self.agent_id: str = agent_id
         self.agent_kwargs: Dict = agent_kwargs
-        self.inbound_queue: _QueueProtocol = inbound_queue
-        self.outbound_queue: _QueueProtocol = outbound_queue
+        self.inbound_queue: QueueProtocol = inbound_queue
+        self.outbound_queue: QueueProtocol = outbound_queue
 
     def start(self):
         self.started = Event()

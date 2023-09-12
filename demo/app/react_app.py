@@ -1,33 +1,36 @@
 import os
+
 import uvicorn
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from agency.agent import ActionError, Agent, action
+from agency.agent import ActionError, Agent, QueueProtocol, action
 from agency.schema import Message
 from agency.space import Space
 
 
 class ReactApp:
-    def __init__(self, space: Space, port: int, demo_username: str):
+    """
+    A React app that uses the FastAPI framework
+    """
+
+    def __init__(self, space: Space, port: int, user_agent_id: str):
         self.__space = space
+        self.__host = "0.0.0.0"
         self.__port = port
-        self.__demo_username = demo_username
+        self.__user_agent_id = user_agent_id
         self.__current_user = None
 
     async def handle_connect(self, websocket: WebSocket):
         await websocket.accept()
-        self.__current_user = ReactAppUser(
-            name=self.__demo_username,
-            app=self,
-            websocket=websocket
-        )
-        self.__space.add(self.__current_user)
+        # add the user to the space
+        self.__space.add(ReactAppUser,
+                         self.__user_agent_id,
+                         websocket=websocket)
 
     async def handle_disconnect(self):
-        self.__space.remove(self.__current_user)
-        self.__current_user = None
+        self.__space.remove(self.__user_agent_id)
 
     async def handle_action(self, action):
         self.__current_user.send(action)
@@ -42,7 +45,7 @@ class ReactApp:
         async def index(request: Request):
             return templates.TemplateResponse("index.html", {
                 "request": request,
-                "username": self.__demo_username
+                "username": self.__user_agent_id
             })
 
         @app.websocket("/ws")
@@ -57,14 +60,15 @@ class ReactApp:
             finally:
                 await self.handle_disconnect()
 
-        uvicorn.run(app, host="0.0.0.0", port=self.__port)
+        uvicorn.run(app, host=self.__host, port=self.__port)
 
 
 class ReactAppUser(Agent):
-    def __init__(self, name: str, app: ReactApp, websocket: WebSocket) -> None:
-        super().__init__(id=name)
-        self.name = name
-        self.app = app
+    def __init__(self,
+                 id: str,
+                 outbound_queue: QueueProtocol,
+                 websocket: WebSocket):
+        super().__init__(id, outbound_queue, receive_own_broadcasts=False)
         self.websocket = websocket
 
     async def request_permission(self, proposed_message: Message) -> bool:

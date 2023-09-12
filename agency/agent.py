@@ -135,7 +135,7 @@ def action(*args, **kwargs):
         return decorator  # The decorator was used with parentheses
 
 
-class _QueueProtocol(Protocol):
+class QueueProtocol(Protocol):
     """A protocol for providing an outbound queue for an Agent"""
 
     def put(self, message: Message):
@@ -169,7 +169,7 @@ class Agent():
 
     def __init__(self,
                  id: str,
-                 outbound_queue: _QueueProtocol,
+                 outbound_queue: QueueProtocol,
                  receive_own_broadcasts: bool = True):
         """
         Initializes an Agent.
@@ -195,7 +195,7 @@ class Agent():
         if outbound_queue is None:
             raise ValueError("outbound_queue must be provided")
         self._id: str = id
-        self._outbound_queue: _QueueProtocol = outbound_queue
+        self._outbound_queue: QueueProtocol = outbound_queue
         self._receive_own_broadcasts: bool = receive_own_broadcasts
         self._is_processing: bool = False  # set by the Space
         self._message_log: List[Message] = []
