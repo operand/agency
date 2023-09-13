@@ -1,0 +1,1 @@
+This directory is the root of Agency's Typescript library source.
