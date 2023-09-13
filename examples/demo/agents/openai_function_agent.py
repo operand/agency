@@ -2,6 +2,8 @@ import json
 import textwrap
 
 import openai
+import litellm
+import uuid
 from agents.mixins.help_methods import HelpMethods
 from agents.mixins.say_response_methods import SayResponseMethods
 
@@ -19,6 +21,11 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
         self.__model = model
         self.__user_id = user_id
         openai.api_key = openai_api_key
+
+        # init a budget for this agent
+        # initialize a budget manager to control costs for gpt-4/other llms
+        self.budget_manager = litellm.BudgetManager(project_name="openai_functions_agent")
+        self.session_id = str(uuid.uuid4())
 
     def __system_prompt(self):
         return textwrap.dedent(f"""
@@ -126,13 +133,18 @@ class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
         """
         Sends a message to this agent
         """
-        completion = openai.ChatCompletion.create(
+        if self.budget_manager.get_current_cost(user=self.session_id) <= self.budget_manager.get_total_budget(self.session_id):
+            raise Exception(f"Exceeded the maximum budget for this session")
+
+        completion = litellm.completion(
           model=self.__model,
           messages=self.__open_ai_messages(),
           functions=self.__open_ai_functions(),
           function_call="auto",
           # ... https://platform.openai.com/docs/api-reference/chat/create
         )
+
+        self.budget_manager.update_cost(completion_obj=completion, user=self.session_id) # update budget
 
         # parse the output
         message = {
