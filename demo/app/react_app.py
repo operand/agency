@@ -20,7 +20,6 @@ class ReactApp:
         self.__host = "0.0.0.0"
         self.__port = port
         self.__user_agent_id = user_agent_id
-        self.__current_user = None
 
     async def handle_connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -30,15 +29,17 @@ class ReactApp:
                          websocket=websocket)
 
     async def handle_disconnect(self):
+        # remove the user from the space
         self.__space.remove(self.__user_agent_id)
 
-    async def handle_action(self, action):
+    async def handle_send(self, action):
+        raise NotImplementedError
         self.__current_user.send(action)
 
     def start(self):
         app = FastAPI()
-        templates_dir = os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), "templates")
+        templates_dir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "templates")
         templates = Jinja2Templates(directory=templates_dir)
 
         @app.get("/", response_class=HTMLResponse)
@@ -54,7 +55,7 @@ class ReactApp:
             try:
                 while True:
                     data = await websocket.receive_text()
-                    await self.handle_action(data)
+                    await self.handle_send(data)
             except Exception as e:
                 print(e)
             finally:

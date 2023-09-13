@@ -6,7 +6,6 @@ from app.react_app import ReactApp
 
 from agency.spaces.multiprocess_space import MultiprocessSpace
 
-
 if __name__ == "__main__":
 
     # Create the space instance
