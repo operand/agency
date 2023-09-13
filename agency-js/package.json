@@ -4,6 +4,7 @@
   "description": "A fast and minimal framework for building agent-integrated systems",
   "main": "index.ts",
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Dan Rodriguez <hi@dan.ws>",
