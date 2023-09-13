@@ -14,6 +14,7 @@ services:
       - ..:/agency
     env_file: .env
     environment:
+      APP_ENV: development
       LOGLEVEL: # pass through
       TRANSFORMERS_CACHE: /models/transformers_cache
     ports:

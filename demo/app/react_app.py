@@ -1,4 +1,5 @@
 import os
+from fastapi.staticfiles import StaticFiles
 
 import uvicorn
 from fastapi import FastAPI, Request, WebSocket
@@ -42,11 +43,17 @@ class ReactApp:
             os.path.dirname(os.path.abspath(__file__)), "templates")
         templates = Jinja2Templates(directory=templates_dir)
 
+        # mount js directory to serve client library in development
+        if os.environ.get("APP_ENV") == "development":
+            js_directory = os.path.abspath("../agency-js/dist/")
+            app.mount("/js", StaticFiles(directory=js_directory), name="js")
+
         @app.get("/", response_class=HTMLResponse)
         async def index(request: Request):
             return templates.TemplateResponse("index.html", {
                 "request": request,
-                "username": self.__user_agent_id
+                "username": self.__user_agent_id,
+                "app_env": os.environ.get("APP_ENV"),
             })
 
         @app.websocket("/ws")
