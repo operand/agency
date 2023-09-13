@@ -33,9 +33,10 @@ WORKDIR /agency-js
 RUN curl -sL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/nodesource.gpg > /dev/null && \
     echo "deb https://deb.nodesource.com/node_18.x $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && \
-    apt-get install -y nodejs
+    apt-get install -y nodejs && \
+    npm install -g yarn
 COPY agency-js/package.json agency-js/yarn.lock ./
-RUN npm install -g yarn && yarn --version && yarn install
+RUN yarn install
 COPY agency-js/ ./
 RUN yarn build
 

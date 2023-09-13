@@ -39,13 +39,10 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-  {% if app_env == "development" %}
-    <script>window.APP_ENV = "development";</script>
-    <script type="module" src="/js/index.js"></script>
-  {% else %}
-    <script>window.APP_ENV = "production";</script>
-    <script type="module" src="https://unpkg.com/@operand/agency@0/dist/index.js"></script>
-  {% endif %}
+  <script>window.APP_ENV = "development";</script>
+  <script type="module" src="/js/index.js"></script>
+  <!-- In production this line tag would be something like: -->
+  <!-- <script type="module" src="https://unpkg.com/@operand/agency@0/dist/index.js"></script> -->
 </head>
 
 <body>

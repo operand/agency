@@ -44,7 +44,7 @@ class ReactApp:
         templates = Jinja2Templates(directory=templates_dir)
 
         # mount js directory to serve client library in development
-        # NOTE this is specific for the demo app
+        # NOTE this is specific to the demo app
         if os.environ.get("APP_ENV") == "development":
             js_directory = os.path.abspath("/agency-js-dist/")
             app.mount("/js", StaticFiles(directory=js_directory), name="js")
