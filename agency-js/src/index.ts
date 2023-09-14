@@ -9,6 +9,4 @@ if (getAppEnv() === 'development') {
   console.log("development mode loaded");
 }
 
-export function hello() {
-  console.log("hello world");
-}
+// TODO: agency-js client library
