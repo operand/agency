@@ -114,7 +114,7 @@ There are three included `Space` implementations to choose from:
 * `ThreadSpace` - which distributes and connects agents using
   multithreading, suitable for simple applications and testing.
 * `MultiprocessSpace` - which distributes agents using the
-  multiprocessing module, for better parallelism on single hosts.
+  multiprocessing module, for better parallelism.
 * `AMQPSpace` - which distributes agents across a network using an AMQP
   server like RabbitMQ.
 
