@@ -11,9 +11,9 @@ from agency.schema import Message
 from agency.space import Space
 
 
-class ReactApp:
+class DemoApp:
     """
-    A React app that uses the FastAPI framework
+    A FastAPI server that serves a demo React application
     """
 
     def __init__(self, space: Space, port: int, user_agent_id: str):
@@ -33,7 +33,7 @@ class ReactApp:
         # remove the user from the space
         self.__space.remove(self.__user_agent_id)
 
-    async def handle_send(self, action):
+    def handle_send(self, action):
         raise NotImplementedError
         # self.__current_user.send(action)
 
@@ -44,7 +44,7 @@ class ReactApp:
         templates = Jinja2Templates(directory=templates_dir)
 
         # mount js directory to serve client library in development
-        # NOTE this is specific to the demo app
+        # NOTE this works with the demo app docker container
         if os.environ.get("APP_ENV") == "development":
             js_directory = os.path.abspath("/agency-js-dist/")
             app.mount("/js", StaticFiles(directory=js_directory), name="js")
@@ -63,7 +63,7 @@ class ReactApp:
             try:
                 while True:
                     data = await websocket.receive_text()
-                    await self.handle_send(data)
+                    self.handle_send(data)
             except Exception as e:
                 print(e)
             finally:

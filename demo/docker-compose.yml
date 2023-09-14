@@ -19,6 +19,6 @@ services:
       TRANSFORMERS_CACHE: /models/transformers_cache
     ports:
       - '$WEB_APP_PORT:8080'
-    command: poetry run python main.py
+    command: poetry run python demo.py
     tty: true
     stdin_open: true

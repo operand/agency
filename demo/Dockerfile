@@ -48,4 +48,4 @@ COPY --from=agency_js_build /agency-js/dist /agency-js-dist
 COPY . .
 
 # Go
-CMD ["python", "main.py"]
+CMD ["python", "demo.py"]

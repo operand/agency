@@ -1,4 +1,4 @@
-export function getAppEnv() {
+function getAppEnv() {
   if (typeof window !== 'undefined' && window.APP_ENV) {
     return window.APP_ENV;
   }
@@ -6,5 +6,9 @@ export function getAppEnv() {
 }
 
 if (getAppEnv() === 'development') {
-  console.log("development library loaded!");
+  console.log("development mode loaded");
+}
+
+export function hello() {
+  console.log("hello world");
 }
