@@ -15,6 +15,7 @@ x-demo-base:
   env_file: .env
   environment:
     LOGLEVEL: # pass through
+    LOG_PYGMENTS_STYLE: # pass through
     TRANSFORMERS_CACHE: /models/transformers_cache
 
 

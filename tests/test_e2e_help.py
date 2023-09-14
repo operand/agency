@@ -1,4 +1,4 @@
-from agency.agent import _RESPONSE_ACTION_NAME, action
+from agency.agent import action
 from tests.helpers import ObservableAgent, add_agent, assert_message_log
 
 
@@ -24,7 +24,7 @@ class _HelpActionAgent(ObservableAgent):
         help={
             "something": "made up",
             "anything": {
-                "whatever": { "I": "want" },
+                "whatever": {"I": "want"},
             },
             "stuff": ["a", "b", "c"]
         }
@@ -37,18 +37,18 @@ def test_help_action(any_space):
     """Tests defining help info, requesting it, receiving the response"""
 
     first_message = {
-        'to': '*',  # broadcast
-        'from': 'Sender',
-        'action': {
-            'name': 'help',
-            'args': {},
+        "meta": {"id": "123"},
+        "from": "Sender",
+        "to": "*",  # broadcast
+        "action": {
+            "name": "help",
         }
     }
 
     receivers_expected_response = {
-        "meta": { "response_id": None },
-        "to": "Sender",
+        "meta": {"parent_id": "123"},
         "from": "Receiver",
+        "to": "Sender",
         "action": {
             "name": "[response]",
             "args": {
@@ -66,7 +66,7 @@ def test_help_action(any_space):
                     "action_with_custom_help": {
                         "something": "made up",
                         "anything": {
-                            "whatever": { "I": "want" },
+                            "whatever": {"I": "want"},
                         },
                         "stuff": ["a", "b", "c"]
                     }
@@ -80,8 +80,10 @@ def test_help_action(any_space):
 
     # Send the first message and wait for a response
     any_space._route(first_message)
-    assert_message_log(senders_log, [receivers_expected_response])
-    assert_message_log(receivers_log, [first_message, receivers_expected_response])
+    assert_message_log(
+        senders_log, [receivers_expected_response])
+    assert_message_log(
+        receivers_log, [first_message, receivers_expected_response])
 
 
 class _HelpSpecificActionAgent(ObservableAgent):
@@ -102,19 +104,24 @@ def test_help_specific_action(any_space):
 
     # Send the first message and wait for a response
     first_message = {
-        'to': '*',  # broadcast
-        'from': 'Sender',
-        'action': {
-            'name': 'help',
-            'args': {
-                'action_name': 'action_i_will_request_help_on'
+        "meta": {
+            "id": "123"
+        },
+        "to": "*",  # broadcast
+        "from": "Sender",
+        "action": {
+            "name": "help",
+            "args": {
+                "action_name": "action_i_will_request_help_on"
             }
         }
     }
     any_space._route(first_message)
     assert_message_log(senders_log, [
         {
-            "meta": { "response_id": None },
+            "meta": {
+                "parent_id": "123"
+            },
             "to": "Sender",
             "from": "Receiver",
             "action": {

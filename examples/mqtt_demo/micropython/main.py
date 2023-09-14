@@ -42,7 +42,7 @@ class SmartHomeAgent(UAgent):
     def after_add(self):
         self.send({
             "meta": {
-                "response_id": "help_request",
+                "parent_id": "help_request",
             },
             "to": "*",
             "action": {
@@ -89,7 +89,7 @@ class RobotAgent(UAgent):
     def after_add(self):
         self.send({
             "meta": {
-                "response_id": "help_request",
+                "parent_id": "help_request",
             },
             "to": "*",
             "action": {

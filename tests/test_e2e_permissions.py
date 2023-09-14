@@ -12,24 +12,24 @@ def test_send_unpermitted_action(any_space):
     """Tests sending an unpermitted action and receiving an error response"""
 
     senders_log = add_agent(any_space, ObservableAgent, "Sender")
-    receivers_log = add_agent(any_space, _SendUnpermittedActionAgent, "Receiver")
+    receivers_log = add_agent(
+        any_space, _SendUnpermittedActionAgent, "Receiver")
 
     first_message = {
-        'from': 'Sender',
-        'to': 'Receiver',
-        'action': {
-            'name': 'say',
-            'args': {
-                'content': 'Hello, Receiver!'
+        "meta": {"id": "123"},
+        "from": "Sender",
+        "to": "Receiver",
+        "action": {
+            "name": "say",
+            "args": {
+                "content": "Hello, Receiver!"
             }
         }
     }
     any_space._route(first_message)
     assert_message_log(senders_log, [
         {
-            "meta": {
-                "response_id": None,
-            },
+            "meta": {"parent_id": "123"},
             "from": "Receiver",
             "to": "Sender",
             "action": {
@@ -58,21 +58,20 @@ def test_send_request_permitted_action(any_space):
         any_space, _SendRequestPermittedActionAgent, "Receiver")
 
     first_message = {
-        'from': 'Sender',
-        'to': 'Receiver',
-        'action': {
-            'name': 'say',
-            'args': {
-                'content': 'Receiver, what is the answer to life, the universe, and everything?'
+        "meta": {"id": "123"},
+        "from": "Sender",
+        "to": "Receiver",
+        "action": {
+            "name": "say",
+            "args": {
+                "content": "Receiver, what is the answer to life, the universe, and everything?"
             }
         }
     }
     any_space._route(first_message)
     assert_message_log(senders_log, [
         {
-            "meta": {
-                "response_id": None,
-            },
+            "meta": {"parent_id": "123"},
             "from": "Receiver",
             "to": "Sender",
             "action": {
@@ -98,22 +97,24 @@ def test_send_request_rejected_action(any_space):
     """Tests sending an action, rejecting permission, and returning error"""
 
     senders_log = add_agent(any_space, ObservableAgent, "Sender")
-    receivers_log = add_agent(any_space, _SendRequestReceivedActionAgent, "Receiver")
+    receivers_log = add_agent(
+        any_space, _SendRequestReceivedActionAgent, "Receiver")
 
     first_message = {
-        'from': 'Sender',
-        'to': 'Receiver',
-        'action': {
-            'name': 'say',
-            'args': {
-                'content': 'Receiver, what is the answer to life, the universe, and everything?'
+        "meta": {"id": "123"},
+        "from": "Sender",
+        "to": "Receiver",
+        "action": {
+            "name": "say",
+            "args": {
+                "content": "Receiver, what is the answer to life, the universe, and everything?"
             }
         }
     }
     any_space._route(first_message)
     assert_message_log(senders_log, [
         {
-            "meta": { "response_id": None },
+            "meta": {"parent_id": "123"},
             "from": "Receiver",
             "to": "Sender",
             "action": {

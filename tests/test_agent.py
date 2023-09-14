@@ -20,6 +20,7 @@ def test_before_and_after_action():
     agent.before_action = MagicMock()
     agent.after_action = MagicMock()
     agent._receive({
+        "meta": { "id": "123" },
         "from": "Agent",
         "to": "Agent",
         "action": {

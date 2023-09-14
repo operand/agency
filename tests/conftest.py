@@ -2,15 +2,17 @@ import subprocess
 import time
 import tracemalloc
 
-tracemalloc.start()
-
 import pytest
 
 from agency.spaces.amqp_space import AMQPSpace
 from agency.spaces.multiprocess_space import MultiprocessSpace
 from agency.spaces.thread_space import ThreadSpace
 
+tracemalloc.start()
+
+
 RABBITMQ_OUT = subprocess.DEVNULL  # use subprocess.PIPE for output
+
 
 @pytest.fixture(scope="session", autouse=True)
 def rabbitmq_container():

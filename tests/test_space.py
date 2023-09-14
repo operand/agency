@@ -33,6 +33,7 @@ def test_amqp_heartbeat():
 
         # send yourself a message
         message = {
+            "meta": {"id": "123"},
             "from": "Hartford",
             "to": "Hartford",
             "action": {
@@ -43,7 +44,33 @@ def test_amqp_heartbeat():
             },
         }
         amqp_space_with_short_heartbeat._route(message)
-        assert_message_log(hartfords_message_log, [message])
+        assert_message_log(hartfords_message_log, [
+            message,
+            {
+                # response send
+                "meta": {"parent_id": "123"},
+                "to": "Hartford",
+                "action": {
+                    "name": "[response]",
+                    "args": {
+                        "value": None,
+                    }
+                },
+                "from": "Hartford"
+            },
+            {
+                # response receive
+                "meta": {"parent_id": "123"},
+                "from": "Hartford",
+                "to": "Hartford",
+                "action": {
+                    "name": "[response]",
+                    "args": {
+                        "value": None,
+                    }
+                }
+            }
+        ])
 
     finally:
         # cleanup

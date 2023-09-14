@@ -6,7 +6,6 @@ from agents.mixins.help_methods import HelpMethods
 from agents.mixins.say_response_methods import SayResponseMethods
 
 from agency.agent import _RESPONSE_ACTION_NAME, Agent, action
-from agency.logger import log
 
 
 class OpenAIFunctionAgent(HelpMethods, SayResponseMethods, Agent):
