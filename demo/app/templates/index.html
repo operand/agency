@@ -4,6 +4,7 @@
 <head>
   <title>Agency Demo</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <link rel="stylesheet" href="/react-static/css/{{ css_file }}">
   <style>
     body,
     #root {
@@ -36,15 +37,14 @@
       /* overflow: hidden;  Hides the scrollbar */
     }
   </style>
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
   <script>window.APP_ENV = "{{ app_env }}";</script>
   {% if app_env == "development" %}
     <script type="module" src="/js/index.js"></script>
   {% else %}
     <script type="module" src="https://unpkg.com/@operand/agency@0/dist/index.js"></script>
   {% endif %}
+  <script src="/react-static/js/{{ js_runtime_file }}"></script>
+  <script src="/react-static/js/{{ js_main_file }}"></script>
 </head>
 
 <body>
@@ -55,7 +55,7 @@
   </script>
 
   {% raw %}
-  <script type="text/babel">
+  <!-- <script type="text/babel">
     class ChatApp extends React.Component {
       constructor(props) {
         super(props);
@@ -236,7 +236,7 @@
 
     const root = document.getElementById('root');
     ReactDOM.createRoot(root).render(<ChatApp />);
-  </script>
+  </script> -->
   {% endraw %}
 </body>
 

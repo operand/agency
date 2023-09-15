@@ -9,6 +9,14 @@ RUN apt-get update && \
     gnupg \
     lsb-release
 
+# Install node and yarn
+RUN curl -sL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/nodesource.gpg > /dev/null && \
+    echo "deb https://deb.nodesource.com/node_18.x $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && \
+    apt-get install -y nodejs && \
+    npm install -g yarn
+
+# Setup python virtual environment
 RUN pip install setuptools wheel poetry
 ENV POETRY_VIRTUALENVS_PATH=/venv
 
@@ -27,24 +35,26 @@ COPY pyproject.toml poetry.lock README.md ./
 COPY agency/__init__.py ./agency/__init__.py
 RUN cd demo && poetry install
 
+# Build demo react app
+FROM base as demo_app_build
+WORKDIR /demo_app_build
+COPY demo/app/ ./
+RUN yarn build
+
 # Build agency-js
 FROM base as agency_js_build
-WORKDIR /agency-js
-RUN curl -sL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/nodesource.gpg > /dev/null && \
-    echo "deb https://deb.nodesource.com/node_18.x $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update && \
-    apt-get install -y nodejs && \
-    npm install -g yarn
+WORKDIR /agency_js_build
 COPY agency-js/package.json agency-js/yarn.lock ./
 RUN yarn install
 COPY agency-js/ ./
 RUN yarn build
 
-# Build demo
+# Copy to final image
 FROM base
 WORKDIR /agency/demo
 COPY --from=demo_deps /venv /venv
-COPY --from=agency_js_build /agency-js/dist /agency-js-dist
+COPY --from=demo_app_build /demo_app_build/static /demo_app_static
+COPY --from=agency_js_build /agency_js_build/dist /agency_js_dist
 COPY . .
 
 # Go

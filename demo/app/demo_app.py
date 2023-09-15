@@ -1,4 +1,5 @@
 import os
+import re
 from fastapi.staticfiles import StaticFiles
 
 import uvicorn
@@ -46,15 +47,31 @@ class DemoApp:
         # mount js directory to serve client library in development
         # NOTE this works with the demo app docker container
         if os.environ.get("APP_ENV") == "development":
-            js_directory = os.path.abspath("/agency-js-dist/")
-            app.mount("/js", StaticFiles(directory=js_directory), name="js")
+            agency_js_directory = os.path.abspath("/agency_js_dist/")
+            app.mount("/agency-js", StaticFiles(directory=agency_js_directory), name="agency-js")
+            react_app_directory = "react_app/build/static"
+            app.mount("/react-static", StaticFiles(directory=react_app_directory), name="react-static")
 
         @app.get("/", response_class=HTMLResponse)
         async def index(request: Request):
+            # dynamically determine the compiled filenames to serve
+            css_file, js_runtime_file, js_main_file = "", "", ""
+            for file in os.listdir("react_app/build/static/css"):
+                if re.match(r"main\..*\.chunk\.css", file):
+                    css_file = file
+            for file in os.listdir("react_app/build/static/js"):
+                if re.match(r"runtime-main\..*\.js", file):
+                    js_runtime_file = file
+                elif re.match(r"main\..*\.chunk\.js", file):
+                    js_main_file = file
+
             return templates.TemplateResponse("index.html", {
                 "request": request,
                 "username": self.__user_agent_id,
                 "app_env": os.environ.get("APP_ENV"),
+                "css_file": css_file,
+                "js_runtime_file": js_runtime_file,
+                "js_main_file": js_main_file,
             })
 
         @app.websocket("/ws")
