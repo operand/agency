@@ -1,7 +1,8 @@
 # Summary
 
-Agency is a minimal [Actor model](https://en.wikipedia.org/wiki/Actor_model)
-framework for creating agent-integrated systems.
+Agency is a python library that provides an
+[Actor model](https://en.wikipedia.org/wiki/Actor_model) framework for creating
+agent-integrated systems.
 
 The library provides an easy to use API that enables you to connect intelligent
 agents with software systems of all kinds, making it simple to develop the
