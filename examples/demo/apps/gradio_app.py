@@ -9,7 +9,6 @@ import gradio as gr
 from agency.agent import _RESPONSE_ACTION_NAME, Agent, _QueueProtocol, action
 from agency.logger import log
 from agency.schema import Message
-from examples.demo.agents.mixins.say_response_methods import SayResponseMethods
 
 
 class GradioUser(Agent):
