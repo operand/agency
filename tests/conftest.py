@@ -106,5 +106,5 @@ def any_space(request, thread_space, multiprocess_space, amqp_space):
         return multiprocess_space
     elif request.param == 'amqp_space':
         if os.environ.get("SKIP_AMQP"):
-            pytest.skip("amqp_space skipped due to SKIP_AMQP environment variable")
+            pytest.skip("due to SKIP_AMQP environment variable")
         return amqp_space
