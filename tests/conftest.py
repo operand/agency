@@ -1,3 +1,4 @@
+import os
 import subprocess
 import time
 import tracemalloc
@@ -20,6 +21,9 @@ def rabbitmq_container():
     Starts and stops a RabbitMQ container for the duration of the test
     session.
     """
+    if os.environ.get("SKIP_AMQP"):
+        yield None
+        return
 
     container = subprocess.Popen(
         [
@@ -101,4 +105,6 @@ def any_space(request, thread_space, multiprocess_space, amqp_space):
     elif request.param == 'multiprocess_space':
         return multiprocess_space
     elif request.param == 'amqp_space':
+        if os.environ.get("SKIP_AMQP"):
+            pytest.skip("amqp_space skipped due to SKIP_AMQP environment variable")
         return amqp_space
