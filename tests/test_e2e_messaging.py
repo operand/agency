@@ -40,7 +40,6 @@ class _MessagingTestAgent(ObservableAgent):
         raise ValueError("Something went wrong")
 
 
-@pytest.mark.focus
 def test_send_and_reply(any_space):
     """Tests sending/receiving a basic send()"""
     senders_log = add_agent(any_space, _MessagingTestAgent, "Sender")
@@ -503,8 +502,8 @@ def test_meta(any_space):
 
     first_message = {
         "meta": {
-            "id": "123", # id is required
-            "something": "made up", # everything else is optional
+            "id": "123",  # id is required
+            "something": "made up",  # everything else is optional
             "foo": 0,
             "bar": ["baz"]
         },
