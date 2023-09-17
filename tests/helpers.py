@@ -58,22 +58,12 @@ def _filter_unexpected_meta_keys(actual: Message, expected: Message):
     actual["meta"] = filtered_meta
     return actual
 
-def _compare_lists_without_order(actual: List[Message], expected: List[Message]) -> bool:
-    if len(actual) != len(expected):
-        return False
-
-    for msg in actual:
-        if msg not in expected:
-            return False
-        expected.remove(msg)
-
-    return True
 
 def assert_message_log(actual: List[Message],
-                        expected: List[Message],
-                        max_seconds=2,
-                        ignore_order=False,
-                        ignore_unexpected_meta_keys=True):
+                       expected: List[Message],
+                       max_seconds=2,
+                       ignore_order=False,
+                       ignore_unexpected_meta_keys=True):
     """
     Asserts that a list of messages is populated as expected.
 
@@ -97,7 +87,15 @@ def assert_message_log(actual: List[Message],
     testcase.maxDiff = None
 
     if ignore_order:
-        testcase.assertTrue(_compare_lists_without_order(actual, expected))
+        if len(actual) != len(expected):
+            raise AssertionError(
+                f"Expected {len(expected)} messages, got {len(actual)} messages")
+
+        for msg in actual:
+            if msg not in expected:
+                raise AssertionError(f"Unexpected message: {msg}")
+            expected.remove(msg)
+        testcase.assertTrue(len(expected) == 0)
     else:
         testcase.assertListEqual(actual, expected)
 
