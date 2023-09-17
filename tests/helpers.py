@@ -94,7 +94,8 @@ def assert_message_log(actual: List[Message],
         # Assert lists are equal ignoring order
         for msg in actual:
             if msg not in expected:
-                raise AssertionError(f"Unexpected message: {msg}")
+                raise AssertionError(
+                    f"Unexpected message: {json.dumps(msg, indent=2)}\nExpected: {json.dumps(expected, indent=2)}")
             expected.remove(msg)
         testcase.assertTrue(len(expected) == 0)
     else:
