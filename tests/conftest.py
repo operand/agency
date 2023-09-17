@@ -13,6 +13,7 @@ tracemalloc.start()
 
 
 RABBITMQ_OUT = subprocess.DEVNULL  # use subprocess.PIPE for output
+SKIP_AMQP = os.environ.get("SKIP_AMQP")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -21,7 +22,7 @@ def rabbitmq_container():
     Starts and stops a RabbitMQ container for the duration of the test
     session.
     """
-    if os.environ.get("SKIP_AMQP"):
+    if SKIP_AMQP:
         yield None
         return
 
@@ -106,5 +107,5 @@ def any_space(request, thread_space, multiprocess_space, amqp_space):
         return multiprocess_space
     elif request.param == 'amqp_space':
         if os.environ.get("SKIP_AMQP"):
-            pytest.skip("due to SKIP_AMQP environment variable")
+            pytest.skip(f"SKIP_AMQP={SKIP_AMQP}")
         return amqp_space

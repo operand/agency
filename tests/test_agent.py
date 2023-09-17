@@ -13,7 +13,6 @@ class BeforeAndAfterActionAgent(ObservableAgent):
         pass
 
 
-@pytest.mark.focus
 def test_before_and_after_action():
     """
     Tests the before and after action callbacks

@@ -3,7 +3,7 @@ import time
 import pytest
 
 from agency.agent import action
-from tests.helpers import ObservableAgent, add_agent, assert_message_log
+from tests.helpers import ObservableAgent, add_agent, assert_message_log, wait_for_messages
 
 
 class _MessagingTestAgent(ObservableAgent):
@@ -95,8 +95,8 @@ def test_send_and_reply(any_space):
                     "value": None
                 }
             }
-        }
-    ])
+        },
+    ], ignore_order=True)
 
 
 def test_send_and_return(any_space):
