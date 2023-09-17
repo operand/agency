@@ -79,6 +79,10 @@ def assert_message_log(actual: List[Message],
 
     wait_for_messages(actual, len(expected), max_seconds)
 
+    # cast
+    actual = list(actual)
+    expected = list(expected)
+
     if ignore_unexpected_meta_keys:
         actual = [_filter_unexpected_meta_keys(actual_msg, expected_msg)
                   for actual_msg, expected_msg in zip(actual, expected)]
@@ -87,10 +91,7 @@ def assert_message_log(actual: List[Message],
     testcase.maxDiff = None
 
     if ignore_order:
-        if len(actual) != len(expected):
-            raise AssertionError(
-                f"Expected {len(expected)} messages, got {len(actual)} messages")
-
+        # Assert lists are equal ignoring order
         for msg in actual:
             if msg not in expected:
                 raise AssertionError(f"Unexpected message: {msg}")
