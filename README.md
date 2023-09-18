@@ -173,17 +173,18 @@ databases, etc. Implementation of agent behavior is left up to you, and you are
 free to use other libraries as needed for those purposes.
 
 Agency focuses on the lower level concerns of communication, observation,
-scalability, and security. The library strives to provide the basic foundations
-of an agent system without imposing additional structure on you.
+scalability, and security. The library strives to provide the operating
+foundations of an agent system without imposing additional structure on you.
 
 The goal is to allow you to experiment and discover the right approaches and
-technologies that work for you. And once you've found an implementation that
-works, you can scale it out to your needs.
+technologies that work for your application. And once you've found an
+implementation that works, you can scale it out to your needs.
 
 
 ## What are some known limitations or issues?
 
-* Despite the 1.x.x version, understand that Agency is still in early development.
+* Agency is still in early development.
+
   Like many projects in the AI agent space it is somewhat experimental at this time,
   with the goal of finding and providing a minimal yet useful foundation for building
   agent systems.
