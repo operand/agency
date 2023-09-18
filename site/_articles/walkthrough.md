@@ -75,12 +75,8 @@ def say(self, content: str):
 ```
 
 By defining an action, we allow other agents in a common space to discover and
-invoke the action on the agent.
-
-This is an example of how you can allow agents to send chat messages to one
-another. Other agents may invoke this action by sending a message to `Chatty`
-as we'll see below.
-
+invoke the action on the agent. Other agents may invoke this action by sending a
+message to `Chatty` as we'll see below.
 
 ## Invoking Actions
 
@@ -117,91 +113,60 @@ Note the use of the `current_message()` method. That method may be used during
 an action to inspect the entire message which invoked the current action.
 
 
-## The Gradio UI
-
-The Gradio UI is a [`Chatbot`](https://www.gradio.app/docs/chatbot) based
-application used for development and demonstration.
-
-It is defined in
-[examples/demo/apps/gradio_app.py](https://github.com/operand/agency/tree/main/examples/demo/apps/gradio_app.py)
-and simply needs to be imported and used like so:
-
-```python
-from examples.demo.apps.gradio_app import GradioApp
-...
-demo = GradioApp(space).demo()
-demo.launch()
-```
-
-The Gradio application automatically adds its user to the space as an agent,
-allowing you (as that agent) to chat with the other agents.
-
-The application is designed to convert plain text input into a `say` action
-which is broadcast to the other agents in the space. For example, simply
-writing:
-
-```
-Hello, world!
-```
-
-will invoke the `say` action on all other agents in the space, passing the
-`content` argument as `Hello, world!`. Any agents which implement a `say` action
-will receive and process this message.
-
-
-### Gradio App - Command Syntax
-
-The Gradio application also supports a command syntax for more control over
-invoking actions on other agents.
-
-For example, to send a point-to-point message to a specific agent, or to call
-actions other than `say`, you can use the following format:
-
-```
-/agent_id.action_name arg1:"value 1" arg2:"value 2"
-```
-
-A broadcast to all agents in the space is also supported using the `*` wildcard.
-For example, the following will broadcast the `say` action to all other agents,
-similar to how it would work without the slash syntax:
-
-```
-/*.say content:"Hello, world!"
-```
-
 ## Discovering Actions
 
 At this point, we can demonstrate how action discovery works from the
-perspective of a human user of the web application.
+perspective of an agent.
 
-Each agent in the space has a `help` action, which returns a dictionary of their
-available actions.
+Each agent in the space implements a `help` action, which returns a dictionary
+of their available actions.
 
-To discover available actions across all agents, simply type:
-```
-/*.help
-```
-
-Each agent will respond with a dictionary of their available actions.
-
-To request help on a specific agent, you can use the following syntax:
-```
-/Host.help
-```
-
-To request help on a specific action, you can specify the action name:
-```
-/Host.help action_name:"say"
+To discover the other agents and their available actions across a space, an
+agent may send the following message:
+```python
+self.send({
+    "to": "*",
+    "action": {
+        "name": "help"
+    }
+})
 ```
 
+Each agent in the space will respond with a dictionary of their available
+actions.
+
+To request help on a specific agent, simply address the agent's `id`:
+```python
+self.send({
+    "to": "Chatty",
+    "action": {
+        "name": "help",
+    }
+})
+```
+
+To request help on a specific action, you may supply the action name as an
+argument:
+```python
+self.send({
+    "to": "Chatty",
+    "action": {
+        "name": "help",
+        "args": {
+            "action_name": "say"
+        }
+    }
+})
+```
 
 ## Adding an Intelligent Agent
 
-Now we can add an intelligent agent into the space and allow them to discover
-and invoke actions.
+Finally we can add an intelligent agent into the space and allow them to
+discover and invoke actions.
 
-To add the [`OpenAIFunctionAgent`](https://github.com/operand/agency/tree/main/agency/agents/demo_agent.py) class to the
-environment:
+To add the
+[`OpenAIFunctionAgent`](https://github.com/operand/agency/tree/main/agency/agents/demo_agent.py)
+to the environment:
 
 ```python
 space.add(OpenAIFunctionAgent,
@@ -213,11 +178,13 @@ space.add(OpenAIFunctionAgent,
 ```
 
 If you inspect the implementation, you'll see that this agent uses the
-`after_add` callback to request help information from the other agents in the
-space, and later uses that information to provide a list of functions to the
-OpenAI function calling API.
+`after_add` callback to immediately request help information from the other
+agents in the space when added. It later uses that information to provide a list
+of functions to the OpenAI function calling API.
 
-## Wrapping up
+This demonstrates how an agent may discover and invoke actions across a space.
+
+## Running the Demo
 
 This concludes the demo walkthrough. To try the demo, please jump to the
 [examples/demo](https://github.com/operand/agency/tree/main/examples/demo/)

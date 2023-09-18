@@ -1,13 +1,13 @@
 ---
-title: Synchronous Requests
+title: Synchronous Messaging
 ---
 
-# Synchronous Requests
+# Synchronous Messaging
 
 The `Agent.request()` method is a synchronous version of the `send()` method
 that allows you to call an action and receive its return value or exception
 synchronously. If the action responds with an error, an `ActionError` will be
-raised containing the error message.
+raised containing the original error message.
 
 Here's an example of how you might use `request()`:
 
