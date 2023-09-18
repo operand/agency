@@ -4,12 +4,12 @@ Agency is a python library that provides an
 [Actor model](https://en.wikipedia.org/wiki/Actor_model) framework for creating
 agent-integrated systems.
 
-The library provides an easy to use API that enables you to connect intelligent
-agents with software systems of all kinds, making it simple to develop the
+The library provides an easy to use API that enables you to connect agents and
+software systems in a scalable and flexible way, making it simple to develop the
 architecture you need.
 
-Agency's goal is to enable developers to create custom agent-based solutions by
-providing a minimal and scalable foundation to both experiment and build upon.
+Agency's goal is to enable others to create custom agent-based applications by
+providing a minimal, yet capable foundation to both experiment and build upon.
 So if you're looking to build a custom agent system of your own, Agency might be
 for you.
 
