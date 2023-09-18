@@ -4,15 +4,15 @@ import time
 import tracemalloc
 
 import pytest
+from agency.space import Space
 
-from agency.spaces.amqp_space import AMQPSpace
-from agency.spaces.multiprocess_space import MultiprocessSpace
-from agency.spaces.thread_space import ThreadSpace
+from agency.spaces.amqp_space import AMQPOptions, AMQPSpace
+from agency.spaces.local_space import LocalSpace
 
 tracemalloc.start()
 
 
-RABBITMQ_OUT = subprocess.DEVNULL  # use subprocess.PIPE for output
+RABBITMQ_OUT = subprocess.DEVNULL  # DEVNULL for no output, PIPE for output
 SKIP_AMQP = os.environ.get("SKIP_AMQP")
 
 
@@ -28,7 +28,8 @@ def rabbitmq_container():
 
     container = subprocess.Popen(
         [
-            "docker", "run", "--name", "rabbitmq-test",
+            "docker", "run",
+            "--name", "rabbitmq-test",
             "-p", "5672:5672",
             "-p", "15672:15672",
             "--user", "rabbitmq:rabbitmq",
@@ -65,47 +66,28 @@ def wait_for_rabbitmq():
                 return
         except subprocess.CalledProcessError:
             pass
-        time.sleep(1)
+        time.sleep(0.5)
     raise Exception("RabbitMQ server failed to start.")
 
 
 @pytest.fixture
-def thread_space():
-    try:
-        space = ThreadSpace()
+def local_space() -> LocalSpace:
+    with LocalSpace() as space:
         yield space
-    finally:
-        space.remove_all()
 
 
 @pytest.fixture
-def multiprocess_space():
-    try:
-        space = MultiprocessSpace()
+def amqp_space() -> AMQPSpace:
+    with AMQPSpace(exchange_name="agency-test") as space:
         yield space
-    finally:
-        space.remove_all()
 
 
-@pytest.fixture
-def amqp_space():
-    try:
-        space = AMQPSpace(exchange_name="agency-test")
-        yield space
-    finally:
-        space.remove_all()
-
-
-@pytest.fixture(params=['thread_space', 'multiprocess_space', 'amqp_space'])
-def any_space(request, thread_space, multiprocess_space, amqp_space):
+@pytest.fixture(params=['local_space', 'amqp_space'])
+def any_space(request) -> Space:
     """
     Used for testing all space types
     """
-    if request.param == 'thread_space':
-        return thread_space
-    elif request.param == 'multiprocess_space':
-        return multiprocess_space
-    elif request.param == 'amqp_space':
-        if os.environ.get("SKIP_AMQP"):
-            pytest.skip(f"SKIP_AMQP={SKIP_AMQP}")
-        return amqp_space
+    if request.param == 'amqp_space' and SKIP_AMQP:
+        pytest.skip(f"SKIP_AMQP={SKIP_AMQP}")
+
+    return request.getfixturevalue(request.param)

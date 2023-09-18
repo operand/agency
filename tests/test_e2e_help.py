@@ -1,8 +1,10 @@
-from agency.agent import action
-from tests.helpers import ObservableAgent, add_agent, assert_message_log
+from agency.agent import Agent, action
+from agency.space import Space
+from agency.spaces.local_space import LocalSpace
+from tests.helpers import assert_message_log
 
 
-class _HelpActionAgent(ObservableAgent):
+class _HelpActionAgent(Agent):
     @action
     def action_with_docstring(self, content: str, number, thing: dict, foo: bool) -> dict:
         """
@@ -33,7 +35,7 @@ class _HelpActionAgent(ObservableAgent):
         """The docstring here is ignored"""
 
 
-def test_help_action(any_space):
+def test_help_action(any_space: Space):
     """Tests defining help info, requesting it, receiving the response"""
 
     first_message = {
@@ -75,18 +77,19 @@ def test_help_action(any_space):
         }
     }
 
-    senders_log = add_agent(any_space, ObservableAgent, "Sender")
-    receivers_log = add_agent(any_space, _HelpActionAgent, "Receiver")
+    sender = any_space.add_foreground(
+        Agent, "Sender", receive_own_broadcasts=False)
+    receiver = any_space.add_foreground(_HelpActionAgent, "Receiver")
 
     # Send the first message and wait for a response
-    any_space._route(first_message)
-    assert_message_log(
-        senders_log, [receivers_expected_response])
-    assert_message_log(
-        receivers_log, [first_message, receivers_expected_response])
+    sender.send(first_message)
+    assert_message_log(sender._message_log, [
+        first_message, receivers_expected_response])
+    assert_message_log(receiver._message_log, [
+        first_message, receivers_expected_response])
 
 
-class _HelpSpecificActionAgent(ObservableAgent):
+class _HelpSpecificActionAgent(Agent):
     @action
     def action_i_will_request_help_on():
         pass
@@ -96,13 +99,12 @@ class _HelpSpecificActionAgent(ObservableAgent):
         pass
 
 
-def test_help_specific_action(any_space):
+def test_help_specific_action(any_space: Space):
     """Tests requesting help for a specific action"""
 
-    senders_log = add_agent(any_space, ObservableAgent, "Sender")
-    receivers_log = add_agent(any_space, _HelpSpecificActionAgent, "Receiver")
+    sender = any_space.add_foreground(Agent, "Sender", receive_own_broadcasts=False)
+    any_space.add(_HelpSpecificActionAgent, "Receiver")
 
-    # Send the first message and wait for a response
     first_message = {
         "meta": {
             "id": "123"
@@ -116,8 +118,9 @@ def test_help_specific_action(any_space):
             }
         }
     }
-    any_space._route(first_message)
-    assert_message_log(senders_log, [
+    sender.send(first_message)
+    assert_message_log(sender._message_log, [
+        first_message,
         {
             "meta": {
                 "parent_id": "123"

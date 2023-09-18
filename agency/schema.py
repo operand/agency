@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
 from typing import Dict, Optional
+
+from pydantic import BaseModel, Field
 
 
 class Meta(BaseModel):
@@ -39,7 +40,7 @@ class Action(BaseModel):
 
 
 class Message(BaseModel):
-    """Schema for a message"""
+    """The full message schema used for communication"""
 
     class Config:
         extra = "forbid"
@@ -59,22 +60,3 @@ class Message(BaseModel):
     )
 
     action: Action
-
-
-def validate_message(message: Message) -> Message:
-    """
-    Validate and return a message
-
-    Args:
-        message: The message
-
-    Returns:
-        The validated message
-
-    Raises:
-        ValueError: If the message is invalid
-    """
-    try:
-        return Message(**message).dict(by_alias=True, exclude_unset=True)
-    except TypeError as e:
-        raise ValueError(str(e))

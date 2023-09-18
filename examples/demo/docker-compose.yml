@@ -21,68 +21,36 @@ x-demo-base:
 
 services:
 
-  # This container runs the demo in a single ThreadSpace
-  threaded:
+  # This container demonstrates using a LocalSpace
+  local:
     <<: *demo-base
-    profiles: [threaded]
+    profiles: [local]
     ports:
       - '$WEB_APP_PORT:8080'
     # socat is used to redirect from the hardcoded ip:port in gradio's dev mode
     # https://github.com/gradio-app/gradio/issues/3656
     command: |
       bash -ce "
-        socat TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:7860 &
-        echo \"Launching gradio app at http://localhost:$WEB_APP_PORT\. Please wait...\"
-        poetry run python demo_threaded.py | grep -v \"Launching.*127.0.0.1:7860\"
+        poetry run python demo_local.py
       "
     tty: true
     stdin_open: true
 
-  # This container runs the demo in a single MultiprocessSpace
-  multiprocess:
-    <<: *demo-base
-    profiles: [multiprocess]
-    ports:
-      - '$WEB_APP_PORT:8080'
-    # socat is used to redirect from the hardcoded ip:port in gradio's dev mode
-    # https://github.com/gradio-app/gradio/issues/3656
-    command: |
-      bash -ce "
-        socat TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:7860 &
-        echo \"Launching gradio app at http://localhost:$WEB_APP_PORT\. Please wait...\"
-        poetry run python demo_multiprocess.py | grep -v \"Launching.*127.0.0.1:7860\"
-      "
-    tty: true
-    stdin_open: true
-
-  # The following containers run agent classes across containers in an AMQPSpace
-  # using rabbitmq
+  # This container demonstrates using an AMQPSpace
   amqp:
     <<: *demo-base
     profiles: [amqp]
     depends_on:
       rabbitmq:
         condition: service_healthy
-      amqp_2:
-        condition: service_started
     ports:
       - '$WEB_APP_PORT:8080'
     command: |
       bash -ce "
-        socat TCP-LISTEN:8080,fork,reuseaddr TCP:127.0.0.1:7860 &
-        echo \"Launching gradio app at http://localhost:$WEB_APP_PORT\. Please wait...\"
-        poetry run python demo_amqp_1.py | grep -v \"Launching.*127.0.0.1:7860\"
+        poetry run python demo_amqp.py
       "
     tty: true
     stdin_open: true
-
-  amqp_2:
-    <<: *demo-base
-    profiles: [amqp]
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    command: poetry run python demo_amqp_2.py
 
   rabbitmq:
     profiles: [amqp]

@@ -1,92 +1,31 @@
 import json
-import multiprocessing
 import re
-import uuid
-from typing import List
-
 import gradio as gr
-
-from agency.agent import _RESPONSE_ACTION_NAME, Agent, _QueueProtocol, action
-from agency.logger import log
+from agency.agent import Agent, action
 from agency.schema import Message
 
 
 class GradioUser(Agent):
-    """Represents the Gradio app user as an Agent"""
-
-    def __init__(self,
-                 id: str,
-                 outbound_queue: _QueueProtocol,
-                 _message_log: List[Message] = None):
-        super().__init__(id,
-                         outbound_queue,
-                         receive_own_broadcasts=False)
-        self._message_log = _message_log
+    """
+    Represents the Gradio user as an Agent and contains methods for integrating
+    with the Chatbot component
+    """
+    def __init__(self, id: str):
+        super().__init__(id, receive_own_broadcasts=False)
 
     @action
     def say(self, content):
-        # We don't do anything to render here because the get_chatbot_messages
-        # method will render the full message history based on the _message_log
+        # We don't do anything to render an incoming message here because the
+        # get_chatbot_messages method will render the full message history
         pass
-
-
-class GradioApp():
-
-    def __init__(self, space):
-        self.space = space
-        # Add the agent to the space. We pass a custom message log to the user
-        # agent so that we can access it for rendering in the app
-        self._agent_id = "User"
-        self._message_log = multiprocessing.Manager().list()
-        self.space.add(GradioUser, self._agent_id,
-                       _message_log=self._message_log)
 
     def send_message(self, text):
         """
         Sends a message as this user
         """
         message = self.__parse_input_message(text)
-
-        # The gradio app sends a message directly into the space as though it
-        # were coming from the user. Because of this we must manually duplicate
-        # some logic in send() that we are bypassing. This isn't great, but is a
-        # compromise since running gradio in a subprocess is problematic. This
-        # issue will be resolved in the future.
-        message["meta"] = {
-            "id": uuid.uuid4().__str__(),
-            **message.get("meta", {}),
-        }
-        log("info", f"{self._agent_id} sending message", message)
-        self._message_log.append(message)
-        self.space._route(message)
-
+        self.send(message)
         return "", self.get_chatbot_messages()
-
-    def _find_parent(self, message):
-        # Here we need to duplicate functionality again from Agent. This is
-        # a temporary solution until foreground agents are implemented.
-        parent_id = message["meta"].get("parent_id", None)
-        if parent_id is not None:
-            for message in self._message_log:
-                if message["meta"]["id"] == parent_id:
-                    return message
-
-    def _should_render(self, message) -> bool:
-        """
-        Determines whether a message should be rendered to the chat area.
-
-        Args:
-            message: The message to check
-        """
-        # ignore responses to "say" actions
-        parent_message = self._find_parent(message)
-        if parent_message and \
-            message["action"]["name"] == _RESPONSE_ACTION_NAME \
-            and parent_message["action"]["name"] == "say":
-            return False
-
-        # all other messages are printed
-        return True
 
     def get_chatbot_messages(self):
         """
@@ -95,7 +34,6 @@ class GradioApp():
         return [
             self.__chatbot_message(message)
             for message in self._message_log
-            if self._should_render(message)
         ]
 
     def __chatbot_message(self, message):
@@ -108,7 +46,7 @@ class GradioApp():
         else:
             text += f"\n```javascript\n{json.dumps(message, indent=2)}\n```"
 
-        if message['from'] == self._agent_id:
+        if message['from'] == self.id():
             return text, None
         else:
             return None, text
@@ -129,9 +67,6 @@ class GradioApp():
 
             /"agent with a space in the id".say content:"Hello, agent!"
 
-        Args:
-            text: The input text to parse
-
         Returns:
             Message: The parsed message for sending
         """
@@ -140,7 +75,6 @@ class GradioApp():
         if not text.startswith("/"):
             # assume it's a broadcasted "say"
             return {
-                "from": self._agent_id,
                 "to": "*",
                 "action": {
                     "name": "say",
@@ -156,18 +90,16 @@ class GradioApp():
         if not match:
             raise ValueError("Invalid input format")
 
-        to_agent_id, action_name, args_str = match.groups()
+        agent_id, action_name, args_str = match.groups()
 
-        if to_agent_id is None:
-            raise ValueError(
-                "Agent ID must be provided. Example: '/MyAgent.say' or '/*.say'")
+        if agent_id is None:
+            raise ValueError("Agent ID must be provided. Example: '/MyAgent.say' or '/*.say'")
 
         args_pattern = r'(\w+):"([^"]*)"'
         args = dict(re.findall(args_pattern, args_str))
 
         return {
-            "from": self._agent_id,
-            "to": to_agent_id.strip('"'),
+            "to": agent_id.strip('"'),
             "action": {
                 "name": action_name,
                 "args": args
@@ -175,9 +107,7 @@ class GradioApp():
         }
 
     def demo(self):
-        """
-        Returns the Gradio app.
-        """
+        # The following adapted from: https://www.gradio.app/docs/chatbot#demos
 
         # Custom css to:
         # - Expand text area to fill vertical space
@@ -203,30 +133,33 @@ class GradioApp():
             border: none !important;
         }
         """
-        # Adapted from: https://www.gradio.app/docs/chatbot#demos
+
         with gr.Blocks(css=css, title="Agency Demo") as demo:
             # Chatbot area
             chatbot = gr.Chatbot(
                 self.get_chatbot_messages,
                 show_label=False,
-                elem_id="chatbot")
+                elem_id="chatbot",
+            )
 
             # Input area
             with gr.Row():
                 txt = gr.Textbox(
                     show_label=False,
                     placeholder="Enter text and press enter",
-                    container=False)
+                    container=False,
+                )
                 btn = gr.Button("Send", scale=0)
 
             # Callbacks
             txt.submit(self.send_message, [txt], [txt, chatbot])
             btn.click(self.send_message, [txt], [txt, chatbot])
 
-            # Continously updates the chatbot. Runs while client is connected.
-            demo.load(self.get_chatbot_messages, None, [chatbot], every=1)
+            # Continously updates the chatbot. Runs only while client is connected.
+            demo.load(
+                self.get_chatbot_messages, None, [chatbot], every=1
+            )
 
-        # Queueing required for periodic events using `every`
+        # Queueing necessary for periodic events using `every`
         demo.queue()
-
         return demo

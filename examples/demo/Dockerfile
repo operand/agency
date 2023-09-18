@@ -1,12 +1,8 @@
 # Set base image
 FROM python:3.9 as base
 
-# Update and install dependencies
-# socat needed to use gradio dev mode in a container
-# https://github.com/gradio-app/gradio/issues/3656
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y socat
+# Update system
+RUN apt-get update && apt-get upgrade -y
 
 WORKDIR /agency
 
