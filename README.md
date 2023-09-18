@@ -184,9 +184,9 @@ works, you can scale it out to your needs.
 
 ## What are some known limitations or issues?
 
-* Despite the 1.x.x version, Agency is still in early development. Like many
-  projects in the AI agent space it is somewhat experimental at this time, with
-  the goal of finding and providing a minimal yet useful foundation for building
+* Despite the 1.x.x version, understand that Agency is still in early development.
+  Like many projects in the AI agent space it is somewhat experimental at this time,
+  with the goal of finding and providing a minimal yet useful foundation for building
   agent systems.
 
   Expect changes to the API over time as features are added or changed. The
