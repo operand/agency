@@ -1,3 +1,4 @@
+import copy
 import json
 import multiprocessing
 import time
@@ -42,7 +43,7 @@ def add_agent(space: Space, agent_type: ObservableAgent, agent_id: str, **agent_
     return _message_log
 
 
-def _filter_unexpected_meta_keys(actual: Message, expected: Message):
+def _filter_unexpected_meta_keys(actual: Message, expected: Message) -> Message:
     """Filters meta keys from actual that are not in expected"""
 
     if "meta" not in actual:
@@ -71,7 +72,7 @@ def assert_message_log(actual: List[Message],
         actual: The actual messages
         expected: The expected messages
         max_seconds: The maximum number of seconds to wait
-        ignore_order: If True, ignore order of messages when comparing
+        ignore_order: If True, ignore the order of messages when comparing
         ignore_unexpected_meta_keys:
             If True, ignore meta keys in actual that are not in expected.
             Defaults to True.
@@ -79,26 +80,26 @@ def assert_message_log(actual: List[Message],
 
     wait_for_messages(actual, len(expected), max_seconds)
 
-    # cast
-    actual = list(actual)
-    expected = list(expected)
-
-    if ignore_unexpected_meta_keys:
-        actual = [_filter_unexpected_meta_keys(actual_msg, expected_msg)
-                  for actual_msg, expected_msg in zip(actual, expected)]
-
     testcase = unittest.TestCase()
     testcase.maxDiff = None
 
     if ignore_order:
-        # Assert lists are equal ignoring order
-        for msg in actual:
-            if msg not in expected:
-                raise AssertionError(
-                    f"Unexpected message: {json.dumps(msg, indent=2)}\nExpected: {json.dumps(expected, indent=2)}")
-            expected.remove(msg)
-        testcase.assertTrue(len(expected) == 0)
+        for expected_msg in expected:
+           for actual_msg in actual:
+                actual_to_compare = copy.deepcopy(actual_msg)
+                if ignore_unexpected_meta_keys:
+                    # filter unexpected meta keys before comparison
+                    actual_to_compare = _filter_unexpected_meta_keys(actual_to_compare, expected_msg)
+                if actual_to_compare == expected_msg:
+                    # we found a match, remove from list
+                    actual.remove(actual_msg)
+        # if we removed everything from actual, it's a match
+        testcase.assertTrue(len(actual) == 0)
     else:
+        if ignore_unexpected_meta_keys:
+            # filter meta keys from actual that are not in expected
+            actual = [_filter_unexpected_meta_keys(actual_msg, expected_msg)
+                      for actual_msg, expected_msg in zip(actual, expected)]
         testcase.assertListEqual(actual, expected)
 
 
