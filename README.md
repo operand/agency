@@ -1,28 +1,27 @@
 # Summary
 
-Agency is a python library that provides an
-[Actor model](https://en.wikipedia.org/wiki/Actor_model) framework for creating
+Agency is a python library that provides an [Actor
+model](https://en.wikipedia.org/wiki/Actor_model) framework for creating
 agent-integrated systems.
 
-The library provides an easy to use API that enables you to connect agents and
-software systems in a scalable and flexible way, making it simple to develop the
-architecture you need.
+The library provides an easy to use API that enables you to connect agents with
+traditional software systems in a flexible and scalable way, allowing you to
+develop the architecture you need. 
 
 Agency's goal is to enable others to create custom agent-based applications by
-providing a minimal, yet capable foundation to both experiment and build upon.
-So if you're looking to build a custom agent system of your own, Agency might be
-for you.
+providing a minimal foundation to both experiment and build upon. So if you're
+looking to build a custom agent system of your own, Agency might be for you.
 
 
 ## Features
 
-### Low-Level API Flexibility
+### Easy to use API
 * Straightforward class/method based agent and action definition
-* Plug-and-play action discovery at runtime
+* [Up to date documentation](https://createwith.agency) and [examples](./examples/demo/) for reference
 
 ### Performance and Scalability
-* Supports multiprocess and multithreading for concurrency
-* AMQP support for networked systems
+* Supports multiprocessing and multithreading for concurrency
+* AMQP support for networked agent systems
 
 ### Observability and Control
 * Action and lifecycle callbacks for observability or other needs
@@ -40,7 +39,7 @@ for you.
   * Two OpenAI agent examples
   * HuggingFace transformers agent example
   * Operating system access
-* Includes Gradio UI (_An updated React UI is in progress. See above._)
+* Includes Gradio UI (_An updated React UI is in progress. See [here](https://github.com/operand/agency/issues/136)._)
 * Docker configuration for reference and development
 
 
