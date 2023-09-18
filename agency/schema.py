@@ -2,6 +2,24 @@ from pydantic import BaseModel, Field
 from typing import Dict, Optional
 
 
+class Meta(BaseModel):
+    """A dictionary field for storing metadata about the message"""
+
+    class Config:
+        extra = "allow"
+        validate_assignment = True
+
+    id: str = Field(
+        ...,
+        description="The id of the message."
+    )
+
+    parent_id: Optional[str] = Field(
+        None,
+        description="The id of the previous message that generated this message."
+    )
+
+
 class Action(BaseModel):
     """Schema for an action"""
 
@@ -27,20 +45,17 @@ class Message(BaseModel):
         extra = "forbid"
         validate_assignment = True
 
-    meta: Optional[Dict] = Field(
-        None,
-        description="An optional dictionary field for storing metadata about the message."
+    meta: Meta
+
+    from_: str = Field(
+        ...,
+        alias="from",
+        description="The id of the sender."
     )
 
     to: str = Field(
         ...,
         description="The intended recipient of the message. If set to `*`, the message is broadcast."
-    )
-
-    from_: str = Field(
-        ...,
-        alias='from',
-        description="The id of the sender."
     )
 
     action: Action

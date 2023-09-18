@@ -1,3 +1,4 @@
+import threading
 from unittest.mock import MagicMock
 
 import pytest
@@ -19,7 +20,23 @@ def test_before_and_after_action():
     agent = BeforeAndAfterActionAgent("Agent", outbound_queue=MagicMock())
     agent.before_action = MagicMock()
     agent.after_action = MagicMock()
+
+    # Create an event to signal when the thread has completed its execution
+    thread_complete = threading.Event()
+
+    def on_thread_complete():
+        thread_complete.set()
+    # Modify the after_action callback to call on_thread_complete when it's done
+    original_after_action = agent.after_action
+    agent.after_action = MagicMock(
+        side_effect=lambda *args, **kwargs: (
+            original_after_action(*args, **kwargs),
+            on_thread_complete()
+        )[0]
+    )
+
     agent._receive({
+        "meta": {"id": "123"},
         "from": "Agent",
         "to": "Agent",
         "action": {
@@ -29,6 +46,10 @@ def test_before_and_after_action():
             },
         }
     })
+
+    # Wait for the thread to complete
+    thread_complete.wait(timeout=2)
+
     agent.before_action.assert_called_once()
     agent.after_action.assert_called_once()
 

@@ -1,9 +1,9 @@
-import re
 import time
 
-from agency.agent import ActionError, action
-from tests.helpers import (ObservableAgent, add_agent, assert_message_log,
-                           wait_for_length)
+import pytest
+
+from agency.agent import action
+from tests.helpers import ObservableAgent, add_agent, assert_message_log, wait_for_messages
 
 
 class _MessagingTestAgent(ObservableAgent):
@@ -14,11 +14,13 @@ class _MessagingTestAgent(ObservableAgent):
         """
 
     @action
-    def sleep_action(self):
+    def slow_action(self):
+        """This action sleeps for 10 seconds"""
         time.sleep(10)
 
     @action
     def action_with_send(self):
+        """Replies to the message sender using send()"""
         self.send({
             "to": self.current_message()['from'],
             "action": {
@@ -45,6 +47,9 @@ def test_send_and_reply(any_space):
 
     # Send the first message and wait for a response
     first_message = {
+        "meta": {
+            "id": "123"
+        },
         "from": "Sender",
         "to": "Receiver",
         "action": {
@@ -54,6 +59,7 @@ def test_send_and_reply(any_space):
     any_space._route(first_message)
     assert_message_log(senders_log, [
         {
+            "meta": {},
             "from": "Receiver",
             "to": "Sender",
             "action": {
@@ -63,7 +69,33 @@ def test_send_and_reply(any_space):
                 }
             },
         },
-    ])
+        {
+            # value response when sender receives reply
+            "meta": {},
+            "from": "Sender",
+            "to": "Receiver",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": None
+                }
+            },
+        },
+        {
+            # value response when receiver receives original message
+            "meta": {
+                "parent_id": "123"
+            },
+            "from": "Receiver",
+            "to": "Sender",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": None
+                }
+            }
+        },
+    ], ignore_order=True)
 
 
 def test_send_and_return(any_space):
@@ -83,7 +115,7 @@ def test_send_and_return(any_space):
     any_space._route(first_message)
     assert_message_log(senders_log, [{
         "meta": {
-            "response_id": "123 whatever i feel like here",
+            "parent_id": "123 whatever i feel like here",
         },
         "to": "Sender",
         "from": "Receiver",
@@ -113,7 +145,7 @@ def test_send_and_error(any_space):
     })
 
     assert_message_log(senders_log, [{
-        "meta": { "response_id": "456 whatever i feel like here" },
+        "meta": {"parent_id": "456 whatever i feel like here"},
         "to": "Sender",
         "from": "Receiver",
         "action": {
@@ -129,50 +161,46 @@ class _RequestingAgent(ObservableAgent):
     @action
     def do_request(self):
         return_value = self.request({
-            "to": "Responder",
+            "to": "Receiver",
             "action": {
                 "name": "action_with_return",
             }
         })
         # we place the return value on the message log as a small hack so we can
         # inspect it in the test
-        self._message_log.append(return_value)
+        self._message_log.append({"return_value": return_value})
 
 
 def test_request_and_return(any_space):
-    requesters_log = add_agent(any_space, _RequestingAgent, "Requester")
-    responders_log = add_agent(any_space, _MessagingTestAgent, "Responder")
+    senders_log = add_agent(any_space, _RequestingAgent, "Sender")
+    receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
-    # send a message to the requester first to kick off the request/response
+    # send a message to the sender first to kick off the request/response
     first_message = {
-        "from": "Responder",
-        "to": "Requester",
+        "meta": {
+            "id": "123",
+        },
+        "from": "Receiver",
+        "to": "Sender",
         "action": {
             "name": "do_request",
         }
     }
     any_space._route(first_message)
-    wait_for_length(requesters_log, 4)
-    requesters_log = list(requesters_log)
-    # first remove dynamic meta fields and assert they are correct
-    request_id = requesters_log[1]["meta"].pop("request_id")
-    response_id = requesters_log[2]["meta"].pop("response_id")
-    assert re.match(r"^request--.+$", request_id)
-    assert response_id == request_id
-    assert requesters_log == [
+    assert_message_log(senders_log, [
         first_message,
         {
             "meta": {},
-            "from": "Requester",
-            "to": "Responder",
+            "from": "Sender",
+            "to": "Receiver",
             "action": {
                 "name": "action_with_return",
             }
         },
         {
             "meta": {},
-            "from": "Responder",
-            "to": "Requester",
+            "from": "Receiver",
+            "to": "Sender",
             "action": {
                 "name": "[response]",
                 "args": {
@@ -180,8 +208,21 @@ def test_request_and_return(any_space):
                 }
             }
         },
-        ["Hello!"],
-    ]
+        {"return_value": ["Hello!"]},  # inserted by the agent, see above
+        {
+          "meta": {
+            "parent_id": "123"
+          },
+          "to": "Receiver",
+          "action": {
+            "name": "[response]",
+            "args": {
+              "value": None,
+            }
+          },
+          "from": "Sender"
+        }
+    ])
 
 
 class _RequestAndErrorAgent(ObservableAgent):
@@ -189,7 +230,7 @@ class _RequestAndErrorAgent(ObservableAgent):
     def do_request(self):
         try:
             return_value = self.request({
-                "to": "Responder",
+                "to": "Receiver",
                 "action": {
                     "name": "some non existent action",
                 }
@@ -197,53 +238,63 @@ class _RequestAndErrorAgent(ObservableAgent):
         except Exception as e:
             # we place the exception on the message log as a small hack so we can
             # inspect it in the test
-            self._message_log.append(e)
+            self._message_log.append({"error": f"{e.__class__.__name__}: {e}"})
 
 
 def test_request_and_error(any_space):
-    requesters_log = add_agent(any_space, _RequestAndErrorAgent, "Requester")
-    responders_log = add_agent(any_space, _MessagingTestAgent, "Responder")
+    senders_log = add_agent(any_space, _RequestAndErrorAgent, "Sender")
+    receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
-    # send a message to the requester first to kick off the request/response
+    # send a message to the sender first to kick off the request/response
     first_message = {
-        "from": "Responder",
-        "to": "Requester",
+        "meta": {
+            "id": "123",
+        },
+        "from": "Receiver",
+        "to": "Sender",
         "action": {
             "name": "do_request",
         }
     }
     any_space._route(first_message)
-    wait_for_length(requesters_log, 4)
-    requesters_log = list(requesters_log)
-    # first remove dynamic meta fields and assert their pattern
-    request_id = requesters_log[1]["meta"].pop("request_id")
-    response_id = requesters_log[2]["meta"].pop("response_id")
-    assert re.match(r"^request--.+$", request_id)
-    assert response_id == request_id
-    # assert each message one by one
-    assert requesters_log[0] == first_message
-    assert requesters_log[1] == {
-        "meta": {},
-        "from": "Requester",
-        "to": "Responder",
-        "action": {
-            "name": "some non existent action",
-        }
-    }
-    assert requesters_log[2] == {
-        "meta": {},
-        "from": "Responder",
-        "to": "Requester",
-        "action": {
-            "name": "[response]",
-            "args": {
-                "error": "AttributeError: \"some non existent action\" not found on \"Responder\"",
+    assert_message_log(senders_log, [
+        first_message,
+        {
+            "meta": {},
+            "from": "Sender",
+            "to": "Receiver",
+            "action": {
+                "name": "some non existent action",
             }
+        },
+        {
+            "meta": {},
+            "from": "Receiver",
+            "to": "Sender",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "error": "AttributeError: \"some non existent action\" not found on \"Receiver\"",
+                }
+            }
+        },
+        {
+            "error": "ActionError: AttributeError: \"some non existent action\" not found on \"Receiver\""
+        },
+        {
+            "meta": {
+                "parent_id": "123"
+            },
+            "to": "Receiver",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": None
+                }
+            },
+            "from": "Sender"
         }
-    }
-    assert type(requesters_log[3]) == ActionError
-    assert requesters_log[3].__str__(
-    ) == "AttributeError: \"some non existent action\" not found on \"Responder\""
+    ])
 
 
 class _RequestAndTimeoutAgent(ObservableAgent):
@@ -251,52 +302,69 @@ class _RequestAndTimeoutAgent(ObservableAgent):
     def do_request(self):
         try:
             return_value = self.request({
-                "to": "Responder",
+                "to": "Receiver",
                 "action": {
-                    "name": "sleep_action",  # sleep_action waits for a long time
+                    "name": "slow_action",
                 }
-            })
+            }, timeout=1)
         except TimeoutError as e:
             # we place the exception on the message log as a small hack so we can
             # inspect it in the test
-            self._message_log.append(e)
+            self._message_log.append({"error": f"{e.__class__.__name__}: {e}"})
 
 
 def test_request_and_timeout(any_space):
-    requesters_log = add_agent(any_space, _RequestAndTimeoutAgent, "Requester")
-    responders_log = add_agent(any_space, _MessagingTestAgent, "Responder")
+    senders_log = add_agent(any_space, _RequestAndTimeoutAgent, "Sender")
+    receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
-    # send a message to the requester first to kick off the request/response
+    # send a message to the sender first to kick off the request/response
     first_message = {
-        "from": "Responder",
-        "to": "Requester",
+        "meta": {
+            "id": "123",
+        },
+        "from": "Receiver",
+        "to": "Sender",
         "action": {
             "name": "do_request",
         }
     }
     any_space._route(first_message)
-    wait_for_length(requesters_log, 3, max_seconds=5)
-    requesters_log = list(requesters_log)
-    # first remove dynamic meta fields and assert their pattern
-    assert re.match(r"^request--.+$", requesters_log[1]["meta"].pop("request_id"))
-    # assert each message one by one
-    assert requesters_log[0] == first_message
-    assert requesters_log[1] == {
-        "meta": {},
-        "from": "Requester",
-        "to": "Responder",
-        "action": {
-            "name": "sleep_action",
+    assert_message_log(senders_log, [
+        first_message,
+        {
+            "meta": {},
+            "from": "Sender",
+            "to": "Receiver",
+            "action": {
+                "name": "slow_action",
+            }
+        },
+        {
+            "error": "TimeoutError: "
+        },
+        {
+            "meta": {
+                "parent_id": "123"
+            },
+            "to": "Receiver",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": None,
+                }
+            },
+            "from": "Sender",
         }
-    }
-    assert type(requesters_log[2]) == TimeoutError
+    ], max_seconds=3)  # wait enough time for the timeout
 
 
-def test_self_received_broadcast(any_space):
+def test_self_received_broadcast_from_sender(any_space):
     senders_log = add_agent(any_space, ObservableAgent,
                             "Sender", receive_own_broadcasts=True)
-    receivers_log = add_agent(any_space, ObservableAgent, "Receiver")
     first_message = {
+        "meta": {
+            "id": "123",
+        },
         "from": "Sender",
         "to": "*",  # makes it a broadcast
         "action": {
@@ -307,8 +375,68 @@ def test_self_received_broadcast(any_space):
         },
     }
     any_space._route(first_message)
-    assert_message_log(senders_log, [first_message])
-    assert_message_log(receivers_log, [first_message])
+    assert_message_log(senders_log, [
+        first_message,  # self receipt of broadcast
+        {
+            # senders response (to itself) upon sending
+            "meta": {"parent_id": "123"},
+            "from": "Sender",
+            "to": "Sender",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": None
+                }
+            },
+        },
+        {
+            # senders response (to itself) upon receiving
+            "meta": {"parent_id": "123"},
+            "from": "Sender",
+            "to": "Sender",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": None
+                }
+            }
+        },
+    ])
+
+
+def test_self_received_broadcast_from_receiver(any_space):
+    senders_log = add_agent(any_space, ObservableAgent,
+                            "Sender", receive_own_broadcasts=True)
+    receivers_log = add_agent(any_space, ObservableAgent, "Receiver")
+    first_message = {
+        "meta": {
+            "id": "123",
+        },
+        "from": "Sender",
+        "to": "*",  # makes it a broadcast
+        "action": {
+            "name": "null_action",
+            "args": {
+                "content": "Hello, everyone!",
+            },
+        },
+    }
+    any_space._route(first_message)
+    assert_message_log(receivers_log, [
+        first_message,  # receipt of bcast
+        {
+            # receivers response to bcast
+            "meta": {"parent_id": "123"},
+            "from": "Receiver",
+            "to": "Sender",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": None,
+                }
+            },
+        }
+    ])
 
 
 def test_non_self_received_broadcast(any_space):
@@ -318,6 +446,9 @@ def test_non_self_received_broadcast(any_space):
         any_space, ObservableAgent, "Receiver")
 
     first_message = {
+        "meta": {
+            "id": "123",
+        },
         "from": "Sender",
         "to": "*",  # makes it a broadcast
         "action": {
@@ -328,19 +459,51 @@ def test_non_self_received_broadcast(any_space):
         },
     }
     any_space._route(first_message)
-    assert_message_log(senders_log, [])
-    assert_message_log(receivers_log, [first_message])
+    assert_message_log(senders_log, [
+        {
+            # receivers response to bcast
+            "meta": {
+                "parent_id": "123"
+            },
+            "from": "Receiver",
+            "to": "Sender",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": None
+                }
+            }
+        }
+    ])
+    assert_message_log(receivers_log, [
+        first_message,  # initial bcast
+        {
+            # receivers response to bcast
+            "meta": {
+                "parent_id": "123"
+            },
+            "from": "Receiver",
+            "to": "Sender",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": None
+                }
+            }
+        }
+    ])
 
 
 def test_meta(any_space):
-    """Tests that the meta field is transmitted"""
+    """Tests the meta field"""
 
     senders_log = add_agent(any_space, ObservableAgent, "Sender")
     receivers_log = add_agent(any_space, _MessagingTestAgent, "Receiver")
 
     first_message = {
         "meta": {
-            "something": "made up",
+            "id": "123",  # id is required
+            "something": "made up",  # everything else is optional
             "foo": 0,
             "bar": ["baz"]
         },
@@ -351,19 +514,35 @@ def test_meta(any_space):
         },
     }
     any_space._route(first_message)
-    assert_message_log(receivers_log, [first_message])
+    assert_message_log(receivers_log, [
+        first_message,  # asserts receiving the meta unchanged
+        {
+            # response
+            "meta": {
+                "parent_id": "123"
+            },
+            "to": "Sender",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": None,
+                }
+            },
+            "from": "Receiver"
+        }
+    ])
 
 
 def test_send_undefined_action(any_space):
     """Tests sending an undefined action and receiving an error response"""
 
-    # In this test we skip defining a say action on receiver in order to test the
-    # error response
-
     senders_log = add_agent(any_space, ObservableAgent, "Sender")
     receivers_log = add_agent(any_space, ObservableAgent, "Receiver")
 
     first_message = {
+        "meta": {
+            "id": "123",
+        },
         "from": "Sender",
         "to": "Receiver",
         "action": {
@@ -374,7 +553,7 @@ def test_send_undefined_action(any_space):
     assert_message_log(senders_log, [
         {
             "meta": {
-                "response_id": None,
+                "parent_id": "123",
             },
             "from": "Receiver",
             "to": "Sender",

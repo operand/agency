@@ -1,3 +1,4 @@
+import os
 import time
 from typing import List
 
@@ -16,6 +17,7 @@ class _Harford(ObservableAgent):
         pass
 
 
+@pytest.mark.skipif(os.environ.get("SKIP_AMQP"), reason="Skipping AMQP tests")
 def test_amqp_heartbeat():
     """
     Tests the amqp heartbeat is sent by setting a short heartbeat interval and
@@ -33,6 +35,7 @@ def test_amqp_heartbeat():
 
         # send yourself a message
         message = {
+            "meta": {"id": "123"},
             "from": "Hartford",
             "to": "Hartford",
             "action": {
@@ -43,7 +46,33 @@ def test_amqp_heartbeat():
             },
         }
         amqp_space_with_short_heartbeat._route(message)
-        assert_message_log(hartfords_message_log, [message])
+        assert_message_log(hartfords_message_log, [
+            message,
+            {
+                # response send
+                "meta": {"parent_id": "123"},
+                "to": "Hartford",
+                "action": {
+                    "name": "[response]",
+                    "args": {
+                        "value": None,
+                    }
+                },
+                "from": "Hartford"
+            },
+            {
+                # response receive
+                "meta": {"parent_id": "123"},
+                "from": "Hartford",
+                "to": "Hartford",
+                "action": {
+                    "name": "[response]",
+                    "args": {
+                        "value": None,
+                    }
+                }
+            }
+        ])
 
     finally:
         # cleanup
@@ -68,6 +97,7 @@ def test_multiprocess_space_unique_ids(multiprocess_space):
         multiprocess_space.add(Agent, "Sender")
 
 
+@pytest.mark.skipif(os.environ.get("SKIP_AMQP"), reason="Skipping AMQP tests")
 def test_amqp_space_unique_ids():
     """
     Asserts that two agents may not have the same id in an AMQP space.

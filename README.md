@@ -18,37 +18,37 @@ for you.
 
 ### Low-Level API Flexibility
 * Straightforward class/method based agent and action definition
-* Supports defining single process applications or networked agent systems
+* Plug-and-play action discovery at runtime
+
+### Performance and Scalability
+* Supports multiprocess and multithreading for concurrency
+* AMQP support for networked systems
 
 ### Observability and Control
 * Action and lifecycle callbacks for observability or other needs
 * Access policies and permission callbacks for access control
-* `LOGLEVEL` support for log output granularity
-
-### Performance and Scalability
-* Multiprocess and multithreading support for concurrency
-* AMQP support for networked systems
+* Logging with support for `LOGLEVEL` environment variable
 
 ### Multi-language Support
 * [_Javascript client in progress_](https://github.com/operand/agency/issues/136)
 
 ### Multimodal/Multimedia support
-* [_In progress_](https://github.com/operand/agency/issues/26)
+* [_Planned_](https://github.com/operand/agency/issues/26)
 
 ### Demo application available at [`examples/demo`](./examples/demo/)
-* Includes Gradio UI (_An updated React UI is in progress. See above._)
 * Multiple agent examples for experimentation
   * Two OpenAI agent examples
   * HuggingFace transformers agent example
   * Operating system access
+* Includes Gradio UI (_An updated React UI is in progress. See above._)
 * Docker configuration for reference and development
 
 
 # API Overview
 
 In Agency, all entities are represented as instances of the `Agent` class. This
-includes all AI-driven agents, software systems, or human users that may
-communicate as part of your application.
+includes all AI-driven agents, traditional software systems, or human users that
+may communicate as part of your application.
 
 All agents may expose "actions" that other agents can discover and invoke at run
 time. An example of a simple agent could be:
@@ -146,7 +146,9 @@ poetry add agency
 # The Demo Application
 
 The demo application is maintained as an experimental development environment
-and a showcase for library features.
+and a showcase for library features. It includes multiple agent examples which
+may communicate with eachother and supports a "slash" syntax for invoking
+actions as an agent yourself.
 
 To run the demo, please follow the directions at
 [examples/demo](./examples/demo/).
@@ -171,9 +173,9 @@ does not include support for constructing prompts or working with vector
 databases, etc. Implementation of agent behavior is left up to you, and you are
 free to use other libraries as needed for those purposes.
 
-Agency focuses on lower level concerns like communication, observation,
-scalability, and security. The library strives to provide the basic building
-blocks of an agent system without imposing additional structure on you.
+Agency focuses on the lower level concerns of communication, observation,
+scalability, and security. The library strives to provide the basic foundations
+of an agent system without imposing additional structure on you.
 
 The goal is to allow you to experiment and discover the right approaches and
 technologies that work for you. And once you've found an implementation that
@@ -182,13 +184,14 @@ works, you can scale it out to your needs.
 
 ## What are some known limitations or issues?
 
-* Agency is still in early development. Like many projects in the AI agent
-  space it is somewhat experimental at this time, with the goal of finding and
-  providing a minimal yet useful foundation for building agent systems.
+* Despite the 1.x.x version, Agency is still in early development. Like many
+  projects in the AI agent space it is somewhat experimental at this time, with
+  the goal of finding and providing a minimal yet useful foundation for building
+  agent systems.
 
   Expect changes to the API over time as features are added or changed. The
-  library follows semver versioning starting at 1.x.x. Minor version updates may
-  contain breaking API changes. Patch versions should not.
+  library follows semver versioning. Minor version updates may contain breaking
+  API changes. Patch versions should not.
 
 * This API does not assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.

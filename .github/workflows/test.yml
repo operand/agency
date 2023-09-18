@@ -19,4 +19,4 @@ jobs:
         python3 -m pip install --upgrade pip poetry
         poetry install
     - name: Run tests
-      run: poetry run pytest -vv
+      run: poetry run pytest -xvv

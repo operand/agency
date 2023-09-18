@@ -29,7 +29,7 @@ COPY --from=agency_deps /venv /venv
 COPY examples/demo/pyproject.toml examples/demo/poetry.lock ./examples/demo/
 COPY pyproject.toml poetry.lock README.md ./
 COPY agency/__init__.py ./agency/__init__.py
-RUN cd examples/demo && poetry install
+RUN cd examples/demo && poetry update && poetry install
 
 # Build demo image
 FROM base

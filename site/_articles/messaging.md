@@ -1,23 +1,31 @@
 ---
-title: Messaging Schema
+title: Messaging
 ---
 
-# Messaging Schema
+# Messaging
+
+The following details cover the message schema and other messaging behavior.
+
+## Message Schema
 
 All messages are validated upon sending and must conform to the message schema.
+
+Note that when sending, you normally do not supply the entire structure. The
+`meta.id`, `meta.parent_id`, and `from` fields are automatically populated for
+you.
 
 The full message schema is summarized by this example:
 
 ```python
 {
     "meta": {
-        "an": "optional",
-        "object": {
-            "for": "metadata",
-        }
+        "id": "a string to identify the message",
+        "parent_id": "meta.id of the parent message, if any",
+        "anything": "else here",
     },
-    "from": "the sender's id",
-    "to": "the receiver's id",
+    "from": "TheSender",
+    # The following fields must be specified when sending
+    "to": "TheReceiver",
     "action": {
         "name": "the_action_name",
         "args": {
@@ -26,10 +34,6 @@ The full message schema is summarized by this example:
     }
 }
 ```
-
-Note that when sending, you may not need to supply this entire structure. The
-`meta` field is entirely optional. Additionally, the `from` field is
-automatically populated for you in the `send()` and `request()` methods.
 
 An example of calling `Agent.send()` with only the minimum fields would look
 like:
@@ -50,11 +54,28 @@ See
 [agency/schema.py](https://github.com/operand/agency/tree/main/agency/schema.py)
 for the pydantic model definition used for validation.
 
+## The `to` and `from` Fields
+
+The `to` and `from` fields are used for addressing messages.
+
+All messages require the `to` field to be specified. The `to` field should be
+the `id` of an agent in the space (point-to-point) or the special id `*` for
+a broadcast (see below).
+
+The `from` field is populated for you when sending.
+
+## The `action` Field
+
+The action field contains the body of the action invocation. It carries the
+action `name` and the arguments to pass as a dictionary object called `args`.
 
 ## The `meta` Field
 
 The `meta` field may be used to store arbitrary key-value metadata about the
-message. It is entirely optional. Possible uses of the `meta` field include:
+message. It is optional to define, though the `meta.id` and `meta.parent_id`
+fields will be populated automatically by default.
+
+Example uses of the `meta` field include:
 
 * Storing "thoughts" associated with an action. This is a common pattern used
   with LLM agents. For example, an LLM agent may send the following message:
@@ -63,7 +84,7 @@ message. It is entirely optional. Possible uses of the `meta` field include:
       "meta": {
           "thoughts": "I should say hello to everyone",
       },
-      "to": "my_agent",
+      "to": "*",
       "action": {
           "name": "say",
           "args": {
@@ -83,23 +104,10 @@ message. It is entirely optional. Possible uses of the `meta` field include:
   }
   ```
 
-These are just a couple ideas to illustrate the use of the `meta` field.  
-
-### Using the `meta.id` Field
-
-The `meta.id` field is used by the `original_message()` method during the
-`handle_action_value()` and `handle_action_error()` callbacks to return the
-original message that the value or error corresponds to.
-
-If you make use of the `handle_action_value` and `handle_action_error`
-callbacks, you should populate the `meta.id` field to allow this correlation.
-
-
 ## Broadcast vs Point-to-Point
 
-All messages require the `to` field to be specified. The `to` field should be
-the `id` of an agent in the space (point-to-point) or the special id `*` to
-broadcast the message to all agents in the space.
+Sending a message to the special id `*` will broadcast the message to all agents
+in the space.
 
 By default, agents receive their own broadcasts, but you may change this
 behavior with the `receive_own_broadcasts` argument when creating the agent. For
@@ -109,7 +117,6 @@ example:
 my_agent = MyAgent("MyAgent", receive_own_broadcasts=False)
 ```
 
-
 ## Non-Existent Agents or Actions
 
 If you send a message to a non-existent agent, it will silently fail.
@@ -117,4 +124,5 @@ If you send a message to a non-existent agent, it will silently fail.
 If you send a message to an existent agent, but specify a non-existent action,
 you will receive an `error` message in response.
 
-Broadcasts which specify a non-existent action are silently ignored.
+If you send a _broadcast_ that specifies a non-existent action, agents will
+silently ignore the error.

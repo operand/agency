@@ -1,6 +1,8 @@
+import copy
 import json
 import multiprocessing
 import time
+import unittest
 from typing import List
 
 from agency.agent import Agent, _QueueProtocol
@@ -41,18 +43,74 @@ def add_agent(space: Space, agent_type: ObservableAgent, agent_id: str, **agent_
     return _message_log
 
 
-def assert_message_log(actual: List[Message], expected: List[Message], max_seconds=2):
-    """
-    Asserts that a list of messages is as expected.
-    """
-    wait_for_length(actual, len(expected), max_seconds)
-    print(f"list type: {type(list(actual))}")
-    assert list(actual) == list(expected), \
-        f"\nActual: {json.dumps(list(actual), indent=2)}\nExpected: {json.dumps(expected, indent=2)}"
+def _filter_unexpected_meta_keys(actual: Message, expected: Message) -> Message:
+    """Filters meta keys from actual that are not in expected"""
+
+    if "meta" not in actual:
+        return actual
+    if "meta" not in expected:
+        actual.pop("meta")
+        return actual
+
+    actual_meta = actual.get("meta")
+    expected_meta = expected.get("meta")
+    filtered_meta = {key: actual_meta[key]
+                     for key in expected_meta if key in actual_meta}
+    actual["meta"] = filtered_meta
+    return actual
 
 
-def wait_for_length(actual_list: List, expected_length: int, max_seconds=2):
-    """Waits for the agent's _message_log to be populated."""
+def assert_message_log(actual: List[Message],
+                       expected: List[Message],
+                       max_seconds=2,
+                       ignore_order=False,
+                       ignore_unexpected_meta_keys=True):
+    """
+    Asserts that a list of messages is populated as expected.
+
+    Args:
+        actual: The actual messages
+        expected: The expected messages
+        max_seconds: The maximum number of seconds to wait
+        ignore_order: If True, ignore the order of messages when comparing
+        ignore_unexpected_meta_keys:
+            If True, ignore meta keys in actual that are not in expected.
+            Defaults to True.
+    """
+
+    wait_for_messages(actual, len(expected), max_seconds)
+
+    testcase = unittest.TestCase()
+    testcase.maxDiff = None
+
+    if ignore_order:
+        # double check that the lengths are equal
+        testcase.assertEqual(len(actual), len(expected))
+        # check that each expected message is in actual
+        for expected_msg in expected:
+           for actual_msg in actual:
+                actual_to_compare = copy.deepcopy(actual_msg)
+                if ignore_unexpected_meta_keys:
+                    # filter unexpected meta keys before comparison
+                    actual_to_compare = _filter_unexpected_meta_keys(actual_to_compare, expected_msg)
+                if actual_to_compare == expected_msg:
+                    # we found a match, remove from list
+                    actual.remove(actual_msg)
+        # if we removed everything from actual, it's a match
+        testcase.assertTrue(len(actual) == 0)
+    else:
+        if ignore_unexpected_meta_keys:
+            # filter meta keys from actual that are not in expected
+            actual = [_filter_unexpected_meta_keys(actual_msg, expected_msg)
+                      for actual_msg, expected_msg in zip(actual, expected)]
+        testcase.assertListEqual(actual, expected)
+
+
+def wait_for_messages(actual_list: List,
+                      expected_length: int,
+                      max_seconds=2):
+    """Waits for the list of messages to be populated."""
+
     print(f"Waiting {max_seconds} seconds for {expected_length} messages...")
     start_time = time.time()
     while ((time.time() - start_time) < max_seconds):

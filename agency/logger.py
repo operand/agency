@@ -3,6 +3,11 @@ import logging
 import os
 import traceback
 
+import colorlog
+from colorlog import escape_codes
+from pygments import highlight
+from pygments.formatters import Terminal256Formatter
+from pygments.lexers import get_lexer_by_name
 
 _LOGLEVELS = {
     'CRITICAL': 50,
@@ -15,14 +20,37 @@ _LOGLEVELS = {
 
 _env_loglevel = os.environ.get('LOGLEVEL', 'WARNING').upper()
 _LOGLEVEL = _LOGLEVELS[_env_loglevel]
-_LOGFORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+_LOGFORMAT = '%(asctime_color)s%(asctime)s%(reset_color)s - %(levelname_color)s%(levelname)s%(reset_color)s - %(message_color)s%(message)s%(reset_color)s%(object_color)s%(object)s%(reset_color)s'
+_LOG_PYGMENTS_STYLE = os.environ.get('LOG_PYGMENTS_STYLE', 'monokai')
 
-# Initialize the logger
+
+class CustomColoredFormatter(colorlog.ColoredFormatter):
+    def format(self, record):
+        record.reset_color = escape_codes.escape_codes['reset']
+        record.asctime_color = escape_codes.escape_codes['light_black']
+        record.levelname_color = escape_codes.escape_codes[self.log_colors[record.levelname]]
+        record.message_color = escape_codes.escape_codes['reset']
+        record.object_color = escape_codes.escape_codes['reset']
+
+        return super().format(record)
+
+
 _logger = logging.getLogger("agency")
 _logger.setLevel(_LOGLEVEL)
 _handler = logging.StreamHandler()
 _handler.setLevel(_LOGLEVEL)
-_formatter = logging.Formatter(_LOGFORMAT)
+
+_formatter = CustomColoredFormatter(
+    _LOGFORMAT,
+    log_colors={
+        'CRITICAL': 'bold_red',
+        'ERROR': 'red',
+        'WARNING': 'yellow',
+        'INFO': 'green',
+        'DEBUG': 'cyan',
+    }
+)
+
 _handler.setFormatter(_formatter)
 _logger.addHandler(_handler)
 
@@ -35,37 +63,23 @@ class _CustomEncoder(json.JSONEncoder):
             return str(obj)
 
 
-def log(level: str, message: str, object: object = None):
-    """
-    Logs a message at the specified level
-
-    If the object argument is provided, it will be pretty printed after the
-    message.
-
-    Args:
-        level: The log level
-        message: The message
-        object: An optional object to pretty print
-    """
-    pretty_object: str = None
+def log(level: str, message: str, object=None):
+    pretty_object: str = ""
     if object != None:
         try:
             if isinstance(object, Exception):
-                # Print the traceback on exceptions
-                pretty_object = "".join(traceback.format_exception(
+                pretty_object = "\n" + "".join(traceback.format_exception(
                     etype=type(object), value=object, tb=object.__traceback__))
             else:
-                # Try to json dumps it
-                pretty_object = json.dumps(
-                    object, indent=2, cls=_CustomEncoder)
+                json_str = json.dumps(object, indent=2, cls=_CustomEncoder)
+                pretty_object = "\n" + \
+                    highlight(json_str, get_lexer_by_name('json'),
+                              Terminal256Formatter(style=_LOG_PYGMENTS_STYLE))
         except:
             pass
 
-    if pretty_object != None:
-        message = f"{message}\n{pretty_object}"
-
     numeric_level = _LOGLEVELS.get(level.upper())
     if numeric_level is not None:
-        _logger.log(numeric_level, message)
+        _logger.log(numeric_level, message, extra={'object': pretty_object})
     else:
         raise ValueError(f"Invalid log level: {level}")

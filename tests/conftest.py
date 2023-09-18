@@ -1,8 +1,7 @@
+import os
 import subprocess
 import time
 import tracemalloc
-
-tracemalloc.start()
 
 import pytest
 
@@ -10,7 +9,12 @@ from agency.spaces.amqp_space import AMQPSpace
 from agency.spaces.multiprocess_space import MultiprocessSpace
 from agency.spaces.thread_space import ThreadSpace
 
+tracemalloc.start()
+
+
 RABBITMQ_OUT = subprocess.DEVNULL  # use subprocess.PIPE for output
+SKIP_AMQP = os.environ.get("SKIP_AMQP")
+
 
 @pytest.fixture(scope="session", autouse=True)
 def rabbitmq_container():
@@ -18,6 +22,9 @@ def rabbitmq_container():
     Starts and stops a RabbitMQ container for the duration of the test
     session.
     """
+    if SKIP_AMQP:
+        yield None
+        return
 
     container = subprocess.Popen(
         [
@@ -99,4 +106,6 @@ def any_space(request, thread_space, multiprocess_space, amqp_space):
     elif request.param == 'multiprocess_space':
         return multiprocess_space
     elif request.param == 'amqp_space':
+        if os.environ.get("SKIP_AMQP"):
+            pytest.skip(f"SKIP_AMQP={SKIP_AMQP}")
         return amqp_space

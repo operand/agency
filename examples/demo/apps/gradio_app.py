@@ -1,24 +1,23 @@
 import json
 import multiprocessing
 import re
+import uuid
 from typing import List
 
 import gradio as gr
 
-from agency.agent import Agent, _QueueProtocol, action
+from agency.agent import _RESPONSE_ACTION_NAME, Agent, _QueueProtocol, action
+from agency.logger import log
 from agency.schema import Message
 
 
 class GradioUser(Agent):
-    """
-    Represents the Gradio app and its user as an Agent
-    """
+    """Represents the Gradio app user as an Agent"""
 
     def __init__(self,
                  id: str,
                  outbound_queue: _QueueProtocol,
-                 _message_log: List[Message] = None,
-                 ):
+                 _message_log: List[Message] = None):
         super().__init__(id,
                          outbound_queue,
                          receive_own_broadcasts=False)
@@ -49,14 +48,45 @@ class GradioApp():
         message = self.__parse_input_message(text)
 
         # The gradio app sends a message directly into the space as though it
-        # were coming from the user. Because of this we also append to the
-        # agent's _message_log, since we are bypassing that logic. This isn't
-        # the greatest implementation but is a compromise since running gradio
-        # in a subprocess is problematic.
+        # were coming from the user. Because of this we must manually duplicate
+        # some logic in send() that we are bypassing. This isn't great, but is a
+        # compromise since running gradio in a subprocess is problematic. This
+        # issue will be resolved in the future.
+        message["meta"] = {
+            "id": uuid.uuid4().__str__(),
+            **message.get("meta", {}),
+        }
+        log("info", f"{self._agent_id} sending message", message)
         self._message_log.append(message)
         self.space._route(message)
 
         return "", self.get_chatbot_messages()
+
+    def _find_parent(self, message):
+        # Here we need to duplicate functionality again from Agent. This is
+        # a temporary solution until foreground agents are implemented.
+        parent_id = message["meta"].get("parent_id", None)
+        if parent_id is not None:
+            for message in self._message_log:
+                if message["meta"]["id"] == parent_id:
+                    return message
+
+    def _should_render(self, message) -> bool:
+        """
+        Determines whether a message should be rendered to the chat area.
+
+        Args:
+            message: The message to check
+        """
+        # ignore responses to "say" actions
+        parent_message = self._find_parent(message)
+        if parent_message and \
+            message["action"]["name"] == _RESPONSE_ACTION_NAME \
+            and parent_message["action"]["name"] == "say":
+            return False
+
+        # all other messages are printed
+        return True
 
     def get_chatbot_messages(self):
         """
@@ -65,6 +95,7 @@ class GradioApp():
         return [
             self.__chatbot_message(message)
             for message in self._message_log
+            if self._should_render(message)
         ]
 
     def __chatbot_message(self, message):
