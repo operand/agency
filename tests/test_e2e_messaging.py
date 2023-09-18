@@ -40,7 +40,6 @@ class _MessagingTestAgent(ObservableAgent):
         raise ValueError("Something went wrong")
 
 
-@pytest.mark.focus
 def test_send_and_reply(any_space):
     """Tests sending/receiving a basic send()"""
     senders_log = add_agent(any_space, _MessagingTestAgent, "Sender")

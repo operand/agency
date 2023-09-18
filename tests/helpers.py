@@ -84,6 +84,9 @@ def assert_message_log(actual: List[Message],
     testcase.maxDiff = None
 
     if ignore_order:
+        # double check that the lengths are equal
+        testcase.assertEqual(len(actual), len(expected))
+        # check that each expected message is in actual
         for expected_msg in expected:
            for actual_msg in actual:
                 actual_to_compare = copy.deepcopy(actual_msg)
