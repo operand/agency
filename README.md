@@ -190,8 +190,8 @@ implementation that works, you can scale it out to your needs.
   agent systems.
 
   Expect changes to the API over time as features are added or changed. The
-  library follows semver versioning. Minor version updates may contain breaking
-  API changes. Patch versions should not.
+  library follows semver versioning starting at 1.x.x. Minor version updates may
+  contain breaking API changes. Patch versions should not.
 
 * This API does not assume or enforce predefined roles like "user", "system",
   "assistant", etc. This is an intentional decision and is not likely to change.
