@@ -32,17 +32,12 @@ included for running the demo using the different space types. To run the demo:
 
 1. Start the application.
 
-      To run the single-container `MultiprocessSpace` application:
+      To run the `LocalSpace` application:
       ```sh
-      ./demo run multiprocess
+      ./demo run local
       ```
 
-      To run the single-container `ThreadSpace` application:
-      ```sh
-      ./demo run threaded
-      ```
-
-      To run the multi-container `AMQPSpace` application:
+      To run the `AMQPSpace` application:
       ```sh
       ./demo run amqp
       ```
