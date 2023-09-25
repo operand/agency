@@ -475,7 +475,7 @@ class Agent():
 
     def current_message(self) -> Message:
         """
-        Returns the full incoming message which invokes the current action.
+        Returns the full incoming message which invoked the current action.
 
         This method may be called within an action or action related callback to
         retrieve the current message, for example to determine the sender or
@@ -489,6 +489,9 @@ class Agent():
     def parent_message(self, message: Message = None) -> Message:
         """
         Returns the message that the given message is responding to, if any.
+
+        This method may be used within the handle_action_value and
+        handle_action_error callbacks.
 
         Args:
             message: The message to get the parent message of. Defaults to the

@@ -65,8 +65,6 @@ see later.
 
 ## Defining an Agent and its Actions
 
-Let's dive into how an agent is defined.
-
 To define an Agent type like `ChattyAI`, simply extend the `Agent` class. For
 example:
 
@@ -135,8 +133,8 @@ perspective of an agent.
 All agents implement a `help` action, which returns a dictionary of their
 available actions for other agents to discover.
 
-To request this `help` information, an agent may send the something like the
-following directly to another agent:
+To request `help` information, an agent may send something like the
+following:
 
 ```python
 self.send({
@@ -170,7 +168,7 @@ This is how agents may discover available actions on other agents.
 
 ### Broadcasting `help`
 
-But how do an agent know which agents are available in the first place?
+But how does an agent know which agents are present in the space?
 
 To discover all agents in the space, an agent can broadcast a message using the
 special id `*`. For example:
@@ -207,7 +205,7 @@ The above will broadcast the `help` action, requesting help specifically on the
 `say` action.
 
 Note that broadcasts may be used for other messages as well. See [the messaging
-article](https://createwith.agency/articles/messaging) for details.
+article](https://createwith.agency/articles/messaging) for more details.
 
 
 ## Adding an Intelligent Agent
@@ -215,9 +213,7 @@ article](https://createwith.agency/articles/messaging) for details.
 Now that we understand how agents communicate and discover each other, let's
 add an intelligent agent to the space which can use these abilities.
 
-To add the
-[`OpenAIFunctionAgent`](https://github.com/operand/agency/tree/main/agency/agents/demo_agent.py)
-to the environment:
+To add the `OpenAIFunctionAgent` to the space:
 
 ```python
 space.add(OpenAIFunctionAgent,
@@ -228,13 +224,16 @@ space.add(OpenAIFunctionAgent,
           user_id="User")
 ```
 
-If you inspect the implementation, you'll see that this agent uses the
-`after_add` callback to immediately request help information from the other
-agents in the space when added. It later uses that information to provide a list
-of functions to the OpenAI function calling API.
+If you inspect [the
+implementation](https://github.com/operand/agency/tree/main/agency/agents/demo_agent.py)
+of `OpenAIFunctionAgent`, you'll see that this agent uses the `after_add`
+callback to immediately request help information from the other agents in the
+space when added. It later uses that information to provide a list of functions
+to the OpenAI function calling API, allowing the LLM to see agent actions as
+functions it may invoke.
 
-In this way, the `OpenAIFunctionAgent` can discover all the other agents in the
-space and interact with them intelligently.
+In this way, the `OpenAIFunctionAgent` can discover other agents in the space
+and interact with them intelligently as needed.
 
 
 ## Adding a User Interface
@@ -246,7 +245,7 @@ application which interacts with a space:
     agent, having it act as a "liason" between the user and the space. User
     intentions can be mapped to actions that the "liason" agent can invoke on
     behalf of the user. In this approach, users would not need to know the
-    details of the underlying implementation.
+    details of the underlying communication.
 
 2. Individual human users may be represented as individual agents in a space.
     This approach allows your application to provide direct interaction with

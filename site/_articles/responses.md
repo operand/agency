@@ -54,7 +54,7 @@ class SenderAgent(Agent):
 ```
 
 When an instance of `SenderAgent` sends a `ping` action to `MyAgent`, the
-`handle_action_value` callback on `MyAgent` will be invoked with the value
+`handle_action_value` callback on `SenderAgent` will be invoked with the value
 `"pong"`.
 
 Note that `respond_with()` may be called multiple times in a single action. Each

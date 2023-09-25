@@ -4,6 +4,10 @@ from agency.schema import Message
 
 
 class Queue(ABC, metaclass=ABCMeta):
+    """
+    Encapsulates a queue intended to be used for communication
+    """
+
     def connect(self) -> None:
         """
         Connects to the queue

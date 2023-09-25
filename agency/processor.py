@@ -25,6 +25,9 @@ class _EventProtocol(Protocol):
 
 
 class Processor(ABC, metaclass=ABCMeta):
+    """
+    Encapsulates a running Agent instance
+    """
     def __init__(self,
                  agent_type: Type[Agent],
                  agent_id: str,

@@ -17,8 +17,7 @@ currently implements two `Space` types:
 ## Using `LocalSpace`
 
 `LocalSpace` is the more basic of the two. It connects agents within the same
-application using interprocess communication (IPC). When building an application
-intended for a single host, `LocalSpace` should be used.
+python application using interprocess communication (IPC).
 
 Instantiating a `LocalSpace`, like other spaces, is as simple as:
 
@@ -34,7 +33,7 @@ instance, allowing any other agents added to the space to communicate with it.
 
 ## Using `AMQPSpace`
 
-`AMQPSpace` may be used for building applications that allow agent communication
+`AMQPSpace` may be used for building applications that allows agent communication
 across multiple hosts in a network.
 
 To run an `AMQPSpace` across multiple hosts, you would separate your agents into
@@ -108,8 +107,7 @@ space = AMQPSpace(
 
 ## Instantiating and Destroying `Space`s
 
-`Space` instances manage a number of threads and subprocesses during their
-lifetime.
+`Space` instances manage a number of resources during their lifetime.
 
 To destroy a `Space`, simply call its `destroy` method. This will clean up all
 resources used by the space, along with any agents within the space.
@@ -121,5 +119,6 @@ with LocalSpace() as space:
     space.add(Host, "Host")
     ...
 ```
+
 This form will automatically clean up Space related resources upon exit of the
 with block.
