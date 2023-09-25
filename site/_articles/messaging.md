@@ -62,7 +62,7 @@ All messages require the `to` field to be specified. The `to` field should be
 the `id` of an agent in the space (point-to-point) or the special id `*` for
 a broadcast (see below).
 
-The `from` field is populated for you when sending.
+The `from` field is automatically populated for you when sending.
 
 ## The `action` Field
 
@@ -104,7 +104,7 @@ Example uses of the `meta` field include:
   }
   ```
 
-## Broadcast vs Point-to-Point
+## Broadcasting Messages
 
 Sending a message to the special id `*` will broadcast the message to all agents
 in the space.
@@ -117,12 +117,14 @@ example:
 my_agent = MyAgent("MyAgent", receive_own_broadcasts=False)
 ```
 
-## Non-Existent Agents or Actions
+## Messaging to Non-Existent Agents or Actions
 
-If you send a message to a non-existent agent, it will silently fail.
+If you send a message to a non-existent agent `id`, it will silently fail. This
+is in line with the actor model.
 
 If you send a message to an existent agent, but specify a non-existent action,
-you will receive an `error` message in response.
+you will receive an `error` response which you may handle in the
+`handle_action_error` callback.
 
-If you send a _broadcast_ that specifies a non-existent action, agents will
-silently ignore the error.
+If you send a _broadcast_ that specifies a non-existent action on some agents,
+those agents will silently ignore the error.

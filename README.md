@@ -46,8 +46,8 @@ looking to build a custom agent system of your own, Agency might be for you.
 # API Overview
 
 In Agency, all entities are represented as instances of the `Agent` class. This
-includes all AI-driven agents, traditional software systems, or human users that
-may communicate as part of your application.
+includes all AI-driven agents, software interfaces, or human users that may
+communicate as part of your application.
 
 All agents may expose "actions" that other agents can discover and invoke at run
 time. An example of a simple agent could be:
@@ -109,26 +109,23 @@ class CalculatorAgent(Agent):
 A `Space` is how you connect your agents together. An agent cannot communicate
 with others until it is added to a common `Space`.
 
-There are three included `Space` implementations to choose from:
-* `ThreadSpace` - which distributes and connects agents using
-  multithreading, suitable for simple applications and testing.
-* `MultiprocessSpace` - which distributes agents using the
-  multiprocessing module, for better parallelism.
-* `AMQPSpace` - which distributes agents across a network using an AMQP
+There are two included `Space` implementations to choose from:
+* `LocalSpace` - which connects agents within the same application.
+* `AMQPSpace` - which connects agents across a network using an AMQP
   server like RabbitMQ.
 
-Finally, here is a simple example of creating a `MultiprocessSpace` and adding two
+Finally, here is a simple example of creating a `LocalSpace` and adding two
 agents to it.
 
 ```python
-space = MultiprocessSpace()
+space = LocalSpace()
 space.add(CalculatorAgent, "CalcAgent")
 space.add(MyAgent, "MyAgent")
 # The agents above can now communicate
 ```
 
-These are just a few of the features that Agency provides. For more detailed
-information please see [the help site](https://createwith.agency).
+These are just the basic features that Agency provides. For more information
+please see [the help site](https://createwith.agency).
 
 
 # Install
@@ -167,10 +164,10 @@ The following is a screenshot of the Gradio UI that demonstrates the example
 
 Though you could entirely create a simple agent using only the primitives in
 Agency (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
-intended to be an all-inclusive toolset like other libraries. For example, it
-does not include support for constructing prompts or working with vector
-databases, etc. Implementation of agent behavior is left up to you, and you are
-free to use other libraries as needed for those purposes.
+intended to be an all-inclusive LLM-oriented toolset like other libraries. For
+example, it does not include support for constructing prompts or working with
+vector databases. Implementation of agent behavior is left entirely up to you,
+and you are free to use other libraries as needed for those purposes.
 
 Agency focuses on the lower level concerns of communication, observation,
 scalability, and security. The library strives to provide the operating

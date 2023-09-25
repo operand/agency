@@ -5,4 +5,4 @@ If you're not sure where to start, the [demo application
 walkthrough](/articles/walkthrough) is a good choice.
 
 If you can't find what you're looking for, please [file an
-issue](https://github.com/operand/agency/issues/new)!
+issue](https://github.com/operand/agency/issues/new).
