@@ -242,18 +242,19 @@ space and interact with them intelligently.
 There are two general approaches you might follow to implement a user-facing
 application which interacts with a space:
 
-1. You may represent a user-facing application as an individual
+1. You may represent the user-facing application as an individual
     agent, having it act as a "liason" between the user and the space. User
     intentions can be mapped to actions that the "liason" agent can invoke on
-    behalf of the user.
+    behalf of the user. In this approach, users would not need to know the
+    details of the underlying implementation.
 
 2. Individual human users may be represented as individual agents in a space.
     This approach allows your application to provide direct interaction with
     agents by users and has the benefit of allowing actions to be invoked
-    directly, enabling more powerful possibilities.
+    directly, enabling more powerful interactive possibilities.
     
     This is the approach taken in [the demo
-    application](https://github.com/operand/agency/tree/main/examples/demo)
+    application](https://github.com/operand/agency/tree/main/examples/demo).
 
     For example, the demo UI (currently implemented in
     [Gradio](https://gradio.app)) allows users to directly invoke actions via a
@@ -263,8 +264,8 @@ application which interacts with a space:
     /Chatty.say content:"Hello"
     ```
 
-    This approach allows the user to work hand-in-hand with agents, and is one
-    of the driving principles behind Agency's design.
+    This allows the user to work hand-in-hand with agents, and is one of the
+    driving principles behind Agency's design.
     
     See the [demo
     application](https://github.com/operand/agency/tree/main/examples/demo/) for
