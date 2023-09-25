@@ -264,8 +264,8 @@ application which interacts with a space:
     /Chatty.say content:"Hello"
     ```
 
-    This allows the user to work hand-in-hand with agents, and is one of the
-    driving principles behind Agency's design.
+    This allows the user to work hand-in-hand with intelligent agents, and is
+    one of the driving visions behind Agency's design.
     
     See the [demo
     application](https://github.com/operand/agency/tree/main/examples/demo/) for
