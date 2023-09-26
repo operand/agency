@@ -1,3 +1,4 @@
+import json
 import os
 import queue
 import socket
@@ -148,18 +149,18 @@ class _AMQPOutboundQueue(_AMQPQueue):
 
     def put(self, message: Message):
         with kombu.Connection(**self.kombu_connection_options) as connection:
-            producer = kombu.Producer(connection)
-            if message['to'] == '*':
-                producer.publish(
-                    message,
-                    exchange=self._broadcast_exchange,
-                )
-            else:
-                producer.publish(
-                    message,
-                    exchange=self._direct_exchange,
-                    routing_key=message['to'],
-                )
+            with connection.Producer(serializer="json") as producer:
+                if message['to'] == '*':
+                    producer.publish(
+                        message,
+                        exchange=self._broadcast_exchange,
+                    )
+                else:
+                    producer.publish(
+                        message,
+                        exchange=self._direct_exchange,
+                        routing_key=message['to'],
+                    )
 
     def get(self, block: bool = True, timeout: float = None) -> Message:
         raise NotImplementedError("AMQPOutboundQueue does not support get")
