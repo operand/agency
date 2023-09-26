@@ -6,12 +6,12 @@ agent-integrated systems.
 
 The library provides an easy to use API that enables you to connect agents with
 traditional software systems in a flexible and scalable way, allowing you to
-develop the architecture you need. 
+develop any architecture you need.
 
-Agency's goal is to enable others to create custom agent-based applications by
-providing a minimal foundation to both experiment and build upon. So if you're
-looking to build a custom agent system of your own, Agency might be for you.
-
+Agency's goal is to enable developers to create custom agent-based applications
+by providing a minimal foundation to both experiment and build upon. So if
+you're looking to build a custom agent system of your own, Agency might be for
+you.
 
 ## Features
 
@@ -160,7 +160,7 @@ The following is a screenshot of the Gradio UI that demonstrates the example
 
 # FAQ
 
-## How does Agency compare to other agent libraries?
+## How does Agency compare to other agent frameworks?
 
 Though you could entirely create a simple agent using only the primitives in
 Agency (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
