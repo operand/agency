@@ -1,34 +1,13 @@
-import multiprocessing
 import threading
 from abc import ABC, ABCMeta, abstractmethod
-from concurrent.futures import (Executor, ProcessPoolExecutor,
-                                ThreadPoolExecutor)
+from concurrent.futures import Executor
 from typing import Dict, List, Type
 
 from agency.agent import Agent
 from agency.logger import log
 from agency.processor import Processor, _EventProtocol
 from agency.queue import Queue
-
-
-class _ResourceManager:
-    """
-    Singleton for globally managing concurrency primitives
-    """
-    _instance = None
-    _initialized = False
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(_ResourceManager, cls).__new__(cls)
-        return cls._instance
-
-    def __init__(self):
-        if not self._initialized:
-            self.thread_pool_executor = ThreadPoolExecutor()
-            self.process_pool_executor = ProcessPoolExecutor()
-            self.multiprocessing_manager = multiprocessing.Manager()
-            self._initialized = True
+from agency.resources import ResourceManager
 
 
 class Space(ABC, metaclass=ABCMeta):
@@ -206,15 +185,15 @@ class Space(ABC, metaclass=ABCMeta):
 
     def _get_executor(self, foreground: bool = False) -> Executor:
         if foreground:
-            return _ResourceManager().thread_pool_executor
+            return ResourceManager().thread_pool_executor
         else:
-            return _ResourceManager().process_pool_executor
+            return ResourceManager().process_pool_executor
 
     def _define_event(self, foreground: bool = False) -> _EventProtocol:
         if foreground:
             return threading.Event()
         else:
-            return _ResourceManager().multiprocessing_manager.Event()
+            return ResourceManager().multiprocessing_manager.Event()
 
     @abstractmethod
     def _create_inbound_queue(self, agent_id) -> Queue:

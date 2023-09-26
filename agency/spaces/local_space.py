@@ -5,8 +5,9 @@ from concurrent.futures import Future
 
 from agency.logger import log
 from agency.queue import Queue
+from agency.resources import ResourceManager
 from agency.schema import Message
-from agency.space import _ResourceManager, Space
+from agency.space import Space
 
 
 class _LocalQueue(Queue):
@@ -14,7 +15,7 @@ class _LocalQueue(Queue):
 
     def __init__(self, outbound_message_event: multiprocessing.Event = None):
         self.outbound_message_event = outbound_message_event
-        self._queue = _ResourceManager().multiprocessing_manager.Queue()
+        self._queue = ResourceManager().multiprocessing_manager.Queue()
 
     def put(self, message: Message):
         self._queue.put(message)
@@ -33,7 +34,7 @@ class LocalSpace(Space):
     def __init__(self):
         super().__init__()
         self._stop_router_event: threading.Event = threading.Event()
-        self._outbound_message_event: multiprocessing.Event = _ResourceManager(
+        self._outbound_message_event: multiprocessing.Event = ResourceManager(
         ).multiprocessing_manager.Event()
         self._router_future: Future = self._start_router_thread()
 
@@ -69,7 +70,7 @@ class LocalSpace(Space):
                             break
             log("debug", "LocalSpace: router thread stopped")
 
-        return _ResourceManager().thread_pool_executor.submit(_router_thread)
+        return ResourceManager().thread_pool_executor.submit(_router_thread)
 
     def _stop_router_thread(self):
         self._stop_router_event.set()

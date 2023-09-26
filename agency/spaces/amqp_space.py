@@ -12,8 +12,9 @@ import kombu
 
 from agency.logger import log
 from agency.queue import Queue
+from agency.resources import ResourceManager
 from agency.schema import Message
-from agency.space import Space, _ResourceManager
+from agency.space import Space
 
 _BROADCAST_KEY = "__broadcast__"
 
@@ -108,7 +109,7 @@ class _AMQPInboundQueue(_AMQPQueue):
             log("debug", f"{self.routing_key}: heartbeat thread stopped")
         self._disconnecting = threading.Event()
         self._disconnecting.clear()
-        self._heartbeat_future = _ResourceManager(
+        self._heartbeat_future = ResourceManager(
         ).thread_pool_executor.submit(_heartbeat_thread, self._disconnecting)
 
         log("debug", f"{self.routing_key}: connected")
