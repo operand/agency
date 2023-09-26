@@ -15,6 +15,7 @@ from agency.queue import Queue
 from agency.schema import Message
 from agency.space import Space, _ResourceManager
 
+_BROADCAST_KEY = "__broadcast__"
 
 @dataclass
 class AMQPOptions:
@@ -50,8 +51,7 @@ class _AMQPInboundQueue(_AMQPQueue):
     def __init__(self, amqp_options: AMQPOptions, exchange_name: str, routing_key: str):
         super().__init__(amqp_options, exchange_name, routing_key)
         self._connection: kombu.Connection = None
-        self._direct_exchange: kombu.Exchange = None
-        self._broadcast_exchange: kombu.Exchange = None
+        self._exchange: kombu.Exchange = None
         self._direct_queue: kombu.Queue = None
         self._broadcast_queue: kombu.Queue = None
         self._heartbeat_future: Future = None
@@ -65,24 +65,23 @@ class _AMQPInboundQueue(_AMQPQueue):
 
         def _callback(body, amqp_message):
             amqp_message.ack()
-            self._received_queue.put(body)
+            self._received_queue.put(json.loads(body))
 
         try:
             self._connection = kombu.Connection(
                 **self.kombu_connection_options)
             self._connection.connect()
-            self._direct_exchange = kombu.Exchange(
-                self.exchange_name, 'direct', durable=True)
-            self._broadcast_exchange = kombu.Exchange(
-                f"{self.exchange_name}-broadcast", 'fanout', durable=True)
+            self._exchange = kombu.Exchange(
+                self.exchange_name, 'topic', durable=True)
             self._direct_queue = kombu.Queue(
                 self.routing_key,
-                exchange=self._direct_exchange,
+                exchange=self._exchange,
                 routing_key=self.routing_key,
                 exclusive=True)
             self._broadcast_queue = kombu.Queue(
                 f"{self.routing_key}-broadcast",
-                exchange=self._broadcast_exchange,
+                exchange=self._exchange,
+                routing_key=_BROADCAST_KEY,
                 exclusive=True)
             self._consumer = kombu.Consumer(
                 self._connection,
@@ -138,27 +137,25 @@ class _AMQPOutboundQueue(_AMQPQueue):
 
     def __init__(self, amqp_options: AMQPOptions, exchange_name: str, routing_key: str):
         super().__init__(amqp_options, exchange_name, routing_key)
-        self._direct_exchange: kombu.Exchange = None
-        self._broadcast_exchange: kombu.Exchange = None
+        self._exchange: kombu.Exchange = None
 
     def connect(self):
-        self._direct_exchange = kombu.Exchange(
-            self.exchange_name, 'direct', durable=True)
-        self._broadcast_exchange = kombu.Exchange(
-            f"{self.exchange_name}-broadcast", 'fanout', durable=True)
-
+        self._exchange = kombu.Exchange(
+            self.exchange_name, 'topic', durable=True)
+        
     def put(self, message: Message):
         with kombu.Connection(**self.kombu_connection_options) as connection:
-            with connection.Producer(serializer="json") as producer:
+            with connection.Producer() as producer:
                 if message['to'] == '*':
                     producer.publish(
-                        message,
-                        exchange=self._broadcast_exchange,
+                        json.dumps(message),
+                        exchange=self._exchange,
+                        routing_key=_BROADCAST_KEY,
                     )
                 else:
                     producer.publish(
-                        message,
-                        exchange=self._direct_exchange,
+                        json.dumps(message),
+                        exchange=self._exchange,
                         routing_key=message['to'],
                     )
 
