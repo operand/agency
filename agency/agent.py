@@ -8,6 +8,7 @@ from docstring_parser import DocstringStyle, parse
 
 from agency.logger import log
 from agency.queue import Queue
+from agency.resources import ResourceManager
 from agency.schema import Message
 
 
@@ -348,26 +349,25 @@ class Agent():
 
                     # Spawn a thread to handle the response
                     def __process_response(arg, current_message):
+                        threading.current_thread(
+                        ).name = f"{self.id()}: __process_response {current_message['meta']['id']}"
                         self.__thread_local_current_message.value = current_message
                         handler_callback(arg)
 
-                    threading.Thread(
-                        target=__process_response,
-                        args=(arg, message, ),
-                        daemon=True,
-                        name=f"{self.id()} response handler {message['meta']['id']}",
-                    ).start()
+                    ResourceManager().thread_pool_executor.submit(
+                        __process_response,
+                        arg,
+                        message,
+                    )
 
             # Handle all other messages
             else:
                 # Spawn a thread to process the message. This means that messages
                 # are processed concurrently, but may be processed out of order.
-                threading.Thread(
-                    target=self.__process,
-                    args=(message,),
-                    daemon=True,
-                    name=f"{self.id()} message handler {message['meta']['id']}",
-                ).start()
+                ResourceManager().thread_pool_executor.submit(
+                    self.__process,
+                    message,
+                )
         except Exception as e:
             log("error", f"{self.id()}: raised exception in _receive", e)
 
@@ -375,6 +375,8 @@ class Agent():
         """
         Top level method within the action processing thread.
         """
+        threading.current_thread(
+        ).name = f"{self.id()}: __process {message['meta']['id']}"
         self.__thread_local_current_message.value = message
         try:
             log("debug", f"{self.id()}: committing action", message)
