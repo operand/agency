@@ -19,6 +19,8 @@ pygments = "^2.16.1"
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"
 pytest-randomly = "^3.13.0"
+pytest-watch = "^4.2.0"
+pdoc = "^14.1.0"
 
 
 [build-system]

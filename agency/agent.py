@@ -1,13 +1,13 @@
 import inspect
 import re
 import threading
-import time
 import uuid
-from typing import Dict, List, Protocol
+from typing import Dict, List, Union
 
 from docstring_parser import DocstringStyle, parse
 
 from agency.logger import log
+from agency.queue import Queue
 from agency.schema import Message
 
 
@@ -99,8 +99,9 @@ def _generate_help(method: callable) -> dict:
     return help_object
 
 
-# Special action name for responses
+# Special action names
 _RESPONSE_ACTION_NAME = "[response]"
+_ERROR_ACTION_NAME = "[error]"
 
 
 # Access policies
@@ -122,11 +123,12 @@ def action(*args, **kwargs):
         action_name = kwargs.get("name", method.__name__)
         if action_name == _RESPONSE_ACTION_NAME:
             raise ValueError(f"action name '{action_name}' is reserved")
-        method.action_properties = {
+        method.action_properties: dict = {
             "name": method.__name__,
             "help": _generate_help(method),
             "access_policy": ACCESS_PERMITTED,
-            **kwargs}
+            **kwargs,
+        }
         return method
 
     if len(args) == 1 and callable(args[0]) and not kwargs:
@@ -135,42 +137,16 @@ def action(*args, **kwargs):
         return decorator  # The decorator was used with parentheses
 
 
-class _QueueProtocol(Protocol):
-    """A protocol for providing an outbound queue for an Agent"""
-
-    def put(self, message: Message):
-        """
-        Put a message onto the queue for sending
-
-        Args:
-            message: The message
-        """
-
-    def get(self) -> Message:
-        """
-        Get the next message from the queue
-
-        Returns:
-            The next message
-
-        Raises:
-            queue.Empty: If there are no messages
-        """
-
-
 class ActionError(Exception):
     """Raised from the request() method if the action responds with an error"""
 
 
 class Agent():
     """
-    An Actor that may represent an AI agent, computing system, or human user
+    An Actor that may represent an AI agent, software interface, or human user
     """
 
-    def __init__(self,
-                 id: str,
-                 outbound_queue: _QueueProtocol,
-                 receive_own_broadcasts: bool = True):
+    def __init__(self, id: str, receive_own_broadcasts: bool = True):
         """
         Initializes an Agent.
 
@@ -181,7 +157,6 @@ class Agent():
 
         Args:
             id: The id of the agent
-            outbound_queue: The outgoing queue for sending messages
             receive_own_broadcasts:
                 Whether the agent will receive its own broadcasts. Defaults to
                 True
@@ -192,16 +167,16 @@ class Agent():
             raise ValueError("id cannot start with \"amq.\"")
         if id == "*":
             raise ValueError("id cannot be \"*\"")
-        if outbound_queue is None:
-            raise ValueError("outbound_queue must be provided")
         self._id: str = id
-        self._outbound_queue: _QueueProtocol = outbound_queue
         self._receive_own_broadcasts: bool = receive_own_broadcasts
-        self._is_processing: bool = False  # set by the Space
+        # --- non-constructor properties set by Space/Processor ---
+        self._outbound_queue: Queue = None
+        self._is_processing: bool = False
+        # --- non-constructor properties ---
         self._message_log: List[Message] = []
-        self._message_log_lock = threading.Lock()
-        self._pending_requests: Dict[str, Message] = {}
-        self._pending_requests_lock = threading.Lock()
+        self._message_log_lock: threading.Lock = threading.Lock()
+        self._pending_requests: Dict[str, Union[threading.Event, Message]] = {}
+        self._pending_requests_lock: threading.Lock = threading.Lock()
         self.__thread_local_current_message = threading.local()
         self.__thread_local_current_message.value: Message = None
 
@@ -216,17 +191,27 @@ class Agent():
             message: The message
 
         Returns:
-            The id of the sent message
+            The meta.id of the sent message
+
+        Raises:
+            TypeError: If the message is not a dict
+            ValueError: If the message is invalid
         """
+        if not isinstance(message, dict):
+            raise TypeError("message must be a dict")
+        if "from" in message and message["from"] != self.id():
+            raise ValueError(
+                f"'from' field value '{message['from']}' does not match this agent's id.")
+        message["from"] = self.id()
         message["meta"] = {
             "id": uuid.uuid4().__str__(),
             **message.get("meta", {}),
         }
-        message["from"] = self.id()
-        log("info", f"{self.id()} sending message", message)
+        message = Message(**message).dict(by_alias=True, exclude_unset=True)
         with self._message_log_lock:
+            log("info", f"{self._id}: sending", message)
             self._message_log.append(message)
-        self._outbound_queue.put(message)
+            self._outbound_queue.put(message)
         return message["meta"]["id"]
 
     def request(self, message: dict, timeout: float = 3) -> object:
@@ -258,25 +243,65 @@ class Agent():
                 "request() called while agent is not processing incoming messages. Use send() instead.")
 
         # Send and mark the request as pending
-        request_id = self.send(message)
-        pending = object()
         with self._pending_requests_lock:
-            self._pending_requests[request_id] = pending
+            request_id = self.send(message)
+            self._pending_requests[request_id] = threading.Event()
 
         # Wait for response
-        start_time = time.time()
-        while self._pending_requests[request_id] == pending:
-            time.sleep(0.001)
-            if time.time() - start_time > timeout:
-                raise TimeoutError
+        if not self._pending_requests[request_id].wait(timeout=timeout):
+            raise TimeoutError
 
         with self._pending_requests_lock:
             response_message = self._pending_requests.pop(request_id)
 
         # Raise error or return value from response
-        if "error" in response_message["action"]["args"]:
+        if response_message["action"]["name"] == _ERROR_ACTION_NAME:
             raise ActionError(response_message["action"]["args"]["error"])
-        return response_message["action"]["args"]["value"]
+
+        if response_message["action"]["name"] == _RESPONSE_ACTION_NAME:
+            return response_message["action"]["args"]["value"]
+
+        raise RuntimeError("We should never get here")
+
+    def respond_with(self, value):
+        """
+        Sends a response with the given value.
+
+        Parameters:
+            value (any): The value to be sent in the response message.
+        """
+        self.send({
+            "meta": {
+                "parent_id": self.current_message()["meta"]["id"]
+            },
+            "to": self.current_message()['from'],
+            "action": {
+                "name": _RESPONSE_ACTION_NAME,
+                "args": {
+                    "value": value,
+                }
+            }
+        })
+
+    def raise_with(self, error: Exception):
+        """
+        Sends an error response.
+
+        Args:
+            error (Exception): The error to send.
+        """
+        self.send({
+            "meta": {
+                "parent_id": self.current_message()["meta"]["id"],
+            },
+            "to": self.current_message()['from'],
+            "action": {
+                "name": _ERROR_ACTION_NAME,
+                "args": {
+                    "error": f"{error.__class__.__name__}: {error}"
+                }
+            }
+        })
 
     def _receive(self, message: dict):
         """
@@ -285,97 +310,81 @@ class Agent():
         Args:
             message: The incoming message
         """
-        # Ignore own broadcasts if _receive_own_broadcasts is false
-        if not self._receive_own_broadcasts \
-           and message['from'] == self.id() \
-           and message['to'] == '*':
-            return
+        try:
+            # Ignore own broadcasts if _receive_own_broadcasts is false
+            if not self._receive_own_broadcasts \
+                    and message['from'] == self.id() \
+                    and message['to'] == '*':
+                return
 
-        log("debug", f"{self.id()} received message", message)
+            log("debug", f"{self.id()}: received message", message)
 
-        # Record the received message before handling
-        with self._message_log_lock:
-            self._message_log.append(message)
+            # Record the received message before handling
+            with self._message_log_lock:
+                self._message_log.append(message)
 
-        # Handle incoming responses
-        if message["action"]["name"] == _RESPONSE_ACTION_NAME:
-            parent_id = message["meta"]["parent_id"]
-            if parent_id in self._pending_requests.keys():
-                # This was a response to a request()
-                self._pending_requests[parent_id] = message
-                # From here the request() method will pick up the response in
-                # the existing thread
-            else:
-                # This was a response to a send()
-                if "value" in message["action"]["args"]:
-                    handler_callback = self.handle_action_value
-                    arg = message["action"]["args"]["value"]
-                elif "error" in message["action"]["args"]:
-                    handler_callback = self.handle_action_error
-                    arg = ActionError(message["action"]["args"]["error"])
+            # Handle incoming responses
+            # TODO: make serial/fan-out optional
+            if message["action"]["name"] in [_RESPONSE_ACTION_NAME, _ERROR_ACTION_NAME]:
+                parent_id = message["meta"]["parent_id"]
+                if parent_id in self._pending_requests.keys():
+                    # This was a response to a request(). We use a little trick
+                    # here and simply swap out the event that is waiting with
+                    # the message, then set the event. The request() method will
+                    # pick up the response message in the existing thread.
+                    event = self._pending_requests[parent_id]
+                    self._pending_requests[parent_id] = message
+                    event.set()
                 else:
-                    raise RuntimeError("Unknown action response")
+                    # This was a response to a send()
+                    if message["action"]["name"] == _RESPONSE_ACTION_NAME:
+                        handler_callback = self.handle_action_value
+                        arg = message["action"]["args"]["value"]
+                    elif message["action"]["name"] == _ERROR_ACTION_NAME:
+                        handler_callback = self.handle_action_error
+                        arg = ActionError(message["action"]["args"]["error"])
+                    else:
+                        raise RuntimeError("Unknown action response")
 
-                # Spawn a thread to handle the response
-                def __process_response(arg, current_message):
-                    log("debug", f"{self.id()} processing response", message)
-                    self.__thread_local_current_message.value = current_message
-                    handler_callback(arg)
+                    # Spawn a thread to handle the response
+                    def __process_response(arg, current_message):
+                        self.__thread_local_current_message.value = current_message
+                        handler_callback(arg)
 
+                    threading.Thread(
+                        target=__process_response,
+                        args=(arg, message, ),
+                        daemon=True,
+                        name=f"{self.id()} response handler {message['meta']['id']}",
+                    ).start()
+
+            # Handle all other messages
+            else:
+                # Spawn a thread to process the message. This means that messages
+                # are processed concurrently, but may be processed out of order.
                 threading.Thread(
-                    target=__process_response,
-                    args=(arg, message, ),
+                    target=self.__process,
+                    args=(message,),
                     daemon=True,
+                    name=f"{self.id()} message handler {message['meta']['id']}",
                 ).start()
-
-        # Handle all other messages
-        else:
-            # Spawn a thread to process the message. This means that messages
-            # are processed concurrently, but may be processed out of order.
-            threading.Thread(
-                target=self.__process, args=(message,), daemon=True).start()
+        except Exception as e:
+            log("error", f"{self.id()}: raised exception in _receive", e)
 
     def __process(self, message: dict):
         """
         Top level method within the action processing thread.
         """
         self.__thread_local_current_message.value = message
-        message_id = message["meta"]["id"]
         try:
-            # Commit the action
-            log("debug", f"{self.id()} committing action", message)
-            return_value = self.__commit(message)
-
-            # Send the return value
-            self.send({
-                "meta": {
-                    "parent_id": message_id
-                },
-                "to": message['from'],
-                "action": {
-                    "name": _RESPONSE_ACTION_NAME,
-                    "args": {
-                        "value": return_value,
-                    }
-                }
-            })
+            log("debug", f"{self.id()}: committing action", message)
+            self.__commit(message)
         except Exception as e:
             # Handle errors (including PermissionError) that occur while
             # committing an action by reporting back to the sender.
             log("warning",
-                f"{self.id()} exception while committing action '{message['action']['name']}'", e)
-            self.send({
-                "meta": {
-                    "parent_id": message_id
-                },
-                "to": message['from'],
-                "action": {
-                    "name": _RESPONSE_ACTION_NAME,
-                    "args": {
-                        "error": f"{e.__class__.__name__}: {e}"
-                    }
-                }
-            })
+                f"{self.id()}: raised exception while committing action '{message['action']['name']}'", e)
+            self.raise_with(e)
 
     def __commit(self, message: dict):
         """
@@ -466,7 +475,7 @@ class Agent():
 
     def current_message(self) -> Message:
         """
-        Returns the full incoming message which invokes the current action.
+        Returns the full incoming message which invoked the current action.
 
         This method may be called within an action or action related callback to
         retrieve the current message, for example to determine the sender or
@@ -480,6 +489,9 @@ class Agent():
     def parent_message(self, message: Message = None) -> Message:
         """
         Returns the message that the given message is responding to, if any.
+
+        This method may be used within the handle_action_value and
+        handle_action_error callbacks.
 
         Args:
             message: The message to get the parent message of. Defaults to the
@@ -508,7 +520,7 @@ class Agent():
         Returns:
             A dictionary of actions
         """
-        special_actions = ["help", _RESPONSE_ACTION_NAME]
+        special_actions = ["help", _RESPONSE_ACTION_NAME, _ERROR_ACTION_NAME]
         help_list = {
             method.action_properties["name"]: method.action_properties["help"]
             for method in self.__action_methods().values()
@@ -516,7 +528,7 @@ class Agent():
             and method.action_properties["name"] not in special_actions
             or method.action_properties["name"] == action_name
         }
-        return help_list
+        self.respond_with(help_list)
 
     def handle_action_value(self, value):
         """

@@ -1,8 +1,10 @@
-from agency.agent import (ACCESS_DENIED, ACCESS_REQUESTED, action)
-from tests.helpers import ObservableAgent, add_agent, assert_message_log
+import pytest
+from agency.agent import (ACCESS_DENIED, ACCESS_REQUESTED, Agent, action)
+from agency.space import Space
+from tests.helpers import assert_message_log
 
 
-class _SendUnpermittedActionAgent(ObservableAgent):
+class _SendUnpermittedActionAgent(Agent):
     @action(access_policy=ACCESS_DENIED)
     def say(self, content: str):
         pass
@@ -11,9 +13,8 @@ class _SendUnpermittedActionAgent(ObservableAgent):
 def test_send_unpermitted_action(any_space):
     """Tests sending an unpermitted action and receiving an error response"""
 
-    senders_log = add_agent(any_space, ObservableAgent, "Sender")
-    receivers_log = add_agent(
-        any_space, _SendUnpermittedActionAgent, "Receiver")
+    sender = any_space.add_foreground(Agent, "Sender")
+    any_space.add(_SendUnpermittedActionAgent, "Receiver")
 
     first_message = {
         "meta": {"id": "123"},
@@ -26,14 +27,15 @@ def test_send_unpermitted_action(any_space):
             }
         }
     }
-    any_space._route(first_message)
-    assert_message_log(senders_log, [
+    sender.send(first_message)
+    assert_message_log(sender._message_log, [
+        first_message,
         {
             "meta": {"parent_id": "123"},
             "from": "Receiver",
             "to": "Sender",
             "action": {
-                "name": "[response]",
+                "name": "[error]",
                 "args": {
                     "error": "PermissionError: \"Receiver.say\" not permitted",
                 }
@@ -42,20 +44,19 @@ def test_send_unpermitted_action(any_space):
     ])
 
 
-class _SendRequestPermittedActionAgent(ObservableAgent):
+class _SendRequestPermittedActionAgent(Agent):
     @action(access_policy=ACCESS_REQUESTED)
     def say(self, content: str):
-        return "42"
+        self.respond_with("42")
 
     def request_permission(self, proposed_message: dict) -> bool:
         return True
 
 
-def test_send_request_permitted_action(any_space):
+def test_send_permitted_action(any_space: Space):
     """Tests sending an action, granting permission, and returning response"""
-    senders_log = add_agent(any_space, ObservableAgent, "Sender")
-    receivers_log = add_agent(
-        any_space, _SendRequestPermittedActionAgent, "Receiver")
+    sender = any_space.add_foreground(Agent, "Sender")
+    any_space.add(_SendRequestPermittedActionAgent, "Receiver")
 
     first_message = {
         "meta": {"id": "123"},
@@ -68,8 +69,9 @@ def test_send_request_permitted_action(any_space):
             }
         }
     }
-    any_space._route(first_message)
-    assert_message_log(senders_log, [
+    sender.send(first_message)
+    assert_message_log(sender._message_log, [
+        first_message,
         {
             "meta": {"parent_id": "123"},
             "from": "Receiver",
@@ -84,7 +86,7 @@ def test_send_request_permitted_action(any_space):
     ])
 
 
-class _SendRequestReceivedActionAgent(ObservableAgent):
+class _SendRequestReceivedActionAgent(Agent):
     @action(access_policy=ACCESS_REQUESTED)
     def say(self, content: str):
         return "42"
@@ -93,12 +95,11 @@ class _SendRequestReceivedActionAgent(ObservableAgent):
         return False
 
 
-def test_send_request_rejected_action(any_space):
+def test_send_rejected_action(any_space):
     """Tests sending an action, rejecting permission, and returning error"""
 
-    senders_log = add_agent(any_space, ObservableAgent, "Sender")
-    receivers_log = add_agent(
-        any_space, _SendRequestReceivedActionAgent, "Receiver")
+    sender = any_space.add_foreground(Agent, "Sender")
+    any_space.add(_SendRequestReceivedActionAgent, "Receiver")
 
     first_message = {
         "meta": {"id": "123"},
@@ -111,14 +112,15 @@ def test_send_request_rejected_action(any_space):
             }
         }
     }
-    any_space._route(first_message)
-    assert_message_log(senders_log, [
+    sender.send(first_message)
+    assert_message_log(sender._message_log, [
+        first_message,
         {
             "meta": {"parent_id": "123"},
             "from": "Receiver",
             "to": "Sender",
             "action": {
-                "name": "[response]",
+                "name": "[error]",
                 "args": {
                     "error": "PermissionError: \"Receiver.say\" not permitted",
                 }

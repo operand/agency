@@ -4,7 +4,7 @@ import os
 import traceback
 
 import colorlog
-from colorlog import escape_codes
+from colorlog.escape_codes import escape_codes
 from pygments import highlight
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import get_lexer_by_name
@@ -26,11 +26,11 @@ _LOG_PYGMENTS_STYLE = os.environ.get('LOG_PYGMENTS_STYLE', 'monokai')
 
 class CustomColoredFormatter(colorlog.ColoredFormatter):
     def format(self, record):
-        record.reset_color = escape_codes.escape_codes['reset']
-        record.asctime_color = escape_codes.escape_codes['light_black']
-        record.levelname_color = escape_codes.escape_codes[self.log_colors[record.levelname]]
-        record.message_color = escape_codes.escape_codes['reset']
-        record.object_color = escape_codes.escape_codes['reset']
+        record.reset_color = escape_codes['reset']
+        record.asctime_color = escape_codes['light_black']
+        record.levelname_color = escape_codes[self.log_colors[record.levelname]]
+        record.message_color = escape_codes['reset']
+        record.object_color = escape_codes['reset']
 
         return super().format(record)
 
