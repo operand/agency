@@ -160,24 +160,6 @@ The following is a screenshot of the Gradio UI that demonstrates the example
 
 # FAQ
 
-## What is Agency?
-
-Agency is driven by a vision of the future where intelligent agents are
-ubiquitous, powerful, and _free_. A future where agents work for us and have the
-freedom to act upon systems as they see fit. In this vision, human driven
-software takes a backseat to AI driven software. Why implement an interface when
-an agent can build it for you as needed?
-
-By providing a minimal messaging-based foundation that is usable not only by
-humans but _by the agents themselves_, we create a common base environment that
-allows AI developers to observe, train, and work with their agents
-hand-in-artificial-hand.
-
-This project seeks to enable others to experiment and create agent-based systems
-of their own. I hope it helps you explore this exciting new technology, and I
-hope that you use it to help others.
-
-
 ## How does Agency compare to other agent frameworks?
 
 Though you could entirely create a simple agent using only the primitives in
