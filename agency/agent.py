@@ -350,7 +350,7 @@ class Agent():
                     # Spawn a thread to handle the response
                     def __process_response(arg, current_message):
                         threading.current_thread(
-                        ).name = f"{self.id()} response handler {current_message['meta']['id']}"
+                        ).name = f"{self.id()}: __process_response {current_message['meta']['id']}"
                         self.__thread_local_current_message.value = current_message
                         handler_callback(arg)
 
@@ -376,7 +376,7 @@ class Agent():
         Top level method within the action processing thread.
         """
         threading.current_thread(
-        ).name = f"{self.id()} __process thread {message['meta']['id']}"
+        ).name = f"{self.id()}: __process {message['meta']['id']}"
         self.__thread_local_current_message.value = message
         try:
             log("debug", f"{self.id()}: committing action", message)
