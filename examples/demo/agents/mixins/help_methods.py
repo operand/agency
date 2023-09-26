@@ -35,6 +35,18 @@ class HelpMethods():
                 "name": "help",
             }
         })
+        self.send({
+            "meta": {
+                "parent_id": "help_request",
+            },
+            "to": "*",
+            "action": {
+                "name": "[response]",
+                "args": {
+                    "value": self._help(),
+                }
+            }
+        })
 
     def handle_action_value(self, value):
         current_message = self.current_message()

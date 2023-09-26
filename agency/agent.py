@@ -520,6 +520,12 @@ class Agent():
         Returns:
             A dictionary of actions
         """
+        self.respond_with(self._help(action_name))
+
+    def _help(self, action_name: str = None) -> dict:
+        """
+        Generates the help information returned by the help() action
+        """
         special_actions = ["help", _RESPONSE_ACTION_NAME, _ERROR_ACTION_NAME]
         help_list = {
             method.action_properties["name"]: method.action_properties["help"]
@@ -528,7 +534,7 @@ class Agent():
             and method.action_properties["name"] not in special_actions
             or method.action_properties["name"] == action_name
         }
-        self.respond_with(help_list)
+        return help_list
 
     def handle_action_value(self, value):
         """
