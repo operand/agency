@@ -24,9 +24,9 @@ you.
 * AMQP support for networked agent systems
 
 ### Observability and Control
-* Action and lifecycle callbacks for observability or other needs
-* Access policies and permission callbacks for access control
-* Logging with support for `LOGLEVEL` environment variable
+* Action and lifecycle callbacks
+* Access policies and permission callbacks
+* Detailed logging
 
 ### Multi-language Support
 * [_Javascript client in progress_](https://github.com/operand/agency/issues/136)
