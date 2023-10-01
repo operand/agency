@@ -28,18 +28,12 @@ you.
 * Access policies and permission callbacks
 * Detailed logging
 
-### Multi-language Support
-* [_Javascript client in progress_](https://github.com/operand/agency/issues/136)
-
-### Multimodal/Multimedia support
-* [_Planned_](https://github.com/operand/agency/issues/26)
-
 ### Demo application available at [`examples/demo`](./examples/demo/)
 * Multiple agent examples for experimentation
   * Two OpenAI agent examples
   * HuggingFace transformers agent example
   * Operating system access
-* Includes Gradio UI (_An updated React UI is in progress. See [here](https://github.com/operand/agency/issues/136)._)
+* Includes Gradio UI
 * Docker configuration for reference and development
 
 
@@ -169,46 +163,13 @@ example, it does not include support for constructing prompts or working with
 vector databases. Implementation of agent behavior is left entirely up to you,
 and you are free to use other libraries as needed for those purposes.
 
-Agency focuses on the lower level concerns of communication, observation,
-scalability, and security. The library strives to provide the operating
+Agency focuses on the concerns of communication, observation,
+and scalability. The library strives to provide the operating
 foundations of an agent system without imposing additional structure on you.
 
 The goal is to allow you to experiment and discover the right approaches and
 technologies that work for your application. And once you've found an
 implementation that works, you can scale it out to your needs.
-
-
-## What are some known limitations or issues?
-
-* Agency is still in early development.
-
-  Like many projects in the AI agent space it is somewhat experimental at this time,
-  with the goal of finding and providing a minimal yet useful foundation for building
-  agent systems.
-
-  Expect changes to the API over time as features are added or changed. The
-  library follows semver versioning starting at 1.x.x. Minor version updates may
-  contain breaking API changes. Patch versions should not.
-
-* This API does not assume or enforce predefined roles like "user", "system",
-  "assistant", etc. This is an intentional decision and is not likely to change.
-
-  Agency is intended to allow potentially large numbers of agents, systems, and
-  people to come together. A small predefined set of roles gets in the way of
-  representing many things generally. This is a design feature of Agency: that
-  all entities are represented similarly and may be interacted with through
-  common means.
-
-  The lack of roles may require extra work when integrating with role based
-  APIs. See the implementation of
-  [`OpenAIFunctionAgent`](./examples/demo/agents/openai_function_agent.py) for
-  an example.
-
-* There is currently not much by way of storage support. That is mostly left up
-  to you and I'd suggest looking at the many technologies that focus on that.
-  The `Agent` class implements a simple `_message_log` array which you can make
-  use of or overwrite to back it with longer term storage. More direct support
-  for storage APIs will likely be considered in the future.
 
 
 # Contributing
