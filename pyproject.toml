@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "agency"
-version = "1.6.1"
+version = "1.6.2"
 description = "A fast and minimal framework for building agent-integrated systems"
 authors = ["Daniel Rodriguez"]
 license = "GPL-3.0"
