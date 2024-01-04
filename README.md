@@ -152,25 +152,6 @@ The following is a screenshot of the Gradio UI that demonstrates the example
 </p>
 
 
-# FAQ
-
-## How does Agency compare to other agent frameworks?
-
-Though you could entirely create a simple agent using only the primitives in
-Agency (see [`examples/demo/agents/`](./examples/demo/agents/)), it is not
-intended to be an all-inclusive LLM-oriented toolset like other libraries. For
-example, it does not include support for constructing prompts or working with
-vector databases. Implementation of agent behavior is left entirely up to you,
-and you are free to use other libraries as needed for those purposes.
-
-Agency focuses on the concerns of communication, observation,
-and scalability. The library strives to provide the operating
-foundations of an agent system without imposing additional structure on you.
-
-The goal is to allow you to experiment and discover the right approaches and
-technologies that work for your application. And once you've found an
-implementation that works, you can scale it out to your needs.
-
 
 # Contributing
 
