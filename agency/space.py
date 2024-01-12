@@ -1,99 +1,63 @@
-import threading
-from abc import ABC, ABCMeta, abstractmethod
-from concurrent.futures import Executor
-from typing import Dict, List, Type
+import asyncio
+from typing import Coroutine, Dict, List
 
-from agency.agent import Agent
-from agency.logger import log
-from agency.processor import Processor, _EventProtocol
-from agency.queue import Queue
-from agency.resources import ResourceManager
+from app.agency.agent import Agent
+from app.agency.processor import Processor
+from app.logger import log
+from app.agency.schema import ActionHelp, MessageModel
 
 
-class Space(ABC, metaclass=ABCMeta):
+class Space():
     """
     A Space is where Agents communicate.
     """
 
     def __init__(self):
+        log("debug", "Initializing Space...")
         self.processors: Dict[str, Processor] = {}
-        self._processors_lock: threading.Lock = threading.Lock()
+        self._processors_lock: asyncio.Lock = asyncio.Lock()
+        self._stop_router_event: asyncio.Event = asyncio.Event()
+        self._outbound_message_event: asyncio.Event = asyncio.Event()
+        self._router_coroutine: Coroutine = asyncio.create_task(
+            self._start_router_task())
+        self._all_help: Dict[str, List[ActionHelp]] = {}
+        """Maps agent id to list of action help."""
 
-    def __enter__(self):
+    async def __enter__(self):
         log("debug", "Entering Space context")
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    async def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type is not None:
             log("debug", "Exiting Space context with exception", {
                 "exc_type": exc_type,
                 "exc_val": exc_val,
                 "exc_tb": exc_tb,
             })
-        self.destroy()
+        await self.destroy()
 
-    def add(self,
-            agent_type: Type[Agent],
-            agent_id: str,
-            *agent_args,
-            **agent_kwargs):
+    async def add(self, agent: Agent):
         """
-        Adds an agent to the space allowing it to communicate.
-
-        This method adds the agent in a subprocess. The agent may not be
-        directly accessed from the main thread.
+        Adds an agent to the Space allowing it to communicate.
 
         Args:
-            agent_type: The type of agent to add
-            agent_id: The id of the agent to add
-
-            All other arguments are passed to the Agent constructor
+            agent: The agent to add
 
         Raises:
             ValueError: If the agent ID is already in use
         """
-        self._add(foreground=False,
-                  agent_type=agent_type,
-                  agent_id=agent_id,
-                  *agent_args,
-                  **agent_kwargs)
+        try:
+            log("info", f"{agent.id}: joining space")
+            agent._all_help = self._all_help  # set reference in agent
+            await self._start_processor(agent=agent)
+            self._all_help[agent.id] = agent._help()
+            log("info", f"{agent.id}: added to space")
+        except:
+            # clean up if an error occurs
+            self.remove(agent.id)
+            raise
 
-    def add_foreground(self,
-                       agent_type: Type[Agent],
-                       agent_id: str,
-                       *agent_args,
-                       **agent_kwargs) -> Agent:
-        """
-        Adds an agent to the space and returns it in the current thread.
-
-        This method adds an agent using threading. The agent instance is
-        returned allowing direct access.
-
-        It is recommended to use the `add` method instead of this method in most
-        cases. Agents added this way may block other agents or threads in the
-        main process. Use this method when direct access to the agent instance
-        is desired.
-
-        Args:
-            agent_type: The type of agent to add
-            agent_id: The id of the agent to add
-
-            All other arguments are passed to the Agent constructor
-
-        Returns:
-            The agent
-
-        Raises:
-            ValueError: If the agent ID is already in use
-        """
-        agent = self._add(foreground=True,
-                          agent_type=agent_type,
-                          agent_id=agent_id,
-                          *agent_args,
-                          **agent_kwargs)
-        return agent
-
-    def remove(self, agent_id: str):
+    async def remove(self, agent_id: str):
         """
         Removes an agent from the space by id.
 
@@ -107,104 +71,91 @@ class Space(ABC, metaclass=ABCMeta):
         Raises:
             ValueError: If the agent is not present in the space
         """
-        self._stop_processor(agent_id)
+        self._all_help.pop(agent_id)
+        await self._stop_processor(agent_id)
         log("info", f"{agent_id}: removed from space")
 
-    def destroy(self):
+    async def destroy(self):
         """
         Cleans up resources used by this space.
 
         Subclasses should call super().destroy() when overriding.
         """
-        self._stop_all_processors()
+        await self._stop_router_task()
+        await self._stop_all_processors()
 
-    def _add(self,
-             foreground: bool,
-             agent_type: Type[Agent],
-             agent_id: str,
-             *agent_args,
-             **agent_kwargs) -> Agent:
-
-        try:
-            agent = self._start_processor(
-                foreground=foreground,
-                agent_type=agent_type,
-                agent_id=agent_id,
-                agent_args=agent_args,
-                agent_kwargs=agent_kwargs,
-            )
-            log("info", f"{agent_id}: added to space")
-            return agent
-        except:
-            # clean up if an error occurs
-            self.remove(agent_id)
-            raise
-
-    def _start_processor(self,
-                         foreground: bool,
-                         agent_type: Type[Agent],
-                         agent_id: str,
-                         agent_args: List,
-                         agent_kwargs: Dict):
-        with self._processors_lock:
+    async def _start_processor(self, agent: Agent):
+        async with self._processors_lock:
             # Early existence check. Processor.start() will also check. This is
             # because Spaces may be distributed.
-            if agent_id in self.processors.keys():
-                raise ValueError(f"Agent '{agent_id}' already exists")
+            if agent.id in self.processors.keys():
+                raise ValueError(f"Agent '{agent.id}' already exists")
 
-            self.processors[agent_id] = Processor(
-                agent_type=agent_type,
-                agent_id=agent_id,
-                agent_args=agent_args,
-                agent_kwargs=agent_kwargs,
-                inbound_queue=self._create_inbound_queue(agent_id),
-                outbound_queue=self._create_outbound_queue(agent_id),
-                started=self._define_event(foreground=foreground),
-                stopping=self._define_event(foreground=foreground),
-                new_message_event=self._define_event(foreground=foreground),
-                executor=self._get_executor(foreground=foreground),
+            self.processors[agent.id] = Processor(
+                agent=agent,
+                inbound_queue=asyncio.Queue(),
+                outbound_queue=asyncio.Queue(),
+                started=asyncio.Event(),
+                stopping=asyncio.Event(),
+                new_message_event=asyncio.Event(),
             )
-            return self.processors[agent_id].start()
+            await self.processors[agent.id].start()
 
-    def _stop_processor_unsafe(self, agent_id: str):
-        self.processors[agent_id].stop()
+    async def _stop_processor_unsafe(self, agent_id: str):
+        await self.processors[agent_id].stop()
         self.processors.pop(agent_id)
 
-    def _stop_processor(self, agent_id: str):
-        with self._processors_lock:
+    async def _stop_processor(self, agent_id: str):
+        async with self._processors_lock:
             self._stop_processor_unsafe(agent_id)
 
-    def _stop_all_processors(self):
+    async def _stop_all_processors(self):
         for agent_id in list(self.processors.keys()):
             try:
-                with self._processors_lock:
-                    self._stop_processor_unsafe(agent_id)
+                async with self._processors_lock:
+                    await self._stop_processor_unsafe(agent_id)
             except Exception as e:
                 log("error",
                     f"{agent_id}: processor failed to stop", e)
 
-    def _get_executor(self, foreground: bool = False) -> Executor:
-        if foreground:
-            return ResourceManager().thread_pool_executor
-        else:
-            return ResourceManager().process_pool_executor
+    async def _start_router_task(self) -> Coroutine:
+        async def _router_task():
+            """Routes outbound messages"""
+            log("debug", "Space: router task starting")
+            while not self._stop_router_event.is_set():
+                # wait a bit for any outbound messages
+                try:
+                    await asyncio.wait_for(
+                        self._outbound_message_event.wait(), timeout=1)
+                except asyncio.TimeoutError:
+                    pass
+                if self._stop_router_event.is_set():
+                    log("debug", "Space: router task stopping")
+                    break
+                self._outbound_message_event.clear()
+                # drain each outbound queue
+                processors = list(self.processors.values())
+                for processor in processors:
+                    outbound_queue = processor.outbound_queue
+                    while True:
+                        try:
+                            message: MessageModel = outbound_queue.get_nowait()
+                            recipient_processors = [
+                                processor for processor in processors
+                                if message.to == processor.agent.id
+                            ]
+                            for recipient_processor in recipient_processors:
+                                log("debug",
+                                    f"Space: routing message to '{recipient_processor.agent.id}'", message.uuid)
+                                await recipient_processor.inbound_queue.put(message)
+                        except asyncio.queues.QueueEmpty:
+                            break
+            log("debug", "Space: router task stopped")
 
-    def _define_event(self, foreground: bool = False) -> _EventProtocol:
-        if foreground:
-            return threading.Event()
-        else:
-            return ResourceManager().multiprocessing_manager.Event()
+        # start the router async task
+        return asyncio.create_task(_router_task())
 
-    @abstractmethod
-    def _create_inbound_queue(self, agent_id) -> Queue:
-        """
-        Returns a Queue suitable for receiving messages
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def _create_outbound_queue(self, agent_id) -> Queue:
-        """
-        Returns a Queue suitable for sending messages
-        """
-        raise NotImplementedError
+    async def _stop_router_task(self):
+        log("debug", "Space: stopping router task ...")
+        self._stop_router_event.set()
+        await self._router_coroutine

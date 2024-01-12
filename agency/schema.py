@@ -1,62 +1,98 @@
 from typing import Dict, Optional
+from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
 
-class Meta(BaseModel):
-    """A dictionary field for storing metadata about the message"""
-
-    class Config:
-        extra = "allow"
-        validate_assignment = True
-
-    id: str = Field(
-        ...,
-        description="The id of the message."
-    )
-
-    parent_id: Optional[str] = Field(
-        None,
-        description="The id of the previous message that generated this message."
-    )
-
-
-class Action(BaseModel):
-    """Schema for an action"""
+class Model(BaseModel):
+    """
+    Base for all models. Inherits from pydantic.BaseModel.
+    """
 
     class Config:
         extra = "forbid"
         validate_assignment = True
+        populate_by_name = True
+
+
+class Action(Model):
+    """Schema for an action"""
 
     name: str = Field(
         ...,
-        description="The name of the action."
-    )
+        description="The name of the action.")
 
     args: Optional[Dict] = Field(
         None,
-        description="The arguments for the action."
-    )
+        description="The arguments for the action.")
+
+    def to_markdown(self):
+        return self.name
 
 
-class Message(BaseModel):
-    """The full message schema used for communication"""
+class VarHelp(Model):
+    type: str = Field(
+        ...,
+        description="The type.")
 
-    class Config:
-        extra = "forbid"
-        validate_assignment = True
+    description: str = Field(
+        None,
+        description="The description.")
 
-    meta: Meta
+
+class ActionHelp(Model):
+    """Schema for an action help"""
+
+    name: str = Field(
+        ...,
+        description="The name of the action.")
+
+    description: str = Field(
+        None,
+        description="The description of the action.")
+
+    args: Optional[Dict[str, VarHelp]] = Field(
+        None,
+        description="The arguments for the action.")
+
+    returns: Optional[VarHelp] = Field(
+        None,
+        description="The return values for the action.")
+
+
+class MessageModel(Model):
+    """
+    The full message schema used for communication between agents.
+    """
+
+    uuid: str = Field(
+        default_factory=lambda: str(uuid4()),
+        min_length=36,
+        max_length=36,
+        pattern="^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        description="The UUID of the message.")
+
+    parent_uuid: Optional[str] = Field(
+        None,
+        min_length=36,
+        max_length=36,
+        pattern="^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        description="The UUID of the message that this message responds to.")
+
+    meta: Dict = {}
+    """
+    An optional dictionary field for storing metadata about the message.
+    """
 
     from_: str = Field(
         ...,
-        alias="from",
-        description="The id of the sender."
-    )
+        alias='from',
+        description='The id of the sender.')
 
     to: str = Field(
         ...,
-        description="The intended recipient of the message. If set to `*`, the message is broadcast."
-    )
+        description='The intended recipient of the message.')
 
-    action: Action
+    action: Action = Field(
+        ...,
+        description='The action to perform')
