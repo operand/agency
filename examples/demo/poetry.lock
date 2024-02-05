@@ -610,22 +610,24 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "fastapi"
-version = "0.103.0"
+version = "0.1.17"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.6"
 files = [
-    {file = "fastapi-0.103.0-py3-none-any.whl", hash = "sha256:61ab72c6c281205dd0cbaccf503e829a37e0be108d965ac223779a8479243665"},
-    {file = "fastapi-0.103.0.tar.gz", hash = "sha256:4166732f5ddf61c33e9fa4664f73780872511e0598d4d5434b1816dc1e6d9421"},
+    {file = "fastapi-0.1.17-py3-none-any.whl", hash = "sha256:a6aaad2f60684477480ac9d7a1c95e67f4696a722f184db467494bfdd5b8f29d"},
+    {file = "fastapi-0.1.17.tar.gz", hash = "sha256:a9a9b6cc32c38bab27a6549b94c44a30c70b485bc789d03de3aa8725f3394be5"},
 ]
 
 [package.dependencies]
-pydantic = ">=1.7.4,<1.8 || >1.8,<1.8.1 || >1.8.1,<2.0.0 || >2.0.0,<2.0.1 || >2.0.1,<2.1.0 || >2.1.0,<3.0.0"
-starlette = ">=0.27.0,<0.28.0"
-typing-extensions = ">=4.5.0"
+pydantic = ">=0.17"
+starlette = ">=0.9.7"
 
 [package.extras]
-all = ["email-validator (>=2.0.0)", "httpx (>=0.23.0)", "itsdangerous (>=1.1.0)", "jinja2 (>=2.11.2)", "orjson (>=3.2.1)", "pydantic-extra-types (>=2.0.0)", "pydantic-settings (>=2.0.0)", "python-multipart (>=0.0.5)", "pyyaml (>=5.3.1)", "ujson (>=4.0.1,!=4.0.2,!=4.1.0,!=4.2.0,!=4.3.0,!=5.0.0,!=5.1.0)", "uvicorn[standard] (>=0.12.0)"]
+all = ["aiofiles", "email_validator", "graphene", "itsdangerous", "jinja2", "python-multipart", "pyyaml", "requests", "ujson", "ujson", "uvicorn"]
+dev = ["passlib[bcrypt]", "pyjwt"]
+doc = ["markdown-include", "mkdocs", "mkdocs-material"]
+test = ["black", "email_validator", "isort", "mypy", "pytest (>=4.0.0)", "pytest-cov", "requests"]
 
 [[package]]
 name = "ffmpy"
@@ -2663,13 +2665,13 @@ files = [
 
 [[package]]
 name = "starlette"
-version = "0.27.0"
+version = "0.36.2"
 description = "The little ASGI library that shines."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "starlette-0.27.0-py3-none-any.whl", hash = "sha256:918416370e846586541235ccd38a474c08b80443ed31c578a418e2209b3eef91"},
-    {file = "starlette-0.27.0.tar.gz", hash = "sha256:6a6b0d042acb8d469a01eba54e9cda6cbd24ac602c4cd016723117d6a7e73b75"},
+    {file = "starlette-0.36.2-py3-none-any.whl", hash = "sha256:e53e086e620ba715f0c187daca92927b722484d148e70921f0de075936119536"},
+    {file = "starlette-0.36.2.tar.gz", hash = "sha256:4134757b950f027c8f16028ec81787751bb44145df17c8b0fa84087b9851b42d"},
 ]
 
 [package.dependencies]
@@ -2677,7 +2679,7 @@ anyio = ">=3.4.0,<5"
 typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
-full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyaml"]
+full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.7)", "pyyaml"]
 
 [[package]]
 name = "sympy"
