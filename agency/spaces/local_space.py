@@ -31,10 +31,10 @@ class LocalSpace(Space):
     A LocalSpace allows Agents to communicate within the python application
     """
 
-    def __init__(self):
+    def __init__(self, max_workers=None):
         super().__init__()
         self._stop_router_event: threading.Event = threading.Event()
-        self._outbound_message_event: multiprocessing.Event = ResourceManager(
+        self._outbound_message_event: multiprocessing.Event = ResourceManager(max_workers
         ).multiprocessing_manager.Event()
         self._router_future: Future = self._start_router_thread()
 
