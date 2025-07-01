@@ -10,7 +10,7 @@ python = "^3.9"
 python-dotenv = "^1.0.0"
 agency = {path = "../..", develop = true}
 transformers = "^4.36"
-torch = "^2.0"
+torch = "^2.2"
 Flask-SocketIO = "^5.3"
 openai = "^0.27.8"
 eventlet = "^0.35.2"
