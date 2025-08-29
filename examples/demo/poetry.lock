@@ -631,14 +631,14 @@ files = [
 
 [[package]]
 name = "eventlet"
-version = "0.35.2"
+version = "0.40.3"
 description = "Highly concurrent networking library"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "eventlet-0.35.2-py3-none-any.whl", hash = "sha256:8fc1ee60d583f1dd58d6f304bb95fd46d34865ab22f57cb99008a81d61d573db"},
-    {file = "eventlet-0.35.2.tar.gz", hash = "sha256:8d1263e20b7f816a046ac60e1d272f9e5bc503f7a34d9adc789f8a85b14fa57d"},
+    {file = "eventlet-0.40.3-py3-none-any.whl", hash = "sha256:e681cae6ee956cfb066a966b5c0541e734cc14879bda6058024104790595ac9d"},
+    {file = "eventlet-0.40.3.tar.gz", hash = "sha256:290852db0065d78cec17a821b78c8a51cafb820a792796a354592ae4d5fceeb0"},
 ]
 
 [package.dependencies]
@@ -3693,4 +3693,4 @@ test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more-it
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "f61ebe4dc4a3f1ed97330894b29881e484b4f406702c0bc8fa3953a71692358c"
+content-hash = "607fac6918b0344bafbc85c14922eaad75e2307cabfaf6385fec5e2f6a162e86"

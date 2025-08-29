@@ -13,7 +13,7 @@ transformers = "^4.53"
 torch = "^2.2"
 Flask-SocketIO = "^5.3"
 openai = "^0.27.8"
-eventlet = "^0.35.2"
+eventlet = "^0.40.3"
 gradio = "^4.19.2"
 colorama = "^0.4.6"
 
