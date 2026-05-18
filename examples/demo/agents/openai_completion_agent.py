@@ -73,5 +73,7 @@ class OpenAICompletionAgent(HelpMethods, SayResponseMethods, PromptMethods, Agen
           max_tokens=500,
         )
         # parse the output
+        if not completion.choices:
+            raise ValueError("LLM returned empty choices list")
         action = util.extract_json(completion.choices[0].text, ["/END"])
         self.send(action)
